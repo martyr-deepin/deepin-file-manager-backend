@@ -1,10 +1,11 @@
 package delegator
 
 import (
-	"deepin-file-manager/operations"
+	"fmt"
 	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
-	"sync/atomic"
+	"pkg.linuxdeepin.com/lib/gio-2.0"
+	"pkg.linuxdeepin.com/lib/operations"
 )
 
 var (
@@ -19,7 +20,7 @@ type CopyJob struct {
 	uris []*url.URL
 	op   *operations.CopyMoveJob
 
-	Done            func()
+	Done            func(string)
 	ProcessedAmount func(uint64, uint16)
 	Copying         func(string)
 	Aborted         func()
@@ -41,31 +42,37 @@ func (job *CopyJob) listenSignals() {
 		dbus.Emit(job, "ProcessedAmount", amount, uint16(unit))
 	})
 	job.op.ListenCopying(func(srcURL string) {
+		fmt.Println("copying", srcURL)
 		dbus.Emit(job, "Copying", srcURL)
 	})
-	job.op.ListenCreatingDir(func(string) {
-		// TODO: why this signal???
-		// dbus.Emit(job, "CreatingDir", dirURL)
+	job.op.ListenCreatingDir(func(dirURL string) {
+		dbus.Emit(job, "CreatingDir", dirURL)
+	})
+	job.op.ListenCopyingMovingDone(func(srcURL string, destURL string) {
+	})
+	job.op.ListenDone(func(err error) {
+		defer dbus.UnInstallObject(job)
+		errMsg := ""
+		if err != nil {
+			errMsg = err.Error()
+		}
+		dbus.Emit(job, "Done", errMsg)
 	})
 }
 
 // Execute copy job.
 func (job *CopyJob) Execute() {
 	job.listenSignals()
-	go func() {
-		defer dbus.UnInstallObject(job)
-		// TODO
-		// operations.FileUndoManagerInstance().RecordJob(COPY, job.op)
-		job.op.Execute()
-		dbus.Emit(job, "Done")
-	}()
+	// TODO
+	// operations.FileUndoManagerInstance().RecordJob(COPY, job.op)
+	job.op.Execute()
 }
 
 // NewCopyJob creates a new copy job for dbus.
-func NewCopyJob(srcUrls []*url.URL, destDirURL *url.URL, targetName string, uiDelegate IUIDelegate) *CopyJob {
+func NewCopyJob(srcUrls []*url.URL, destDirURL *url.URL, targetName string, flags uint32, uiDelegate IUIDelegate) *CopyJob {
 	job := &CopyJob{
-		dbusInfo: genDBusInfo("CopyJob", atomic.AddUint64(&_CopyJobCount, 1)),
-		op:       operations.NewCopyJob(srcUrls, destDirURL, targetName, uiDelegate),
+		dbusInfo: genDBusInfo("CopyJob", &_CopyJobCount),
+		op:       operations.NewCopyJob(srcUrls, destDirURL, targetName, gio.FileCopyFlags(flags), uiDelegate),
 	}
 	return job
 }
@@ -101,16 +108,20 @@ func (job *MoveJob) listenSignals() {
 	job.op.ListenCreatingDir(func(dirURL string) {
 		// dbus.Emit(job, "CreatingDir", dirURL)
 	})
+	job.op.ListenDone(func(err error) {
+		errMsg := ""
+		if errMsg != "" {
+			errMsg = err.Error()
+		}
+		dbus.Emit(job, "Done", errMsg)
+	})
 }
 
 // Execute move job.
 func (job *MoveJob) Execute() {
 	job.listenSignals()
-	go func() {
-		job.op.Execute()
-		dbus.Emit(job, "Done")
-		dbus.UnInstallObject(job)
-	}()
+	job.op.Execute()
+	dbus.UnInstallObject(job)
 }
 
 // Abort the job.
@@ -120,10 +131,10 @@ func (job *MoveJob) Abort() {
 }
 
 // NewMoveJob creates a new move job for dbus.
-func NewMoveJob(srcUrls []*url.URL, destDirURL *url.URL, targetName string, uiDelegate IUIDelegate) *MoveJob {
+func NewMoveJob(srcUrls []*url.URL, destDirURL *url.URL, targetName string, flags uint32, uiDelegate IUIDelegate) *MoveJob {
 	job := &MoveJob{
-		dbusInfo: genDBusInfo("MoveJob", atomic.AddUint64(&_MoveJobCount, 1)),
-		op:       operations.NewMoveJob(srcUrls, destDirURL, targetName, uiDelegate),
+		dbusInfo: genDBusInfo("MoveJob", &_MoveJobCount),
+		op:       operations.NewMoveJob(srcUrls, destDirURL, targetName, gio.FileCopyFlags(flags), uiDelegate),
 	}
 	return job
 }

@@ -1,10 +1,9 @@
 package delegator
 
 import (
-	"deepin-file-manager/operations"
 	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
-	"sync/atomic"
+	"pkg.linuxdeepin.com/lib/operations"
 )
 
 var (
@@ -40,7 +39,7 @@ func (job *ChownJob) Execute() {
 // NewChownJob creates a new chown job for dbus.
 func NewChownJob(uri *url.URL, newOwner string, newGroup string) *ChownJob {
 	job := &ChownJob{
-		dbusInfo: genDBusInfo("ChownJob", atomic.AddUint64(&_ChownJobCount, 1)),
+		dbusInfo: genDBusInfo("ChownJob", &_ChownJobCount),
 		op:       operations.NewChownJob(uri, newOwner, newGroup),
 	}
 	return job

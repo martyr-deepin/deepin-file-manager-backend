@@ -1,10 +1,9 @@
 package delegator
 
 import (
-	"deepin-file-manager/operations"
 	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
-	"sync/atomic"
+	"pkg.linuxdeepin.com/lib/operations"
 )
 
 var _ = url.Parse
@@ -45,7 +44,7 @@ func (job *RenameJob) Execute() {
 
 func NewRenameJob(fileURL *url.URL, newName string) *RenameJob {
 	job := &RenameJob{
-		dbusInfo: genDBusInfo("RenameJob", atomic.AddUint64(&_RenameJobCount, 1)),
+		dbusInfo: genDBusInfo("RenameJob", &_RenameJobCount),
 		op:       operations.NewRenameJob(fileURL, newName),
 	}
 	return job

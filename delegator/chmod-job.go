@@ -1,10 +1,9 @@
 package delegator
 
 import (
-	"deepin-file-manager/operations"
 	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
-	"sync/atomic"
+	"pkg.linuxdeepin.com/lib/operations"
 )
 
 var (
@@ -39,7 +38,7 @@ func (job *ChmodJob) Execute() {
 // NewChmodJob creates a new ChmodJob for dbus.
 func NewChmodJob(uri *url.URL, permission uint32) *ChmodJob {
 	job := &ChmodJob{
-		dbusInfo: genDBusInfo("ChmodJob", atomic.AddUint64(&_ChmodJobCount, 1)),
+		dbusInfo: genDBusInfo("ChmodJob", &_ChmodJobCount),
 		op:       operations.NewChmodJob(uri, permission),
 	}
 	return job

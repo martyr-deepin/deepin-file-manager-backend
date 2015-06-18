@@ -1,10 +1,9 @@
 package delegator
 
 import (
-	"deepin-file-manager/operations"
 	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
-	"sync/atomic"
+	"pkg.linuxdeepin.com/lib/operations"
 	// "time"
 )
 
@@ -29,16 +28,18 @@ func (job *ListJob) GetDBusInfo() dbus.DBusInfo {
 }
 
 // NewListJob creates a new list job for dbus.
-func NewListJob(path *url.URL, recusive bool, includeHidden bool) *ListJob {
+func NewListJob(path *url.URL, flags operations.ListJobFlag) *ListJob {
 	job := &ListJob{
-		dbusInfo: genDBusInfo("ListJob", atomic.AddUint64(&_ListJobCount, 1)),
-		op:       operations.NewListDirJob(path, recusive, includeHidden),
+		dbusInfo: genDBusInfo("ListJob", &_ListJobCount),
+		op:       operations.NewListDirJob(path, flags),
 	}
 	return job
 }
 
 // Execute list job.
-func (job *ListJob) Execute() {
+func (job *ListJob) Execute() []operations.ListProperty {
+	defer dbus.UnInstallObject(job)
+	var files []operations.ListProperty
 	job.op.ListenProcessedAmount(func(size int64, unit operations.AmountUnit) {
 		dbus.Emit(job, "ProcessedAmount", size, uint16(unit))
 	})
@@ -60,19 +61,19 @@ func (job *ListJob) Execute() {
 			property.CanRename,
 			property.CanTrash,
 			property.CanWrite)
+		files = append(files, property)
 	})
-	go func() {
-		job.op.ListenDone(func(err error) {
-			defer dbus.UnInstallObject(job)
-			errMsg := ""
-			if err != nil {
-				errMsg = err.Error()
-			}
-			// time.Sleep(time.Microsecond * 200)
-			dbus.Emit(job, "Done", errMsg)
-		})
-		job.op.Execute()
-	}()
+	job.op.ListenDone(func(err error) {
+		errMsg := ""
+		if err != nil {
+			errMsg = err.Error()
+		}
+		// time.Sleep(time.Microsecond * 200)
+		dbus.Emit(job, "Done", errMsg)
+	})
+	job.op.Execute()
+
+	return files
 }
 
 // Abort the job.

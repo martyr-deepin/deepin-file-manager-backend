@@ -1,10 +1,9 @@
 package delegator
 
 import (
-	"deepin-file-manager/operations"
 	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
-	"sync/atomic"
+	"pkg.linuxdeepin.com/lib/operations"
 )
 
 var (
@@ -29,10 +28,10 @@ func (job *DeleteJob) GetDBusInfo() dbus.DBusInfo {
 }
 
 // NewDeleteJob creates a new delete job for dbus.
-func NewDeleteJob(urls []*url.URL, shouldConfirmTrash bool, uiDelegate IUIDelegate) *DeleteJob {
+func NewDeleteJob(urls []*url.URL, shouldConfirm bool, uiDelegate IUIDelegate) *DeleteJob {
 	job := &DeleteJob{
-		dbusInfo: genDBusInfo("DeleteJob", atomic.AddUint64(&_DeleteJobCount, 1)),
-		op:       operations.NewDeleteJob(urls, shouldConfirmTrash, uiDelegate),
+		dbusInfo: genDBusInfo("DeleteJob", &_DeleteJobCount),
+		op:       operations.NewDeleteJob(urls, shouldConfirm, uiDelegate),
 	}
 
 	return job
@@ -49,11 +48,9 @@ func (job *DeleteJob) listenSignals() {
 }
 
 func (job *DeleteJob) executeJob() {
-	go func() {
-		defer dbus.UnInstallObject(job)
-		job.op.Execute()
-		dbus.Emit(job, "Done")
-	}()
+	defer dbus.UnInstallObject(job)
+	job.op.Execute()
+	dbus.Emit(job, "Done")
 }
 
 // Execute delete job.

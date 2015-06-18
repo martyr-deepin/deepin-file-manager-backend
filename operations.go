@@ -1,14 +1,18 @@
 package main
 
+// #cgo pkg-config: glib-2.0
+// #include <glib.h>
+import "C"
 import (
 	d "deepin-file-manager/delegator"
-	"deepin-file-manager/operations"
 	"errors"
 	"log"
 	"net/url"
 	"os"
 	"path/filepath"
 	"pkg.linuxdeepin.com/lib/dbus"
+	"pkg.linuxdeepin.com/lib/glib-2.0"
+	"pkg.linuxdeepin.com/lib/operations"
 	"strings"
 	"sync"
 )
@@ -34,50 +38,18 @@ var getConn = (func() func() *dbus.Conn {
 	}
 }())
 
-// ISetting is the interface for setting.
-type ISetting interface {
-	ShouldConfirmTrash() bool
-}
-
-// _DefaultSetting makes sure the setting belongs to OperationBackend
-// won't be nil which makes code simpler.
-type _DefaultSetting struct {
-	shouldConfirmTrash bool
-}
-
-func (s *_DefaultSetting) ShouldConfirmTrash() bool {
-	return s.shouldConfirmTrash
-}
-
-var _defaultSetting = &_DefaultSetting{
-	shouldConfirmTrash: true,
-}
-
 // OperationBackend is the backend to create dbus operations for front end.
 type OperationBackend struct {
-	setting ISetting
 }
 
 // NewOperationBackend creates a new backend for operations.
 func NewOperationBackend() *OperationBackend {
-	op := &OperationBackend{
-		setting: _defaultSetting,
-	}
+	op := &OperationBackend{}
 	return op
 }
 
-func (backend *OperationBackend) setSetting(s ISetting) {
-	if s != nil {
-		backend.setting = s
-	}
-}
-
-func (backend *OperationBackend) shouldConfirmTrash() bool {
-	return backend.setting.ShouldConfirmTrash()
-}
-
 func (*OperationBackend) newUIDelegate(dest string, objPath string, iface string) d.IUIDelegate {
-	uiDelegate, err := operations.NewUIDelegate(getConn(), dest, objPath, iface)
+	uiDelegate, err := d.NewUIDelegate(getConn(), dest, objPath, iface)
 	if err != nil {
 		log.Println(dest, objPath, iface, err)
 	}
@@ -95,23 +67,24 @@ func (*OperationBackend) GetDBusInfo() dbus.DBusInfo {
 
 // Because empty object path is invalid, so JobObjectPath is used as default value.
 // So empty interface means install failed.
-func installJob(job dbus.DBusObject) (dbus.ObjectPath, string) {
+func installJob(job dbus.DBusObject) (string, dbus.ObjectPath, string) {
+	dest := ""
 	objPath := dbus.ObjectPath(d.JobObjectPath)
 	iface := ""
 	if job == nil {
 		log.Println("try to install nil on session bus")
-		return objPath, iface
+		return dest, objPath, iface
 	}
 
 	err := dbus.InstallOnSession(job)
 	if err != nil {
 		log.Println("install dbus on session bus failed", err)
-		return objPath, iface
+		return dest, objPath, iface
 	}
 
 	dbusInfo := job.GetDBusInfo()
 	// log.Println(dbusInfo.ObjectPath, dbusInfo.Interface)
-	return dbus.ObjectPath(dbusInfo.ObjectPath), dbusInfo.Interface
+	return dbusInfo.Dest, dbus.ObjectPath(dbusInfo.ObjectPath), dbusInfo.Interface
 }
 
 // pathToURL transforms a absolute path to URL.
@@ -135,7 +108,7 @@ func pathToURL(path string) (*url.URL, error) {
 // create a new operation from fn and install it to session bus.
 // NB: using closure and anonymous function is ok,
 // but variable-length argument list is much more safer and much more portable.
-func newOperationJob(paths []string, fn func([]*url.URL, ...interface{}) dbus.DBusObject, args ...interface{}) (dbus.ObjectPath, string) {
+func newOperationJob(paths []string, fn func([]*url.URL, ...interface{}) dbus.DBusObject, args ...interface{}) (string, dbus.ObjectPath, string) {
 	objPath := dbus.ObjectPath(d.JobObjectPath)
 	iface := ""
 
@@ -144,7 +117,7 @@ func newOperationJob(paths []string, fn func([]*url.URL, ...interface{}) dbus.DB
 		srcURL, err := pathToURL(path)
 		if err != nil {
 			log.Println(err)
-			return objPath, iface // maybe continue is a better choice.
+			return "", objPath, iface // maybe continue is a better choice.
 		}
 		srcURLs = append(srcURLs, srcURL)
 	}
@@ -153,59 +126,59 @@ func newOperationJob(paths []string, fn func([]*url.URL, ...interface{}) dbus.DB
 }
 
 // NewListJob creates a new list job for front end.
-func (*OperationBackend) NewListJob(path string, recusive bool, includeHidden bool) (dbus.ObjectPath, string) {
+func (*OperationBackend) NewListJob(path string, flags int32) (string, dbus.ObjectPath, string) {
 	return newOperationJob([]string{path}, func(uri []*url.URL, args ...interface{}) dbus.DBusObject {
-		return d.NewListJob(uri[0], recusive, includeHidden)
+		return d.NewListJob(uri[0], operations.ListJobFlag(flags))
 	})
 }
 
 // NewStatJob creates a new stat job for front end.
-func (*OperationBackend) NewStatJob(path string) (dbus.ObjectPath, string) {
+func (*OperationBackend) NewStatJob(path string) (string, dbus.ObjectPath, string) {
 	return newOperationJob([]string{path}, func(uri []*url.URL, args ...interface{}) dbus.DBusObject {
 		return d.NewStatJob(uri[0])
 	})
 }
 
 // NewDeleteJob creates a new delete job for front end.
-func (backend *OperationBackend) NewDeleteJob(path []string, dest string, objPath string, iface string) (dbus.ObjectPath, string) {
+func (backend *OperationBackend) NewDeleteJob(path []string, shouldConfirm bool, dest string, objPath string, iface string) (string, dbus.ObjectPath, string) {
 	return newOperationJob(path, func(uri []*url.URL, args ...interface{}) dbus.DBusObject {
 		uiDelegate := backend.newUIDelegate(dest, objPath, iface)
-		return d.NewDeleteJob(uri, backend.shouldConfirmTrash(), uiDelegate)
+		return d.NewDeleteJob(uri, shouldConfirm, uiDelegate)
 	})
 }
 
 // NewTrashJob creates a new TrashJob for front end.
-func (backend *OperationBackend) NewTrashJob(path []string, dest string, objPath string, iface string) (dbus.ObjectPath, string) {
+func (backend *OperationBackend) NewTrashJob(path []string, shouldConfirm bool, dest string, objPath string, iface string) (string, dbus.ObjectPath, string) {
 	return newOperationJob(path, func(uri []*url.URL, args ...interface{}) dbus.DBusObject {
 		uiDelegate := backend.newUIDelegate(dest, objPath, iface)
-		return d.NewTrashJob(uri, backend.shouldConfirmTrash(), uiDelegate)
+		return d.NewTrashJob(uri, shouldConfirm, uiDelegate)
 	})
 }
 
 // NewEmptyTrashJob creates a new EmptyTrashJob for front end.
-func (backend *OperationBackend) NewEmptyTrashJob(dest string, objPath string, iface string) (dbus.ObjectPath, string) {
+func (backend *OperationBackend) NewEmptyTrashJob(shouldConfirm bool, dest string, objPath string, iface string) (string, dbus.ObjectPath, string) {
 	return newOperationJob([]string{}, func(uris []*url.URL, args ...interface{}) dbus.DBusObject {
 		uiDelegate := backend.newUIDelegate(dest, objPath, iface)
-		return d.NewEmptyTrashJob(backend.shouldConfirmTrash(), uiDelegate)
+		return d.NewEmptyTrashJob(shouldConfirm, uiDelegate)
 	})
 }
 
 // NewChmodJob creates a new change mode job for dbus.
-func (*OperationBackend) NewChmodJob(path string, permission uint32) (dbus.ObjectPath, string) {
+func (*OperationBackend) NewChmodJob(path string, permission uint32) (string, dbus.ObjectPath, string) {
 	return newOperationJob([]string{path}, func(uris []*url.URL, args ...interface{}) dbus.DBusObject {
 		return d.NewChmodJob(uris[0], permission)
 	})
 }
 
 // NewChownJob creates a new change owner job for dbus.
-func (*OperationBackend) NewChownJob(path string, newOwner string, newGroup string) (dbus.ObjectPath, string) {
+func (*OperationBackend) NewChownJob(path string, newOwner string, newGroup string) (string, dbus.ObjectPath, string) {
 	return newOperationJob([]string{path}, func(uris []*url.URL, args ...interface{}) dbus.DBusObject {
 		return d.NewChownJob(uris[0], newOwner, newGroup)
 	})
 }
 
 // NewCreateFileJob creates a new create file job for dbus.
-func (backend *OperationBackend) NewCreateFileJob(destDir string, filename string, initContent string, dest string, objPath string, iface string) (dbus.ObjectPath, string) {
+func (backend *OperationBackend) NewCreateFileJob(destDir string, filename string, initContent string, dest string, objPath string, iface string) (string, dbus.ObjectPath, string) {
 	return newOperationJob([]string{destDir}, func(uris []*url.URL, args ...interface{}) dbus.DBusObject {
 		uiDelegate := backend.newUIDelegate(dest, objPath, iface)
 		return d.NewCreateFileJob(uris[0], filename, []byte(initContent), uiDelegate)
@@ -213,7 +186,7 @@ func (backend *OperationBackend) NewCreateFileJob(destDir string, filename strin
 }
 
 // NewCreateDirectoryJob creates a new create directory job for dbus.
-func (backend *OperationBackend) NewCreateDirectoryJob(destDir string, dirname string, dest string, objPath string, iface string) (dbus.ObjectPath, string) {
+func (backend *OperationBackend) NewCreateDirectoryJob(destDir string, dirname string, dest string, objPath string, iface string) (string, dbus.ObjectPath, string) {
 	return newOperationJob([]string{destDir}, func(uris []*url.URL, args ...interface{}) dbus.DBusObject {
 		uiDelegate := backend.newUIDelegate(dest, objPath, iface)
 		return d.NewCreateDirectoryJob(uris[0], dirname, uiDelegate)
@@ -221,7 +194,7 @@ func (backend *OperationBackend) NewCreateDirectoryJob(destDir string, dirname s
 }
 
 // NewCreateFileFromTemplateJob creates a new create file job fro dbus.
-func (backend *OperationBackend) NewCreateFileFromTemplateJob(destDir string, templatePath string, dest string, objPath string, iface string) (dbus.ObjectPath, string) {
+func (backend *OperationBackend) NewCreateFileFromTemplateJob(destDir string, templatePath string, dest string, objPath string, iface string) (string, dbus.ObjectPath, string) {
 	return newOperationJob([]string{destDir}, func(uris []*url.URL, args ...interface{}) dbus.DBusObject {
 		templateURL, err := pathToURL(templatePath)
 		if err != nil {
@@ -235,7 +208,7 @@ func (backend *OperationBackend) NewCreateFileFromTemplateJob(destDir string, te
 }
 
 // NewLinkJob creates a new link job for dbus.
-func (backend *OperationBackend) NewLinkJob(src string, destDir string, dest string, objPath string, iface string) (dbus.ObjectPath, string) {
+func (backend *OperationBackend) NewLinkJob(src string, destDir string, dest string, objPath string, iface string) (string, dbus.ObjectPath, string) {
 	return newOperationJob([]string{src}, func(uris []*url.URL, args ...interface{}) dbus.DBusObject {
 		destDirURL, err := pathToURL(destDir)
 		if err != nil {
@@ -249,14 +222,14 @@ func (backend *OperationBackend) NewLinkJob(src string, destDir string, dest str
 }
 
 // NewGetLaunchAppJob creates a new get launch app job for dbus.
-func (*OperationBackend) NewGetLaunchAppJob(path string) (dbus.ObjectPath, string) {
+func (*OperationBackend) NewGetLaunchAppJob(path string) (string, dbus.ObjectPath, string) {
 	return newOperationJob([]string{path}, func(uris []*url.URL, args ...interface{}) dbus.DBusObject {
 		return d.NewGetLaunchAppJob(uris[0])
 	})
 }
 
 // NewSetLaunchAppJob creates a new set default launch app job for dbus.
-func (*OperationBackend) NewSetLaunchAppJob(id string, mimeType string) (dbus.ObjectPath, string) {
+func (*OperationBackend) NewSetLaunchAppJob(id string, mimeType string) (string, dbus.ObjectPath, string) {
 	return newOperationJob([]string{}, func(uris []*url.URL, args ...interface{}) dbus.DBusObject {
 		if !strings.HasSuffix(id, ".desktop") {
 			log.Println("wrong desktop id")
@@ -267,7 +240,7 @@ func (*OperationBackend) NewSetLaunchAppJob(id string, mimeType string) (dbus.Ob
 }
 
 // NewCopyJob creates a new copy job for dbus.
-func (backend *OperationBackend) NewCopyJob(srcs []string, destDir string, targetName string, dest string, objPath string, iface string) (dbus.ObjectPath, string) {
+func (backend *OperationBackend) NewCopyJob(srcs []string, destDir string, targetName string, flags uint32, dest string, objPath string, iface string) (string, dbus.ObjectPath, string) {
 	return newOperationJob(srcs, func(uris []*url.URL, args ...interface{}) dbus.DBusObject {
 		destDirURL, err := pathToURL(destDir)
 		if err != nil {
@@ -276,13 +249,13 @@ func (backend *OperationBackend) NewCopyJob(srcs []string, destDir string, targe
 		}
 
 		uiDelegate := backend.newUIDelegate(dest, objPath, iface)
-		return d.NewCopyJob(uris, destDirURL, targetName, uiDelegate)
+		return d.NewCopyJob(uris, destDirURL, targetName, flags, uiDelegate)
 	})
 }
 
 // NewMoveJob creates a new move job for dbus.
-func (backend *OperationBackend) NewMoveJob(paths []string, destDir string, targetName string, dest string, objPath string, iface string) (dbus.ObjectPath, string) {
-	return newOperationJob([]string{}, func(uris []*url.URL, args ...interface{}) dbus.DBusObject {
+func (backend *OperationBackend) NewMoveJob(paths []string, destDir string, targetName string, flags uint32, dest string, objPath string, iface string) (string, dbus.ObjectPath, string) {
+	return newOperationJob(paths, func(uris []*url.URL, args ...interface{}) dbus.DBusObject {
 		destDirURL, err := pathToURL(destDir)
 		if err != nil {
 			log.Println(err)
@@ -290,17 +263,23 @@ func (backend *OperationBackend) NewMoveJob(paths []string, destDir string, targ
 		}
 
 		uiDelegate := backend.newUIDelegate(dest, objPath, iface)
-		return d.NewMoveJob(uris, destDirURL, targetName, uiDelegate)
+		return d.NewMoveJob(uris, destDirURL, targetName, flags, uiDelegate)
 	})
 }
 
-func (backend *OperationBackend) NewRenameJob(fileURL string, newName string) (dbus.ObjectPath, string) {
+func (backend *OperationBackend) NewRenameJob(fileURL string, newName string) (string, dbus.ObjectPath, string) {
 	return newOperationJob([]string{fileURL}, func(uris []*url.URL, args ...interface{}) dbus.DBusObject {
-		fileURL, err := pathToURL(fileURL)
-		if err != nil {
-			log.Println(err)
-			return nil
-		}
+		fileURL := uris[0]
 		return d.NewRenameJob(fileURL, newName)
+	})
+}
+
+func (backend *OperationBackend) NewGetTemplateJob() (string, dbus.ObjectPath, string) {
+	C.g_reload_user_special_dirs_cache()
+	templateDirPath := glib.GetUserSpecialDir(glib.UserDirectoryDirectoryTemplates)
+
+	return newOperationJob([]string{templateDirPath}, func(uris []*url.URL, args ...interface{}) dbus.DBusObject {
+		templateDirURI := uris[0]
+		return d.NewGetTemplateJob(templateDirURI)
 	})
 }

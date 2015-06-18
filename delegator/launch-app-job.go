@@ -1,11 +1,10 @@
 package delegator
 
 import (
-	"deepin-file-manager/operations"
 	"encoding/json"
 	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
-	"sync/atomic"
+	"pkg.linuxdeepin.com/lib/operations"
 )
 
 var (
@@ -28,32 +27,30 @@ func (job *GetLaunchAppJob) GetDBusInfo() dbus.DBusInfo {
 
 // Execute GetLaunchAppJob.
 func (job *GetLaunchAppJob) Execute() {
-	go func() {
-		job.op.ListenDone(func(err error) {
-			defer dbus.UnInstallObject(job)
-			if err != nil {
-				dbus.Emit(job, "Done", err.Error())
-				return
-			}
+	job.op.ListenDone(func(err error) {
+		defer dbus.UnInstallObject(job)
+		if err != nil {
+			dbus.Emit(job, "Done", err.Error())
+			return
+		}
 
-			info := job.op.Result().(*operations.LaunchAppInfo)
-			bInfos, err := json.Marshal(info)
-			if err != nil {
-				dbus.Emit(job, "Done", err.Error())
-				return
-			}
+		info := job.op.Result().(*operations.LaunchAppInfo)
+		bInfos, err := json.Marshal(info)
+		if err != nil {
+			dbus.Emit(job, "Done", err.Error())
+			return
+		}
 
-			dbus.Emit(job, "LaunchAppInfos", string(bInfos))
-			dbus.Emit(job, "Done", "")
-		})
-		job.op.Execute()
-	}()
+		dbus.Emit(job, "LaunchAppInfos", string(bInfos))
+		dbus.Emit(job, "Done", "")
+	})
+	job.op.Execute()
 }
 
 // NewGetLaunchAppJob creates a new GetLaunchAppJob for dbus.
 func NewGetLaunchAppJob(uri *url.URL) *GetLaunchAppJob {
 	job := &GetLaunchAppJob{
-		dbusInfo: genDBusInfo("GetLaunchAppJob", atomic.AddUint64(&_GetLaunchAppJobCount, 1)),
+		dbusInfo: genDBusInfo("GetLaunchAppJob", &_GetLaunchAppJobCount),
 		op:       operations.NewLaunchAppJob(uri),
 	}
 	return job
@@ -93,7 +90,7 @@ var (
 // NewSetLaunchAppJob creates a new SetLaunchAppJob for dbus.
 func NewSetLaunchAppJob(id string, mimeType string) *SetLaunchAppJob {
 	job := &SetLaunchAppJob{
-		dbusInfo: genDBusInfo("SetLaunchAppJob", atomic.AddUint64(&_SetLaunchAppJobCount, 1)),
+		dbusInfo: genDBusInfo("SetLaunchAppJob", &_SetLaunchAppJobCount),
 		op:       operations.NewSetLaunchAppJob(id, mimeType),
 	}
 	return job

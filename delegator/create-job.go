@@ -1,10 +1,9 @@
 package delegator
 
 import (
-	"deepin-file-manager/operations"
 	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
-	"sync/atomic"
+	"pkg.linuxdeepin.com/lib/operations"
 )
 
 var (
@@ -30,25 +29,23 @@ func (job *CreateJob) GetDBusInfo() dbus.DBusInfo {
 
 // Execute create job.
 func (job *CreateJob) Execute() {
-	go func() {
-		defer dbus.UnInstallObject(job)
-		err := job.op.Execute()
-		errMsg := ""
-		if err != nil {
-			errMsg = err.Error()
-		}
+	defer dbus.UnInstallObject(job)
+	err := job.op.Execute()
+	errMsg := ""
+	if err != nil {
+		errMsg = err.Error()
+	}
 
-		dbus.Emit(job, "Done", errMsg)
-		// TODO:
-		// job.commandRecorder
-		// operations.FileUndoManagerInstance().RecordJob(create, job.op)
-	}()
+	dbus.Emit(job, "Done", errMsg)
+	// TODO:
+	// job.commandRecorder
+	// operations.FileUndoManagerInstance().RecordJob(create, job.op)
 }
 
 // NewCreateFileJob creates a new create job to create a new file.
 func NewCreateFileJob(destDirURL *url.URL, filename string, initContent []byte, uiDelegate IUIDelegate) *CreateJob {
 	job := &CreateJob{
-		dbusInfo: genDBusInfo("CreateFileJob", atomic.AddUint64(&_CreateFileJobCount, 1)),
+		dbusInfo: genDBusInfo("CreateFileJob", &_CreateFileJobCount),
 		op:       operations.NewCreateFileJob(destDirURL, filename, initContent, uiDelegate),
 	}
 	return job
@@ -57,7 +54,7 @@ func NewCreateFileJob(destDirURL *url.URL, filename string, initContent []byte, 
 // NewCreateFileFromTemplateJob creates a new create job to create a new file from a template.
 func NewCreateFileFromTemplateJob(uri *url.URL, tempateURL *url.URL, uiDelegate IUIDelegate) *CreateJob {
 	job := &CreateJob{
-		dbusInfo: genDBusInfo("CreateFileFromTemplateJob", atomic.AddUint64(&_CreateTemplateJobCount, 1)),
+		dbusInfo: genDBusInfo("CreateFileFromTemplateJob", &_CreateTemplateJobCount),
 		op:       operations.NewCreateFileFromTemplateJob(uri, tempateURL, uiDelegate),
 	}
 	return job
@@ -66,7 +63,7 @@ func NewCreateFileFromTemplateJob(uri *url.URL, tempateURL *url.URL, uiDelegate 
 // NewCreateDirectoryJob creates a new create job to create a new directory.
 func NewCreateDirectoryJob(destDirURL *url.URL, dirname string, uiDelegate IUIDelegate) *CreateJob {
 	job := &CreateJob{
-		dbusInfo: genDBusInfo("CreateDirJob", atomic.AddUint64(&_CreateDirJobCount, 1)),
+		dbusInfo: genDBusInfo("CreateDirJob", &_CreateDirJobCount),
 		op:       operations.NewCreateDirectoryJob(destDirURL, dirname, uiDelegate),
 	}
 	return job
@@ -75,7 +72,7 @@ func NewCreateDirectoryJob(destDirURL *url.URL, dirname string, uiDelegate IUIDe
 // NewLinkJob creates a new job to creates a link.
 func NewLinkJob(srcURL *url.URL, destDirURL *url.URL, uiDelegate IUIDelegate) *CreateJob {
 	job := &CreateJob{
-		dbusInfo: genDBusInfo("CreateLinkJob", atomic.AddUint64(&_CreateLinkJobCount, 1)),
+		dbusInfo: genDBusInfo("CreateLinkJob", &_CreateLinkJobCount),
 		op:       operations.NewCreateLinkJob(srcURL, destDirURL, uiDelegate),
 	}
 	return job
