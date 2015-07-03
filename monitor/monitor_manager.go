@@ -53,7 +53,7 @@ func NewMonitorManager() *MonitorManager {
 func (manager *MonitorManager) GetDBusInfo() dbus.DBusInfo {
 	return dbus.DBusInfo{
 		Dest:       "com.deepin.filemanager.Backend.Monitor",
-		ObjectPath: "/com/deepin/filemanager/Backend/Monitor/Manager",
+		ObjectPath: "/com/deepin/filemanager/Backend/Monitor",
 		Interface:  "com.deepin.filemanager.Backend.Monitor.Manager",
 	}
 }
