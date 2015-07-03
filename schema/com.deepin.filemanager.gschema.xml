@@ -55,13 +55,13 @@
     </enum>
 
     <schema id="com.deepin.filemanager" path="/com/deepin/filemanager/">
-        <child name="perferences" schema="com.deepin.filemanager.perferences"/>
+        <child name="preferences" schema="com.deepin.filemanager.preferences"/>
         <child name="icon-view" schema="com.deepin.filemanager.icon-view"/>
         <child name="list-view" schema="com.deepin.filemanager.list-view"/>
         <child name="desktop" schema="com.deepin.filemanager.desktop"/>
     </schema>
 
-    <schema path="/com/deepin/filemanager/perferences/" id="com.deepin.filemanager.perferences">
+    <schema path="/com/deepin/filemanager/preferences/" id="com.deepin.filemanager.preferences">
         <key name="activation-policy" enum="com.deepin.filemanager.ActivationPolicy">
             <default>'ask'</default>
             <summary>What to do with executable text files when activated</summary>
