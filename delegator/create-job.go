@@ -1,7 +1,6 @@
 package delegator
 
 import (
-	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
 	"pkg.linuxdeepin.com/lib/operations"
 )
@@ -43,7 +42,7 @@ func (job *CreateJob) Execute() {
 }
 
 // NewCreateFileJob creates a new create job to create a new file.
-func NewCreateFileJob(destDirURL *url.URL, filename string, initContent []byte, uiDelegate IUIDelegate) *CreateJob {
+func NewCreateFileJob(destDirURL string, filename string, initContent []byte, uiDelegate IUIDelegate) *CreateJob {
 	job := &CreateJob{
 		dbusInfo: genDBusInfo("CreateFileJob", &_CreateFileJobCount),
 		op:       operations.NewCreateFileJob(destDirURL, filename, initContent, uiDelegate),
@@ -52,7 +51,7 @@ func NewCreateFileJob(destDirURL *url.URL, filename string, initContent []byte, 
 }
 
 // NewCreateFileFromTemplateJob creates a new create job to create a new file from a template.
-func NewCreateFileFromTemplateJob(uri *url.URL, tempateURL *url.URL, uiDelegate IUIDelegate) *CreateJob {
+func NewCreateFileFromTemplateJob(uri string, tempateURL string, uiDelegate IUIDelegate) *CreateJob {
 	job := &CreateJob{
 		dbusInfo: genDBusInfo("CreateFileFromTemplateJob", &_CreateTemplateJobCount),
 		op:       operations.NewCreateFileFromTemplateJob(uri, tempateURL, uiDelegate),
@@ -61,7 +60,7 @@ func NewCreateFileFromTemplateJob(uri *url.URL, tempateURL *url.URL, uiDelegate 
 }
 
 // NewCreateDirectoryJob creates a new create job to create a new directory.
-func NewCreateDirectoryJob(destDirURL *url.URL, dirname string, uiDelegate IUIDelegate) *CreateJob {
+func NewCreateDirectoryJob(destDirURL string, dirname string, uiDelegate IUIDelegate) *CreateJob {
 	job := &CreateJob{
 		dbusInfo: genDBusInfo("CreateDirJob", &_CreateDirJobCount),
 		op:       operations.NewCreateDirectoryJob(destDirURL, dirname, uiDelegate),
@@ -70,7 +69,7 @@ func NewCreateDirectoryJob(destDirURL *url.URL, dirname string, uiDelegate IUIDe
 }
 
 // NewLinkJob creates a new job to creates a link.
-func NewLinkJob(srcURL *url.URL, destDirURL *url.URL, uiDelegate IUIDelegate) *CreateJob {
+func NewLinkJob(srcURL string, destDirURL string, uiDelegate IUIDelegate) *CreateJob {
 	job := &CreateJob{
 		dbusInfo: genDBusInfo("CreateLinkJob", &_CreateLinkJobCount),
 		op:       operations.NewCreateLinkJob(srcURL, destDirURL, uiDelegate),

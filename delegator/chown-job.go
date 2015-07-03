@@ -1,7 +1,6 @@
 package delegator
 
 import (
-	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
 	"pkg.linuxdeepin.com/lib/operations"
 )
@@ -37,7 +36,7 @@ func (job *ChownJob) Execute() {
 }
 
 // NewChownJob creates a new chown job for dbus.
-func NewChownJob(uri *url.URL, newOwner string, newGroup string) *ChownJob {
+func NewChownJob(uri string, newOwner string, newGroup string) *ChownJob {
 	job := &ChownJob{
 		dbusInfo: genDBusInfo("ChownJob", &_ChownJobCount),
 		op:       operations.NewChownJob(uri, newOwner, newGroup),

@@ -1,7 +1,6 @@
 package delegator
 
 import (
-	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
 	"pkg.linuxdeepin.com/lib/operations"
 )
@@ -19,7 +18,7 @@ func (job *GetTemplateJob) GetDBusInfo() dbus.DBusInfo {
 }
 
 // NewListJob creates a new list job for dbus.
-func NewGetTemplateJob(templateDirURI *url.URL) *GetTemplateJob {
+func NewGetTemplateJob(templateDirURI string) *GetTemplateJob {
 	job := &GetTemplateJob{
 		dbusInfo: genDBusInfo("GetTemplateJob", &_GetTemplateJobCount),
 		op:       operations.NewGetTemplateJob(templateDirURI),

@@ -2,7 +2,6 @@ package delegator
 
 import (
 	"fmt"
-	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
 	"pkg.linuxdeepin.com/lib/gio-2.0"
 	"pkg.linuxdeepin.com/lib/operations"
@@ -17,7 +16,7 @@ var (
 type CopyJob struct {
 	dbusInfo dbus.DBusInfo
 
-	uris []*url.URL
+	uris []string
 	op   *operations.CopyMoveJob
 
 	Done            func(string)
@@ -69,7 +68,7 @@ func (job *CopyJob) Execute() {
 }
 
 // NewCopyJob creates a new copy job for dbus.
-func NewCopyJob(srcUrls []*url.URL, destDirURL *url.URL, targetName string, flags uint32, uiDelegate IUIDelegate) *CopyJob {
+func NewCopyJob(srcUrls []string, destDirURL string, targetName string, flags uint32, uiDelegate IUIDelegate) *CopyJob {
 	job := &CopyJob{
 		dbusInfo: genDBusInfo("CopyJob", &_CopyJobCount),
 		op:       operations.NewCopyJob(srcUrls, destDirURL, targetName, gio.FileCopyFlags(flags), uiDelegate),
@@ -81,7 +80,7 @@ func NewCopyJob(srcUrls []*url.URL, destDirURL *url.URL, targetName string, flag
 type MoveJob struct {
 	dbusInfo dbus.DBusInfo
 
-	uris []*url.URL
+	uris []string
 	op   *operations.CopyMoveJob
 
 	Done            func()
@@ -131,7 +130,7 @@ func (job *MoveJob) Abort() {
 }
 
 // NewMoveJob creates a new move job for dbus.
-func NewMoveJob(srcUrls []*url.URL, destDirURL *url.URL, targetName string, flags uint32, uiDelegate IUIDelegate) *MoveJob {
+func NewMoveJob(srcUrls []string, destDirURL string, targetName string, flags uint32, uiDelegate IUIDelegate) *MoveJob {
 	job := &MoveJob{
 		dbusInfo: genDBusInfo("MoveJob", &_MoveJobCount),
 		op:       operations.NewMoveJob(srcUrls, destDirURL, targetName, gio.FileCopyFlags(flags), uiDelegate),

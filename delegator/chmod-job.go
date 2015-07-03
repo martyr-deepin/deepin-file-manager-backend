@@ -1,7 +1,6 @@
 package delegator
 
 import (
-	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
 	"pkg.linuxdeepin.com/lib/operations"
 )
@@ -36,7 +35,7 @@ func (job *ChmodJob) Execute() {
 }
 
 // NewChmodJob creates a new ChmodJob for dbus.
-func NewChmodJob(uri *url.URL, permission uint32) *ChmodJob {
+func NewChmodJob(uri string, permission uint32) *ChmodJob {
 	job := &ChmodJob{
 		dbusInfo: genDBusInfo("ChmodJob", &_ChmodJobCount),
 		op:       operations.NewChmodJob(uri, permission),

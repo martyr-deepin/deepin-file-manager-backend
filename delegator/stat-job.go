@@ -1,7 +1,6 @@
 package delegator
 
 import (
-	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
 	"pkg.linuxdeepin.com/lib/operations"
 	"sync"
@@ -42,7 +41,7 @@ func (job *StatJob) Execute() {
 }
 
 // NewStatJob creates a new stat job for dbus.
-func NewStatJob(uri *url.URL) *StatJob {
+func NewStatJob(uri string) *StatJob {
 	_StatJobCountLock.Lock()
 	defer _StatJobCountLock.Unlock()
 	job := &StatJob{

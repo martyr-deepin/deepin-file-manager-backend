@@ -2,7 +2,6 @@ package delegator
 
 import (
 	"encoding/json"
-	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
 	"pkg.linuxdeepin.com/lib/operations"
 )
@@ -48,7 +47,7 @@ func (job *GetLaunchAppJob) Execute() {
 }
 
 // NewGetLaunchAppJob creates a new GetLaunchAppJob for dbus.
-func NewGetLaunchAppJob(uri *url.URL) *GetLaunchAppJob {
+func NewGetLaunchAppJob(uri string) *GetLaunchAppJob {
 	job := &GetLaunchAppJob{
 		dbusInfo: genDBusInfo("GetLaunchAppJob", &_GetLaunchAppJobCount),
 		op:       operations.NewLaunchAppJob(uri),

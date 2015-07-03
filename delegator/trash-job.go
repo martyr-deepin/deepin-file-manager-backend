@@ -1,7 +1,6 @@
 package delegator
 
 import (
-	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
 	"pkg.linuxdeepin.com/lib/operations"
 	"sync"
@@ -15,7 +14,7 @@ var (
 // TrashJob exports to dbus.
 type TrashJob struct {
 	dbusInfo dbus.DBusInfo
-	uris     []*url.URL
+	uris     []string
 	op       *operations.DeleteJob
 
 	Done            func()
@@ -31,7 +30,7 @@ func (job *TrashJob) GetDBusInfo() dbus.DBusInfo {
 }
 
 // NewTrashJob creates a new trash job for dbus.
-func NewTrashJob(urls []*url.URL, shouldConfirmTrash bool, uiDelegate IUIDelegate) *TrashJob {
+func NewTrashJob(urls []string, shouldConfirmTrash bool, uiDelegate IUIDelegate) *TrashJob {
 	return &TrashJob{
 		dbusInfo: genDBusInfo("TrashJob", &_TrashJobCount),
 		op:       operations.NewTrashJob(urls, shouldConfirmTrash, uiDelegate),

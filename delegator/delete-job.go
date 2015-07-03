@@ -1,7 +1,6 @@
 package delegator
 
 import (
-	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
 	"pkg.linuxdeepin.com/lib/operations"
 )
@@ -13,7 +12,7 @@ var (
 // DeleteJob exports to dbus.
 type DeleteJob struct {
 	dbusInfo dbus.DBusInfo
-	uris     []*url.URL
+	uris     []string
 	op       *operations.DeleteJob
 
 	Done            func()
@@ -28,7 +27,7 @@ func (job *DeleteJob) GetDBusInfo() dbus.DBusInfo {
 }
 
 // NewDeleteJob creates a new delete job for dbus.
-func NewDeleteJob(urls []*url.URL, shouldConfirm bool, uiDelegate IUIDelegate) *DeleteJob {
+func NewDeleteJob(urls []string, shouldConfirm bool, uiDelegate IUIDelegate) *DeleteJob {
 	job := &DeleteJob{
 		dbusInfo: genDBusInfo("DeleteJob", &_DeleteJobCount),
 		op:       operations.NewDeleteJob(urls, shouldConfirm, uiDelegate),

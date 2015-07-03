@@ -1,12 +1,9 @@
 package delegator
 
 import (
-	"net/url"
 	"pkg.linuxdeepin.com/lib/dbus"
 	"pkg.linuxdeepin.com/lib/operations"
 )
-
-var _ = url.Parse
 
 var (
 	_RenameJobCount uint64 = 0
@@ -42,7 +39,7 @@ func (job *RenameJob) Execute() {
 	job.op.Execute()
 }
 
-func NewRenameJob(fileURL *url.URL, newName string) *RenameJob {
+func NewRenameJob(fileURL string, newName string) *RenameJob {
 	job := &RenameJob{
 		dbusInfo: genDBusInfo("RenameJob", &_RenameJobCount),
 		op:       operations.NewRenameJob(fileURL, newName),
