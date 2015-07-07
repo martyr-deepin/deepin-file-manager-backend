@@ -1,16 +1,10 @@
 package delegator
 
-// #cgo pkg-config: gtk+-3.0
-// #cgo CFLAGS: -std=c99
-// #include <stdlib.h>
-// char* get_icon_from_file(char*);
-// char* get_icon_from_app(char*);
-import "C"
-import "unsafe"
 import (
 	"encoding/json"
 	"fmt"
 	"pkg.linuxdeepin.com/lib/gio-2.0"
+	"pkg.linuxdeepin.com/lib/operations"
 	"strings"
 )
 
@@ -334,18 +328,11 @@ func (job *QueryFileInfoJob) QueryInfo(arg string, attributes string, flags uint
 
 			isApp := strings.HasSuffix(filePath, ".desktop")
 			if isApp {
-				cFilePath := C.CString(filePath)
-				cIcon := C.get_icon_from_app(cFilePath)
-				icon = C.GoString(cIcon)
-				C.free(unsafe.Pointer(cIcon))
-				C.free(unsafe.Pointer(cFilePath))
+				app := gio.NewDesktopAppInfoFromFilename(filePath)
+				defer app.Unref()
+				icon = operations.GetIconForApp(app.GetIcon(), 48)
 			} else {
-				iconStr := info.GetIcon().ToString()
-				cIconStr := C.CString(iconStr)
-				cIcon := C.get_icon_from_file(cIconStr)
-				C.free(unsafe.Pointer(cIconStr))
-				icon = C.GoString(cIcon)
-				C.free(unsafe.Pointer(cIcon))
+				icon = operations.GetIconForFile(info.GetIcon(), 48)
 			}
 
 			infoJsonMap[attribute] = icon
