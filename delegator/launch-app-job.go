@@ -3,29 +3,38 @@ package delegator
 import (
 	"encoding/json"
 	"pkg.linuxdeepin.com/lib/dbus"
+	"pkg.linuxdeepin.com/lib/gio-2.0"
 	"pkg.linuxdeepin.com/lib/operations"
 )
 
 var (
-	_GetLaunchAppJobCount uint64
+	_GetDefaultLaunchAppJobCount     uint64
+	_GetRecommendedLaunchAppJobCount uint64
+	_GetAllLaunchAppJobCount         uint64
 )
 
-// GetLaunchAppJob exports to dbus.
-type GetLaunchAppJob struct {
+// GetDefaultLaunchAppJob exports to dbus.
+type GetDefaultLaunchAppJob struct {
 	dbusInfo dbus.DBusInfo
-	op       *operations.LaunchAppJob
+	op       *operations.GetDefaultLaunchAppJob
 
-	Done           func(string)
-	LaunchAppInfos func(string)
+	Done                 func(string)
+	DefaultLaunchAppInfo func(string)
 }
 
 // GetDBusInfo returns dbus information.
-func (job *GetLaunchAppJob) GetDBusInfo() dbus.DBusInfo {
+func (job *GetDefaultLaunchAppJob) GetDBusInfo() dbus.DBusInfo {
 	return job.dbusInfo
 }
 
-// Execute GetLaunchAppJob.
-func (job *GetLaunchAppJob) Execute() {
+type DefaultLaunchAppInfo struct {
+	Name string
+	Id   string
+	// Icon string
+}
+
+// Execute GetDefaultLaunchAppJob.
+func (job *GetDefaultLaunchAppJob) Execute() {
 	job.op.ListenDone(func(err error) {
 		defer dbus.UnInstallObject(job)
 		if err != nil {
@@ -33,43 +42,160 @@ func (job *GetLaunchAppJob) Execute() {
 			return
 		}
 
-		info := job.op.Result().(*operations.LaunchAppInfo)
+		app := job.op.Result().(*gio.AppInfo)
+		info := &DefaultLaunchAppInfo{
+			Name: app.GetName(),
+			Id:   app.GetId(),
+			// TODO: get icon.
+			// Icon: getIconFromApp(app),
+		}
+		app.Unref()
 		bInfos, err := json.Marshal(info)
 		if err != nil {
 			dbus.Emit(job, "Done", err.Error())
 			return
 		}
 
-		dbus.Emit(job, "LaunchAppInfos", string(bInfos))
+		dbus.Emit(job, "DefaultAppInfo", string(bInfos))
 		dbus.Emit(job, "Done", "")
 	})
 	job.op.Execute()
 }
 
-// NewGetLaunchAppJob creates a new GetLaunchAppJob for dbus.
-func NewGetLaunchAppJob(uri string) *GetLaunchAppJob {
-	job := &GetLaunchAppJob{
-		dbusInfo: genDBusInfo("GetLaunchAppJob", &_GetLaunchAppJobCount),
-		op:       operations.NewLaunchAppJob(uri),
+// NewGetDefaultLaunchAppJob creates a new GetLaunchAppJob for dbus.
+func NewGetDefaultLaunchAppJob(uri string, mustSupportURI bool) *GetDefaultLaunchAppJob {
+	job := &GetDefaultLaunchAppJob{
+		dbusInfo: genDBusInfo("GetDefaultLaunchAppJob", &_GetDefaultLaunchAppJobCount),
+		op:       operations.NewGetDefaultLaunchAppJob(uri, mustSupportURI),
 	}
 	return job
 }
 
-// SetLaunchAppJob exports to dbus.
-type SetLaunchAppJob struct {
+type LaunchAppInfo struct {
+	Names []string
+	Ids   []string
+	// Icons []string
+}
+
+type GetRecommendedLaunchAppsJob struct {
 	dbusInfo dbus.DBusInfo
-	op       *operations.SetLaunchAppJob
+	op       *operations.GetRecommendedLaunchAppsJob
+
+	Done                     func(string)
+	RecommendedLaunchAppInfo func(string)
+}
+
+func (job *GetRecommendedLaunchAppsJob) GetDBusInfo() dbus.DBusInfo {
+	return job.dbusInfo
+}
+
+func NewGetRecommendedLaunchAppsJob(uri string) *GetRecommendedLaunchAppsJob {
+	return &GetRecommendedLaunchAppsJob{
+		dbusInfo: genDBusInfo("GetRecommendedLaunchAppsJob", &_GetRecommendedLaunchAppJobCount),
+		op:       operations.NewGetRecommendedLaunchAppsJob(uri),
+	}
+}
+
+func (job *GetRecommendedLaunchAppsJob) Execute() {
+	job.op.ListenDone(func(e error) {
+		defer dbus.UnInstallObject(job)
+		if e != nil {
+			dbus.Emit(job, "Done", e.Error())
+			return
+		}
+
+		apps := job.op.Result().([]*gio.AppInfo)
+		info := LaunchAppInfo{
+			Names: make([]string, len(apps)),
+			Ids:   make([]string, len(apps)),
+		}
+		for i, app := range apps {
+			info.Names[i] = app.GetName()
+			info.Ids[i] = app.GetId()
+			// TODO: get icon
+			// app.GetIcon()
+			app.Unref()
+		}
+
+		bInfos, err := json.Marshal(info)
+		if err != nil {
+			dbus.Emit(job, "Done", err.Error())
+			return
+		}
+
+		dbus.Emit(job, "RecommendedLaunchAppInfo", string(bInfos))
+		dbus.Emit(job, "Done", "")
+	})
+	job.op.Execute()
+}
+
+type GetAllLaunchAppsJob struct {
+	dbusInfo dbus.DBusInfo
+	op       *operations.GetAllLaunchAppsJob
+
+	Done          func(string)
+	LaunchAppInfo func(string)
+}
+
+func (job *GetAllLaunchAppsJob) GetDBusInfo() dbus.DBusInfo {
+	return job.dbusInfo
+}
+
+func NewGetAllLaunchAppsJob() *GetAllLaunchAppsJob {
+	return &GetAllLaunchAppsJob{
+		dbusInfo: genDBusInfo("GetAllLaunchAppsJob", &_GetAllLaunchAppJobCount),
+		op:       operations.NewGetAllLaunchAppsJob(),
+	}
+}
+
+func (job *GetAllLaunchAppsJob) Execute() {
+	job.op.ListenDone(func(e error) {
+		defer dbus.UnInstallObject(job)
+		if e != nil {
+			dbus.Emit(job, "Done", e.Error())
+			return
+		}
+
+		apps := job.op.Result().([]*gio.AppInfo)
+		info := LaunchAppInfo{
+			Names: make([]string, len(apps)),
+			Ids:   make([]string, len(apps)),
+		}
+		for i, app := range apps {
+			info.Names[i] = app.GetName()
+			info.Ids[i] = app.GetId()
+			// TODO: get icon
+			// app.GetIcon()
+			app.Unref()
+		}
+
+		bInfos, err := json.Marshal(info)
+		if err != nil {
+			dbus.Emit(job, "Done", err.Error())
+			return
+		}
+
+		dbus.Emit(job, "LaunchAppInfo", string(bInfos))
+		dbus.Emit(job, "Done", "")
+	})
+	job.op.Execute()
+}
+
+// SetDefaultLaunchAppJob exports to dbus.
+type SetDefaultLaunchAppJob struct {
+	dbusInfo dbus.DBusInfo
+	op       *operations.SetDefaultLaunchAppJob
 
 	Done func(string)
 }
 
 // GetDBusInfo returns dbus information.
-func (job *SetLaunchAppJob) GetDBusInfo() dbus.DBusInfo {
+func (job *SetDefaultLaunchAppJob) GetDBusInfo() dbus.DBusInfo {
 	return job.dbusInfo
 }
 
-// Execute SetLaunchAppJob.
-func (job *SetLaunchAppJob) Execute() {
+// Execute SetDefaultLaunchAppJob.
+func (job *SetDefaultLaunchAppJob) Execute() {
 	job.op.ListenDone(func(err error) {
 		defer dbus.UnInstallObject(job)
 		errMsg := ""
@@ -83,14 +209,14 @@ func (job *SetLaunchAppJob) Execute() {
 }
 
 var (
-	_SetLaunchAppJobCount uint64
+	_SetDefaultLaunchAppJobCount uint64
 )
 
-// NewSetLaunchAppJob creates a new SetLaunchAppJob for dbus.
-func NewSetLaunchAppJob(id string, mimeType string) *SetLaunchAppJob {
-	job := &SetLaunchAppJob{
-		dbusInfo: genDBusInfo("SetLaunchAppJob", &_SetLaunchAppJobCount),
-		op:       operations.NewSetLaunchAppJob(id, mimeType),
+// NewSetDefaultLaunchAppJob creates a new SetLaunchAppJob for dbus.
+func NewSetDefaultLaunchAppJob(id string, mimeType string) *SetDefaultLaunchAppJob {
+	job := &SetDefaultLaunchAppJob{
+		dbusInfo: genDBusInfo("SetLaunchAppJob", &_SetDefaultLaunchAppJobCount),
+		op:       operations.NewSetDefaultLaunchAppJob(id, mimeType),
 	}
 	return job
 }
