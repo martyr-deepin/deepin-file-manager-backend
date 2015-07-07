@@ -2,7 +2,7 @@ package delegator_test
 
 import (
 	// . "deepin-file-manager/delegator"
-	// "pkg.linuxdeepin.com/lib/gio-2.0"
+	// "pkg.deepin.io/lib/gio-2.0"
 	"testing"
 )
 

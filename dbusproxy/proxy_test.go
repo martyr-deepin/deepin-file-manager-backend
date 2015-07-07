@@ -3,7 +3,7 @@ package dbusproxy_test
 import (
 	. "deepin-file-manager/dbusproxy"
 	. "github.com/smartystreets/goconvey/convey"
-	"pkg.linuxdeepin.com/lib/dbus"
+	"pkg.deepin.io/lib/dbus"
 	"testing"
 )
 

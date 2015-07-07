@@ -1,7 +1,7 @@
 package monitor
 
 import (
-	"pkg.linuxdeepin.com/lib/dbus"
+	"pkg.deepin.io/lib/dbus"
 )
 
 func (monitor *TrashMonitor) GetDBusInfo() dbus.DBusInfo {

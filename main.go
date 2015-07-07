@@ -10,9 +10,9 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"pkg.linuxdeepin.com/lib"
-	"pkg.linuxdeepin.com/lib/dbus"
-	"pkg.linuxdeepin.com/lib/glib-2.0"
+	"pkg.deepin.io/lib"
+	"pkg.deepin.io/lib/dbus"
+	"pkg.deepin.io/lib/glib-2.0"
 )
 
 type Initializer struct {

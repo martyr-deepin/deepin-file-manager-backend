@@ -2,7 +2,7 @@ package dbusproxy
 
 import (
 	"errors"
-	"pkg.linuxdeepin.com/lib/dbus"
+	"pkg.deepin.io/lib/dbus"
 )
 
 // DBusProxy is a proxy for a dbus interface.
