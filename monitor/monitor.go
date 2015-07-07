@@ -39,8 +39,8 @@ func NewMonitor(fileURI string, flags gio.FileMonitorFlags) *Monitor {
 
 	monitor.dbusInfo = dbus.DBusInfo{
 		Dest:       "com.deepin.filemanager.Backend.Monitor",
-		ObjectPath: "/com/deepin/filemanager/Backend/Monitor",
-		Interface:  fmt.Sprintf("com.deepin.filemanager.Backend.Monitor.m%d", monitor.ID),
+		ObjectPath: fmt.Sprintf("/com/deepin/filemanager/Backend/Monitor/%d", monitor.ID),
+		Interface:  "com.deepin.filemanager.Backend.Monitor",
 	}
 
 	var err error

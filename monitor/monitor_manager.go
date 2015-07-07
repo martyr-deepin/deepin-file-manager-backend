@@ -53,26 +53,26 @@ func NewMonitorManager() *MonitorManager {
 func (manager *MonitorManager) GetDBusInfo() dbus.DBusInfo {
 	return dbus.DBusInfo{
 		Dest:       "com.deepin.filemanager.Backend.Monitor",
-		ObjectPath: "/com/deepin/filemanager/Backend/Monitor",
-		Interface:  "com.deepin.filemanager.Backend.Monitor.Manager",
+		ObjectPath: "/com/deepin/filemanager/Backend/MonitorManager",
+		Interface:  "com.deepin.filemanager.Backend.MonitorManager",
 	}
 }
 
-func (manager *MonitorManager) Monitor(fileURI string, flags uint32) (dbus.ObjectPath, string) {
+func (manager *MonitorManager) Monitor(fileURI string, flags uint32) (string, dbus.ObjectPath, string) {
 	monitor := NewMonitor(fileURI, gio.FileMonitorFlags(flags))
 	if monitor == nil {
-		return dbus.ObjectPath("/"), ""
+		return "", dbus.ObjectPath("/"), ""
 	}
 	err := dbus.InstallOnSession(monitor)
 	if err != nil {
 		fmt.Println(err)
 		monitor.finalize()
-		return dbus.ObjectPath("/"), ""
+		return "", dbus.ObjectPath("/"), ""
 	}
 
 	manager.monitors[MonitorID(monitor.ID)] = monitor
 	dbusInfo := monitor.GetDBusInfo()
-	return dbus.ObjectPath(dbusInfo.ObjectPath), dbusInfo.Interface
+	return dbusInfo.Dest, dbus.ObjectPath(dbusInfo.ObjectPath), dbusInfo.Interface
 }
 
 func (manager *MonitorManager) Unmonitor(id uint32) {
