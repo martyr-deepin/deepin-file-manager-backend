@@ -1,10 +1,10 @@
 package main
 
 import (
-	"pkg.deepin.io/service/file-manager-backend/delegator"
 	"pkg.deepin.io/lib/dbus"
 	"pkg.deepin.io/lib/gio-2.0"
 	"pkg.deepin.io/lib/operations"
+	"pkg.deepin.io/service/file-manager-backend/delegator"
 )
 
 type OperationFlags struct {

@@ -58,7 +58,6 @@
         <child name="preferences" schema="com.deepin.filemanager.preferences"/>
         <child name="icon-view" schema="com.deepin.filemanager.icon-view"/>
         <child name="list-view" schema="com.deepin.filemanager.list-view"/>
-        <child name="desktop" schema="com.deepin.filemanager.desktop"/>
     </schema>
 
     <schema path="/com/deepin/filemanager/preferences/" id="com.deepin.filemanager.preferences">
@@ -198,11 +197,11 @@
             <description>The default size of an icon for a thumbnail in the icon view.</description>
         </key>
 
-        <key name="icon-scale-level" type="i">
+        <key name="icon-zoom-level" type="i">
             <range min="50" max="500"/><!-- % -->
             <default>100</default>
-            <summary>Default icon scale level.</summary>
-            <description>Defaut icon scale level used by the icon view.</description>
+            <summary>Default icon zoom level.</summary>
+            <description>Defaut icon zoom level used by the icon view.</description>
         </key>
     </schema>
 
@@ -220,11 +219,11 @@
             <description>The default size of an icon for a thumbnail in the list view.</description>
         </key>
 
-        <key name="icon-scale-level" type="i">
+        <key name="icon-zoom-level" type="i">
             <range min="50" max="500"/>
             <default>100</default>
-            <summary>Default icon scale level.</summary>
-            <description>Defaut icon scale level used by the list view.</description>
+            <summary>Default icon zoom level.</summary>
+            <description>Defaut icon zoom level used by the list view.</description>
         </key>
 
         <!-- this maters for non-visible columns -->
@@ -238,50 +237,6 @@
             <default>["label", "size", "mtime", "filetype"]</default>
             <summary>Visible columns in list view.</summary>
             <description>Possible values are "label", "size", "mtime", "filetype".</description>
-        </key>
-    </schema>
-
-    <schema path="/com/deepin/filemanager/desktop/" id="com.deepin.filemanager.desktop">
-        <key name="manual-position" type="b">
-            <default>false</default>
-            <summary>Whether enable manual position.</summary>
-            <description>If true, the items on desktop can be placed on anywhere.</description>
-        </key>
-
-        <key name="auto-arrangement" type="b">
-            <default>false</default>
-            <summary>Auto-arrangement items on desktop.</summary>
-            <description>Items on desktop will always be placed one by one, and order doesn't mater.</description>
-        </key>
-
-        <key name="stickup-grid" type="b">
-            <default>true</default>
-            <summary>Whether enable stickup grid.</summary>
-            <description>If true, the items on desktop will get the position stickup to grid.</description>
-        </key>
-
-        <key name="show-computer-icon" type="b">
-            <default>false</default>
-            <summary>Whether show computer icon on desktop.</summary>
-            <description>If true, show it.</description>
-        </key>
-
-        <!-- <key name="show&#45;home&#45;icon" type="b"> -->
-        <!--     <default>false</default> -->
-        <!--     <summary>Whether show home icon on desktop.</summary> -->
-        <!--     <description>If true, show it.</description> -->
-        <!-- </key> -->
-
-        <key name="show-trash-icon" type="b">
-            <default>false</default>
-            <summary>Whether show trash icon on desktop.</summary>
-            <description>If true, show it.</description>
-        </key>
-
-        <key name="show-trashed-item-number" type="b">
-            <default>true</default>
-            <summary>Whether show trashed item number on contextmenu.</summary>
-            <description>If true, show it.</description>
         </key>
     </schema>
 </schemalist>

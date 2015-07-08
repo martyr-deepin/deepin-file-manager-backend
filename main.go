@@ -5,9 +5,9 @@ package main
 // void GtkInit() { gtk_init(NULL, NULL); }
 import "C"
 import (
-	"pkg.deepin.io/service/file-manager-backend/delegator"
+	// "pkg.deepin.io/service/file-manager-backend/fileinfo"
 	"pkg.deepin.io/service/file-manager-backend/monitor"
-	"fmt"
+	// "fmt"
 	"log"
 	"os"
 	"pkg.deepin.io/lib"
@@ -25,8 +25,6 @@ func (init *Initializer) Init(fn func() (dbus.DBusObject, error)) *Initializer {
 	}
 
 	v, err := fn()
-	dbusInfo := v.GetDBusInfo()
-	fmt.Println(dbusInfo.Dest, dbusInfo.ObjectPath, dbusInfo.Interface, err)
 	if err != nil {
 		init.err = err
 		return init
@@ -64,8 +62,8 @@ func main() {
 		return monitor.NewMonitorManager(), nil
 	}).Init(func() (dbus.DBusObject, error) {
 		return monitor.NewTrashMonitor()
-	}).Init(func() (dbus.DBusObject, error) {
-		return delegator.NewQueryFileInfoJob(), nil
+		// }).Init(func() (dbus.DBusObject, error) {
+		// 	return fileinfo.NewQueryFileInfoJob(), nil
 	})
 
 	if err := initializer.GetError(); err != nil {

@@ -43,12 +43,14 @@ func (job *ListJob) Execute() []operations.ListProperty {
 		dbus.Emit(job, "ProcessedAmount", size, uint16(unit))
 	})
 	job.op.ListenProperty(func(property operations.ListProperty) {
+		// TODO: read setting for icon size.
+		icon := operations.GetThemeIcon(property.URI, 48)
 		dbus.Emit(job, "EntryInfo",
 			property.DisplayName,
 			property.BaseName,
 			property.URI,
 			property.MIME,
-			property.Icon,
+			icon,
 			property.Size,
 			property.FileType,
 			property.IsBackup,

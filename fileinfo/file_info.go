@@ -1,27 +1,26 @@
-package delegator
+package fileinfo
 
 import (
 	"encoding/json"
 	"fmt"
 	"pkg.deepin.io/lib/gio-2.0"
 	"pkg.deepin.io/lib/operations"
-	"strings"
 )
 
 var _ = fmt.Println
 
 var attributeTypeMap = map[string]gio.FileAttributeType{
-	gio.FileAttributeStandardType:                   gio.FileAttributeTypeUint32,
-	gio.FileAttributeStandardIsHidden:               gio.FileAttributeTypeBoolean,
-	gio.FileAttributeStandardIsBackup:               gio.FileAttributeTypeBoolean,
-	gio.FileAttributeStandardIsSymlink:              gio.FileAttributeTypeBoolean,
-	gio.FileAttributeStandardIsVirtual:              gio.FileAttributeTypeBoolean,
-	gio.FileAttributeStandardName:                   gio.FileAttributeTypeString,
-	gio.FileAttributeStandardDisplayName:            gio.FileAttributeTypeString,
-	gio.FileAttributeStandardEditName:               gio.FileAttributeTypeString,
-	gio.FileAttributeStandardCopyName:               gio.FileAttributeTypeString,
-	gio.FileAttributeStandardIcon:                   gio.FileAttributeTypeObject, // GIcon
-	gio.FileAttributeStandardSymbolicIcon:           gio.FileAttributeTypeObject, // GIcon
+	gio.FileAttributeStandardType:        gio.FileAttributeTypeUint32,
+	gio.FileAttributeStandardIsHidden:    gio.FileAttributeTypeBoolean,
+	gio.FileAttributeStandardIsBackup:    gio.FileAttributeTypeBoolean,
+	gio.FileAttributeStandardIsSymlink:   gio.FileAttributeTypeBoolean,
+	gio.FileAttributeStandardIsVirtual:   gio.FileAttributeTypeBoolean,
+	gio.FileAttributeStandardName:        gio.FileAttributeTypeString,
+	gio.FileAttributeStandardDisplayName: gio.FileAttributeTypeString,
+	gio.FileAttributeStandardEditName:    gio.FileAttributeTypeString,
+	gio.FileAttributeStandardCopyName:    gio.FileAttributeTypeString,
+	// gio.FileAttributeStandardIcon:                   gio.FileAttributeTypeObject, // GIcon
+	// gio.FileAttributeStandardSymbolicIcon:           gio.FileAttributeTypeObject, // GIcon
 	gio.FileAttributeStandardContentType:            gio.FileAttributeTypeString,
 	gio.FileAttributeStandardFastContentType:        gio.FileAttributeTypeString,
 	gio.FileAttributeStandardSize:                   gio.FileAttributeTypeUint64,
@@ -76,19 +75,19 @@ var attributeTypeMap = map[string]gio.FileAttributeType{
 	gio.FileAttributeThumbnailPath:                  gio.FileAttributeTypeByteString,
 	gio.FileAttributeThumbnailingFailed:             gio.FileAttributeTypeBoolean,
 	gio.FileAttributeThumbnailIsValid:               gio.FileAttributeTypeBoolean,
-	gio.FileAttributePreviewIcon:                    gio.FileAttributeTypeObject, // GIcon
-	gio.FileAttributeFilesystemSize:                 gio.FileAttributeTypeUint64,
-	gio.FileAttributeFilesystemFree:                 gio.FileAttributeTypeUint64,
-	gio.FileAttributeFilesystemUsed:                 gio.FileAttributeTypeUint64,
-	gio.FileAttributeFilesystemType:                 gio.FileAttributeTypeString,
-	gio.FileAttributeFilesystemReadonly:             gio.FileAttributeTypeBoolean,
-	gio.FileAttributeGvfsBackend:                    gio.FileAttributeTypeString,
-	gio.FileAttributeSelinuxContext:                 gio.FileAttributeTypeString,
-	gio.FileAttributeTrashItemCount:                 gio.FileAttributeTypeUint32,
-	gio.FileAttributeTrashDeletionDate:              gio.FileAttributeTypeString,
-	gio.FileAttributeTrashOrigPath:                  gio.FileAttributeTypeByteString,
-	gio.FileAttributeFilesystemUsePreview:           gio.FileAttributeTypeUint32, // GFilesystemPreviewType
-	gio.FileAttributeStandardDescription:            gio.FileAttributeTypeString,
+	// gio.FileAttributePreviewIcon:                    gio.FileAttributeTypeObject, // GIcon
+	gio.FileAttributeFilesystemSize:       gio.FileAttributeTypeUint64,
+	gio.FileAttributeFilesystemFree:       gio.FileAttributeTypeUint64,
+	gio.FileAttributeFilesystemUsed:       gio.FileAttributeTypeUint64,
+	gio.FileAttributeFilesystemType:       gio.FileAttributeTypeString,
+	gio.FileAttributeFilesystemReadonly:   gio.FileAttributeTypeBoolean,
+	gio.FileAttributeGvfsBackend:          gio.FileAttributeTypeString,
+	gio.FileAttributeSelinuxContext:       gio.FileAttributeTypeString,
+	gio.FileAttributeTrashItemCount:       gio.FileAttributeTypeUint32,
+	gio.FileAttributeTrashDeletionDate:    gio.FileAttributeTypeString,
+	gio.FileAttributeTrashOrigPath:        gio.FileAttributeTypeByteString,
+	gio.FileAttributeFilesystemUsePreview: gio.FileAttributeTypeUint32, // GFilesystemPreviewType
+	gio.FileAttributeStandardDescription:  gio.FileAttributeTypeString,
 }
 
 type QueryFileInfoJob struct {
@@ -113,17 +112,17 @@ type QueryFileInfoJob struct {
 	FilesystemPreviewTypeNever    uint32
 	FilesystemPreviewTypeIfAlways uint32
 
-	FileAttributeStandardType                   string
-	FileAttributeStandardIsHidden               string
-	FileAttributeStandardIsBackup               string
-	FileAttributeStandardIsSymlink              string
-	FileAttributeStandardIsVirtual              string
-	FileAttributeStandardName                   string
-	FileAttributeStandardDisplayName            string
-	FileAttributeStandardEditName               string
-	FileAttributeStandardCopyName               string
-	FileAttributeStandardIcon                   string
-	FileAttributeStandardSymbolicIcon           string
+	FileAttributeStandardType        string
+	FileAttributeStandardIsHidden    string
+	FileAttributeStandardIsBackup    string
+	FileAttributeStandardIsSymlink   string
+	FileAttributeStandardIsVirtual   string
+	FileAttributeStandardName        string
+	FileAttributeStandardDisplayName string
+	FileAttributeStandardEditName    string
+	FileAttributeStandardCopyName    string
+	// FileAttributeStandardIcon                   string
+	// FileAttributeStandardSymbolicIcon           string
 	FileAttributeStandardContentType            string
 	FileAttributeStandardFastContentType        string
 	FileAttributeStandardSize                   string
@@ -178,19 +177,19 @@ type QueryFileInfoJob struct {
 	FileAttributeThumbnailPath                  string
 	FileAttributeThumbnailingFailed             string
 	FileAttributeThumbnailIsValid               string
-	FileAttributePreviewIcon                    string
-	FileAttributeFilesystemSize                 string
-	FileAttributeFilesystemFree                 string
-	FileAttributeFilesystemUsed                 string
-	FileAttributeFilesystemType                 string
-	FileAttributeFilesystemReadonly             string
-	FileAttributeGvfsBackend                    string
-	FileAttributeSelinuxContext                 string
-	FileAttributeTrashItemCount                 string
-	FileAttributeTrashDeletionDate              string
-	FileAttributeTrashOrigPath                  string
-	FileAttributeFilesystemUsePreview           string
-	FileAttributeStandardDescription            string
+	// FileAttributePreviewIcon                    string
+	FileAttributeFilesystemSize       string
+	FileAttributeFilesystemFree       string
+	FileAttributeFilesystemUsed       string
+	FileAttributeFilesystemType       string
+	FileAttributeFilesystemReadonly   string
+	FileAttributeGvfsBackend          string
+	FileAttributeSelinuxContext       string
+	FileAttributeTrashItemCount       string
+	FileAttributeTrashDeletionDate    string
+	FileAttributeTrashOrigPath        string
+	FileAttributeFilesystemUsePreview string
+	FileAttributeStandardDescription  string
 }
 
 func NewQueryFileInfoJob() *QueryFileInfoJob {
@@ -216,17 +215,17 @@ func NewQueryFileInfoJob() *QueryFileInfoJob {
 		FilesystemPreviewTypeNever:    uint32(gio.FilesystemPreviewTypeNever),
 		FilesystemPreviewTypeIfAlways: uint32(gio.FilesystemPreviewTypeIfAlways),
 
-		FileAttributeStandardType:                   gio.FileAttributeStandardType,
-		FileAttributeStandardIsHidden:               gio.FileAttributeStandardIsHidden,
-		FileAttributeStandardIsBackup:               gio.FileAttributeStandardIsBackup,
-		FileAttributeStandardIsSymlink:              gio.FileAttributeStandardIsSymlink,
-		FileAttributeStandardIsVirtual:              gio.FileAttributeStandardIsVirtual,
-		FileAttributeStandardName:                   gio.FileAttributeStandardName,
-		FileAttributeStandardDisplayName:            gio.FileAttributeStandardDisplayName,
-		FileAttributeStandardEditName:               gio.FileAttributeStandardEditName,
-		FileAttributeStandardCopyName:               gio.FileAttributeStandardCopyName,
-		FileAttributeStandardIcon:                   gio.FileAttributeStandardIcon,
-		FileAttributeStandardSymbolicIcon:           gio.FileAttributeStandardSymbolicIcon,
+		FileAttributeStandardType:        gio.FileAttributeStandardType,
+		FileAttributeStandardIsHidden:    gio.FileAttributeStandardIsHidden,
+		FileAttributeStandardIsBackup:    gio.FileAttributeStandardIsBackup,
+		FileAttributeStandardIsSymlink:   gio.FileAttributeStandardIsSymlink,
+		FileAttributeStandardIsVirtual:   gio.FileAttributeStandardIsVirtual,
+		FileAttributeStandardName:        gio.FileAttributeStandardName,
+		FileAttributeStandardDisplayName: gio.FileAttributeStandardDisplayName,
+		FileAttributeStandardEditName:    gio.FileAttributeStandardEditName,
+		FileAttributeStandardCopyName:    gio.FileAttributeStandardCopyName,
+		// FileAttributeStandardIcon:                   gio.FileAttributeStandardIcon,
+		// FileAttributeStandardSymbolicIcon:           gio.FileAttributeStandardSymbolicIcon,
 		FileAttributeStandardContentType:            gio.FileAttributeStandardContentType,
 		FileAttributeStandardFastContentType:        gio.FileAttributeStandardFastContentType,
 		FileAttributeStandardSize:                   gio.FileAttributeStandardSize,
@@ -281,19 +280,19 @@ func NewQueryFileInfoJob() *QueryFileInfoJob {
 		FileAttributeThumbnailPath:                  gio.FileAttributeThumbnailPath,
 		FileAttributeThumbnailingFailed:             gio.FileAttributeThumbnailingFailed,
 		FileAttributeThumbnailIsValid:               gio.FileAttributeThumbnailIsValid,
-		FileAttributePreviewIcon:                    gio.FileAttributePreviewIcon,
-		FileAttributeFilesystemSize:                 gio.FileAttributeFilesystemSize,
-		FileAttributeFilesystemFree:                 gio.FileAttributeFilesystemFree,
-		FileAttributeFilesystemUsed:                 gio.FileAttributeFilesystemUsed,
-		FileAttributeFilesystemType:                 gio.FileAttributeFilesystemType,
-		FileAttributeFilesystemReadonly:             gio.FileAttributeFilesystemReadonly,
-		FileAttributeGvfsBackend:                    gio.FileAttributeGvfsBackend,
-		FileAttributeSelinuxContext:                 gio.FileAttributeSelinuxContext,
-		FileAttributeTrashItemCount:                 gio.FileAttributeTrashItemCount,
-		FileAttributeTrashDeletionDate:              gio.FileAttributeTrashDeletionDate,
-		FileAttributeTrashOrigPath:                  gio.FileAttributeTrashOrigPath,
-		FileAttributeFilesystemUsePreview:           gio.FileAttributeFilesystemUsePreview,
-		FileAttributeStandardDescription:            gio.FileAttributeStandardDescription,
+		// FileAttributePreviewIcon:                    gio.FileAttributePreviewIcon,
+		FileAttributeFilesystemSize:       gio.FileAttributeFilesystemSize,
+		FileAttributeFilesystemFree:       gio.FileAttributeFilesystemFree,
+		FileAttributeFilesystemUsed:       gio.FileAttributeFilesystemUsed,
+		FileAttributeFilesystemType:       gio.FileAttributeFilesystemType,
+		FileAttributeFilesystemReadonly:   gio.FileAttributeFilesystemReadonly,
+		FileAttributeGvfsBackend:          gio.FileAttributeGvfsBackend,
+		FileAttributeSelinuxContext:       gio.FileAttributeSelinuxContext,
+		FileAttributeTrashItemCount:       gio.FileAttributeTrashItemCount,
+		FileAttributeTrashDeletionDate:    gio.FileAttributeTrashDeletionDate,
+		FileAttributeTrashOrigPath:        gio.FileAttributeTrashOrigPath,
+		FileAttributeFilesystemUsePreview: gio.FileAttributeFilesystemUsePreview,
+		FileAttributeStandardDescription:  gio.FileAttributeStandardDescription,
 	}
 }
 
@@ -322,20 +321,10 @@ func (job *QueryFileInfoJob) QueryInfo(arg string, attributes string, flags uint
 			infoJsonMap[attribute] = info.GetAttributeByteString(attribute)
 		case gio.FileAttributeTypeInt32:
 			infoJsonMap[attribute] = info.GetAttributeInt32(attribute)
-		case gio.FileAttributeTypeObject:
-			var icon string
-			filePath := file.GetPath()
-
-			isApp := strings.HasSuffix(filePath, ".desktop")
-			if isApp {
-				app := gio.NewDesktopAppInfoFromFilename(filePath)
-				defer app.Unref()
-				icon = operations.GetIconForApp(app.GetIcon(), 48)
-			} else {
-				icon = operations.GetIconForFile(info.GetIcon(), 48)
-			}
-
-			infoJsonMap[attribute] = icon
+		// case gio.FileAttributeTypeObject:
+		// 	filePath := file.GetPath()
+		// 	icon := operations.GetThemeIcon(filePath, 48)
+		// 	infoJsonMap[attribute] = icon
 		case gio.FileAttributeTypeString:
 			infoJsonMap[attribute] = info.GetAttributeString(attribute)
 		case gio.FileAttributeTypeUint32:
@@ -361,4 +350,13 @@ func (job *QueryFileInfoJob) IsNativeFile(arg string) bool {
 	defer f.Unref()
 
 	return f.IsNative()
+}
+
+func (job *QueryFileInfoJob) GetThemeIcon(file string, size int) string {
+	return operations.GetThemeIcon(file, size)
+}
+
+func (job *QueryFileInfoJob) GetThumbnail(file string, size int) string {
+	// TODO
+	return ""
 }
