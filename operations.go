@@ -4,7 +4,7 @@ package main
 // #include <glib.h>
 import "C"
 import (
-	d "deepin-file-manager/delegator"
+	d "pkg.deepin.io/service/file-manager-backend/delegator"
 	"errors"
 	"log"
 	"net/url"

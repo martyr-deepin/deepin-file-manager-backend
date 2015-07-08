@@ -5,8 +5,8 @@ package main
 // void GtkInit() { gtk_init(NULL, NULL); }
 import "C"
 import (
-	"deepin-file-manager/delegator"
-	"deepin-file-manager/monitor"
+	"pkg.deepin.io/service/file-manager-backend/delegator"
+	"pkg.deepin.io/service/file-manager-backend/monitor"
 	"fmt"
 	"log"
 	"os"

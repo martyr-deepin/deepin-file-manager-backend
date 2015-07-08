@@ -1,8 +1,9 @@
 PREFIX?=/usr
 TARGET_DIR=$(DESTDIR)/$(PREFIX)/lib/deepin-daemon
-PKG_NAME=deepin-file-manager
+PKG_NAME=file-manager-backend
 binary=deepin-file-manager-backend
 BUILD_DIR=$(shell pwd)/build
+SRC_DIR=$(BUILD_DIR)/src/pkg.deepin.io/service/
 
 GOBUILD=go build
 
@@ -11,9 +12,9 @@ all: build
 
 
 prepare:
-	@if [ ! -d $(BUILD_DIR)/src ]; then \
-		mkdir -p $(BUILD_DIR)/src; \
-		ln -sf $(shell dirname `pwd`)/$(shell basename `pwd`) $(BUILD_DIR)/src/$(PKG_NAME); \
+	if [ ! -d $(SRC_DIR) ]; then \
+		mkdir -p $(SRC_DIR); \
+		ln -sf $(shell dirname `pwd`)/$(shell basename `pwd`) $(SRC_DIR)/$(PKG_NAME); \
 	fi
 
 

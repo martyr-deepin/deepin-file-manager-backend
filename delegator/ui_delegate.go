@@ -1,7 +1,7 @@
 package delegator
 
 import (
-	"deepin-file-manager/dbusproxy"
+	"pkg.deepin.io/service/file-manager-backend/dbusproxy"
 	"pkg.deepin.io/lib/dbus"
 	"pkg.deepin.io/lib/operations"
 )

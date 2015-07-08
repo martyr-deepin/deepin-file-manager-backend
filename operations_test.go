@@ -1,7 +1,7 @@
 package main_test
 
 import (
-	. "deepin-file-manager/dbusproxy"
+	. "pkg.deepin.io/service/file-manager-backend/dbusproxy"
 	. "github.com/smartystreets/goconvey/convey"
 	"os/exec"
 	"path/filepath"
