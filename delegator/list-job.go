@@ -51,6 +51,7 @@ func (job *ListJob) Execute() []operations.ListProperty {
 			property.Icon,
 			property.Size,
 			property.FileType,
+			property.IsBackup,
 			property.IsHidden,
 			property.IsReadOnly,
 			property.IsSymlink,
