@@ -352,11 +352,11 @@ func (job *QueryFileInfoJob) IsNativeFile(arg string) bool {
 	return f.IsNative()
 }
 
-func (job *QueryFileInfoJob) GetThemeIcon(file string, size int) string {
-	return operations.GetThemeIcon(file, size)
+func (job *QueryFileInfoJob) GetThemeIcon(file string, size int32) string {
+	return operations.GetThemeIcon(file, int(size))
 }
 
-func (job *QueryFileInfoJob) GetThumbnail(file string, size int) string {
+func (job *QueryFileInfoJob) GetThumbnail(file string, size int32) string {
 	// TODO
 	return ""
 }
