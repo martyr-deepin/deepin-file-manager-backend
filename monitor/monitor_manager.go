@@ -85,5 +85,6 @@ func (manager *MonitorManager) Unmonitor(id uint32) {
 
 	fmt.Println("unmonitor", monitorID)
 	monitor.finalize()
+	dbus.UnInstallObject(monitor)
 	delete(manager.monitors, MonitorID(monitorID))
 }
