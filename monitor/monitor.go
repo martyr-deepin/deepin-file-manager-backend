@@ -4,12 +4,9 @@ import (
 	"fmt"
 	"pkg.deepin.io/lib/dbus"
 	"pkg.deepin.io/lib/gio-2.0"
-	"sync/atomic"
 )
 
 type MonitorID uint32
-
-var _MonitorCounter uint32
 
 type Monitor struct {
 	file        *gio.File
@@ -23,18 +20,17 @@ type Monitor struct {
 	Changed func(string, string, uint32)
 }
 
-func NewMonitor(fileURI string, flags gio.FileMonitorFlags) *Monitor {
+func NewMonitor(id uint32, fileURI string, flags gio.FileMonitorFlags) (*Monitor, error) {
 	file := gio.FileNewForCommandlineArg(fileURI)
 	if file == nil {
-		fmt.Printf("create file from %s failed\n", fileURI)
-		return nil
+		return nil, fmt.Errorf("create file from %s failed\n", fileURI)
 	}
 
 	monitor := &Monitor{
 		file:        file,
 		cancellable: gio.NewCancellable(),
 		flags:       flags,
-		ID:          atomic.AddUint32(&_MonitorCounter, 1),
+		ID:          id,
 	}
 
 	monitor.dbusInfo = dbus.DBusInfo{
@@ -46,9 +42,8 @@ func NewMonitor(fileURI string, flags gio.FileMonitorFlags) *Monitor {
 	var err error
 	monitor.monitor, err = monitor.file.Monitor(flags, monitor.cancellable)
 	if err != nil {
-		fmt.Println("create file monitor failed:", err)
 		monitor.finalize()
-		return nil
+		return nil, fmt.Errorf("create file monitor failed: %s", err)
 	}
 	monitor.monitor.Connect("changed", func(m *gio.FileMonitor, file *gio.File, newFile *gio.File, events gio.FileMonitorEvent) {
 		newFileURI := ""
@@ -61,7 +56,7 @@ func NewMonitor(fileURI string, flags gio.FileMonitorFlags) *Monitor {
 		}
 	})
 
-	return monitor
+	return monitor, nil
 }
 
 func (monitor *Monitor) GetDBusInfo() dbus.DBusInfo {

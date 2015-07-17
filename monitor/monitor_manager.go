@@ -4,10 +4,15 @@ import (
 	"fmt"
 	"pkg.deepin.io/lib/dbus"
 	"pkg.deepin.io/lib/gio-2.0"
+	"sync/atomic"
 )
+
+var _MonitorCounter uint32
+var _WatcherCounter uint32
 
 type MonitorManager struct {
 	monitors map[MonitorID]*Monitor
+	watchers map[WatcherID]*Watcher
 
 	// monitor flags
 	FileMonitorFlagsSendMoved      uint32
@@ -24,11 +29,19 @@ type MonitorManager struct {
 	FileMonitorEventPreUnmount       uint32
 	FileMonitorEventAttributeChanged uint32
 	FileMonitorEventChangesDoneHint  uint32
+
+	// watcher events
+	FsNotifyCreated          uint32
+	FsNotifyDeleted          uint32
+	FsNotifyModified         uint32
+	FsNotifyRename           uint32
+	FsNotifyAttributeChanged uint32
 }
 
 func NewMonitorManager() *MonitorManager {
 	manager := &MonitorManager{
 		monitors: map[MonitorID]*Monitor{},
+		watchers: map[WatcherID]*Watcher{},
 
 		// monitor flags
 		FileMonitorFlagsSendMoved:      uint32(gio.FileMonitorFlagsSendMoved),
@@ -45,6 +58,13 @@ func NewMonitorManager() *MonitorManager {
 		FileMonitorEventPreUnmount:       uint32(gio.FileMonitorEventPreUnmount),
 		FileMonitorEventAttributeChanged: uint32(gio.FileMonitorEventAttributeChanged),
 		FileMonitorEventChangesDoneHint:  uint32(gio.FileMonitorEventChangesDoneHint),
+
+		// watcher events
+		FsNotifyCreated:          uint32(FsNotifyCreated),
+		FsNotifyDeleted:          uint32(FsNotifyDeleted),
+		FsNotifyModified:         uint32(FsNotifyModified),
+		FsNotifyRename:           uint32(FsNotifyRename),
+		FsNotifyAttributeChanged: uint32(FsNotifyAttributeChanged),
 	}
 
 	return manager
@@ -58,33 +78,65 @@ func (manager *MonitorManager) GetDBusInfo() dbus.DBusInfo {
 	}
 }
 
-func (manager *MonitorManager) Monitor(fileURI string, flags uint32) (string, dbus.ObjectPath, string) {
-	monitor := NewMonitor(fileURI, gio.FileMonitorFlags(flags))
+func (manager *MonitorManager) Monitor(fileURI string, flags uint32) (string, dbus.ObjectPath, string, error) {
+	monitorID := atomic.AddUint32(&_MonitorCounter, 1)
+	monitor, err := NewMonitor(monitorID, fileURI, gio.FileMonitorFlags(flags))
 	if monitor == nil {
-		return "", dbus.ObjectPath("/"), ""
-	}
-	err := dbus.InstallOnSession(monitor)
-	if err != nil {
-		fmt.Println(err)
-		monitor.finalize()
-		return "", dbus.ObjectPath("/"), ""
+		return "", dbus.ObjectPath("/"), "", err
 	}
 
-	manager.monitors[MonitorID(monitor.ID)] = monitor
+	if err := dbus.InstallOnSession(monitor); err != nil {
+		fmt.Println(err)
+		monitor.finalize()
+		return "", dbus.ObjectPath("/"), "", err
+	}
+
+	manager.monitors[MonitorID(monitorID)] = monitor
 	dbusInfo := monitor.GetDBusInfo()
-	return dbusInfo.Dest, dbus.ObjectPath(dbusInfo.ObjectPath), dbusInfo.Interface
+	return dbusInfo.Dest, dbus.ObjectPath(dbusInfo.ObjectPath), dbusInfo.Interface, nil
 }
 
 func (manager *MonitorManager) Unmonitor(id uint32) {
 	monitorID := MonitorID(id)
-	monitor, ok := manager.monitors[MonitorID(monitorID)]
+	monitor, ok := manager.monitors[monitorID]
 	if !ok {
 		fmt.Printf("monitor %d not found", monitorID)
 		return
 	}
 
 	fmt.Println("unmonitor", monitorID)
-	monitor.finalize()
 	dbus.UnInstallObject(monitor)
-	delete(manager.monitors, MonitorID(monitorID))
+	monitor.finalize()
+	delete(manager.monitors, monitorID)
+}
+
+func (manager *MonitorManager) Watch(fileURI string) (string, dbus.ObjectPath, string, error) {
+	watcherID := atomic.AddUint32(&_WatcherCounter, 1)
+	watcher, err := NewWatcher(watcherID, fileURI)
+	if err != nil {
+		return "", dbus.ObjectPath("/"), "", err
+	}
+
+	if err := dbus.InstallOnSession(watcher); err != nil {
+		watcher.finalize()
+		return "", dbus.ObjectPath("/"), "", err
+	}
+
+	manager.watchers[WatcherID(watcherID)] = watcher
+	dbusInfo := watcher.GetDBusInfo()
+	return dbusInfo.Dest, dbus.ObjectPath(dbusInfo.ObjectPath), dbusInfo.Interface, nil
+}
+
+func (manager *MonitorManager) Unwatcher(id uint32) {
+	watcherID := WatcherID(id)
+	watcher, ok := manager.watchers[watcherID]
+	if !ok {
+		fmt.Println("watcher %d not found", watcherID)
+		return
+	}
+
+	fmt.Println("unwatcher", watcherID)
+	dbus.UnInstallObject(watcher)
+	watcher.finalize()
+	delete(manager.watchers, watcherID)
 }
