@@ -22,12 +22,15 @@ build: prepare
 	env GOPATH="${GOPATH}:${BUILD_DIR}" $(GOBUILD) -o $(binary)
 
 
-install: build
+do-install: 
 	install -Dm 755 -t $(TARGET_DIR) $(binary)
 	install -Dm 644 -t $(DESTDIR)/usr/share/glib-2.0/schemas schema/com.deepin.filemanager.gschema.xml
+	install -Dm 644 -t $(DESTDIR)/usr/share/dbus-1/services services/*
+
+install: build do-install
 
 clean:
 	rm -rf $(BUILD_DIR)
 
 distclean: clean
-	rm -f $(binary) deepin-file-manager
+	rm -f $(binary)

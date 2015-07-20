@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=com.deepin.filemanager.Backend.Clipboard
+Exec=/usr/lib/deepin-daemon/deepin-file-manager-backend
