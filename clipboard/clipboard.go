@@ -51,6 +51,10 @@ func (c *Clipboard) CopyToClipboard(files []string) {
 	operations.CopyToClipboard(files)
 }
 
+func (c *Clipboard) ClearClipboard() {
+	operations.ClearClipboard()
+}
+
 // func (c *Clipboard) GetContent() []string {
 // 	return operations.GetClipboardContents()
 // }
