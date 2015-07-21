@@ -20,7 +20,7 @@ type CopyJob struct {
 	op   *operations.CopyMoveJob
 
 	Done            func(string)
-	ProcessedAmount func(uint64, uint16)
+	ProcessedAmount func(int64, uint16)
 	Copying         func(string)
 	Aborted         func()
 }
@@ -84,7 +84,7 @@ type MoveJob struct {
 	op   *operations.CopyMoveJob
 
 	Done            func(string)
-	ProcessedAmount func(uint64, uint16)
+	ProcessedAmount func(int64, uint16)
 	Moving          func(string)
 	Aborted         func()
 }
