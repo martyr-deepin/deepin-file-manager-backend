@@ -83,7 +83,7 @@ type MoveJob struct {
 	uris []string
 	op   *operations.CopyMoveJob
 
-	Done            func()
+	Done            func(string)
 	ProcessedAmount func(uint64, uint16)
 	Moving          func(string)
 	Aborted         func()
@@ -108,11 +108,15 @@ func (job *MoveJob) listenSignals() {
 		// dbus.Emit(job, "CreatingDir", dirURL)
 	})
 	job.op.ListenDone(func(err error) {
+		defer dbus.UnInstallObject(job)
 		errMsg := ""
 		if errMsg != "" {
 			errMsg = err.Error()
 		}
-		dbus.Emit(job, "Done", errMsg)
+		emitErr := dbus.Emit(job, "Done", errMsg)
+		if emitErr != nil {
+			fmt.Println("emit signal Done failed:", err)
+		}
 	})
 }
 
@@ -120,7 +124,6 @@ func (job *MoveJob) listenSignals() {
 func (job *MoveJob) Execute() {
 	job.listenSignals()
 	job.op.Execute()
-	dbus.UnInstallObject(job)
 }
 
 // Abort the job.
