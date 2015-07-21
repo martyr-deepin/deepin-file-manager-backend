@@ -56,7 +56,7 @@ func (job *GetDefaultLaunchAppJob) Execute() {
 			return
 		}
 
-		dbus.Emit(job, "DefaultAppInfo", string(bInfos))
+		dbus.Emit(job, "DefaultLaunchAppInfo", string(bInfos))
 		dbus.Emit(job, "Done", "")
 	})
 	job.op.Execute()
