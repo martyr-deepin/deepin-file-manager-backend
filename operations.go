@@ -221,8 +221,8 @@ func (backend *OperationBackend) NewLinkJob(src string, destDir string, dest str
 	})
 }
 
-// NewGetLaunchAppJob creates a new get launch app job for dbus.
-func (*OperationBackend) NewGetLaunchAppJob(path string, mustSupportURI bool) (string, dbus.ObjectPath, string, error) {
+// NewGetDefaultLaunchAppJob creates a new get launch app job for dbus.
+func (*OperationBackend) NewGetDefaultLaunchAppJob(path string, mustSupportURI bool) (string, dbus.ObjectPath, string, error) {
 	return newOperationJob([]string{path}, func(uris []string, args ...interface{}) dbus.DBusObject {
 		return d.NewGetDefaultLaunchAppJob(uris[0], mustSupportURI)
 	})
@@ -240,8 +240,8 @@ func (*OperationBackend) NewGetAllLaunchAppsJob() (string, dbus.ObjectPath, stri
 	})
 }
 
-// NewSetLaunchAppJob creates a new set default launch app job for dbus.
-func (*OperationBackend) NewSetLaunchAppJob(id string, mimeType string) (string, dbus.ObjectPath, string, error) {
+// NewSetDefaultLaunchAppJob creates a new set default launch app job for dbus.
+func (*OperationBackend) NewSetDefaultLaunchAppJob(id string, mimeType string) (string, dbus.ObjectPath, string, error) {
 	return newOperationJob([]string{}, func(uris []string, args ...interface{}) dbus.DBusObject {
 		if !strings.HasSuffix(id, ".desktop") {
 			log.Println("wrong desktop id")

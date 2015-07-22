@@ -13,8 +13,10 @@ type RenameJob struct {
 	dbusInfo dbus.DBusInfo
 	op       *operations.RenameJob
 
-	Done    func(string)
+	Done func(string)
+	// TODO: it maybe be better that using 'Renamed func(newFile string, oldName string)' as signal.
 	OldName func(string)
+	NewFile func(string)
 }
 
 func (job *RenameJob) GetDBusInfo() dbus.DBusInfo {

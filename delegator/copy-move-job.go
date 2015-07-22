@@ -45,7 +45,8 @@ func (job *CopyJob) listenSignals() {
 		dbus.Emit(job, "Copying", srcURL)
 	})
 	job.op.ListenCreatingDir(func(dirURL string) {
-		dbus.Emit(job, "CreatingDir", dirURL)
+		// TODO
+		// dbus.Emit(job, "CreatingDir", dirURL)
 	})
 	job.op.ListenCopyingMovingDone(func(srcURL string, destURL string) {
 	})
@@ -113,10 +114,7 @@ func (job *MoveJob) listenSignals() {
 		if errMsg != "" {
 			errMsg = err.Error()
 		}
-		emitErr := dbus.Emit(job, "Done", errMsg)
-		if emitErr != nil {
-			fmt.Println("emit signal Done failed:", err)
-		}
+		dbus.Emit(job, "Done", errMsg)
 	})
 }
 

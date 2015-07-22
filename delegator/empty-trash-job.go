@@ -16,11 +16,7 @@ type EmptyTrashJob struct {
 	dbusInfo dbus.DBusInfo
 	op       *operations.EmptyTrashJob
 
-	Trashing        func(string)
-	Deleting        func(string)
-	Done            func()
-	ProcessedAmount func(int64, uint16)
-	Aborted         func()
+	Done func()
 }
 
 // GetDBusInfo returns dbus information.
@@ -40,10 +36,6 @@ func NewEmptyTrashJob(shouldConfirmTrash bool, uiDelegate IUIDelegate) *EmptyTra
 	return job
 }
 
-// TODO:
-func (job *EmptyTrashJob) listenSignals() {
-}
-
 func (job *EmptyTrashJob) executeJob() {
 	defer dbus.UnInstallObject(job)
 	job.op.Execute()
@@ -52,6 +44,5 @@ func (job *EmptyTrashJob) executeJob() {
 
 // Execute empty trash job.
 func (job *EmptyTrashJob) Execute() {
-	job.listenSignals()
 	job.executeJob()
 }
