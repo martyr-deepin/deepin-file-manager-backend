@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"pkg.deepin.io/lib/dbus"
 	"pkg.deepin.io/lib/gio-2.0"
-	"pkg.deepin.io/lib/operations"
+	"pkg.deepin.io/service/file-manager-backend/operations"
 )
 
 var (

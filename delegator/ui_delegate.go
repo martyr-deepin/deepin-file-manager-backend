@@ -3,7 +3,7 @@ package delegator
 import (
 	"pkg.deepin.io/service/file-manager-backend/dbusproxy"
 	"pkg.deepin.io/lib/dbus"
-	"pkg.deepin.io/lib/operations"
+	"pkg.deepin.io/service/file-manager-backend/operations"
 )
 
 // UIDelegate is a proxy for dbus UIDelegate.

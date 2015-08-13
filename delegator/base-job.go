@@ -3,7 +3,7 @@ package delegator
 import (
 	"fmt"
 	"pkg.deepin.io/lib/dbus"
-	"pkg.deepin.io/lib/operations"
+	"pkg.deepin.io/service/file-manager-backend/operations"
 	"sync/atomic"
 )
 

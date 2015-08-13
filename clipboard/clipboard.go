@@ -3,7 +3,7 @@ package clipboard
 import (
 	"fmt"
 	"pkg.deepin.io/lib/dbus"
-	"pkg.deepin.io/lib/operations"
+	"pkg.deepin.io/service/file-manager-backend/operations"
 )
 
 type Clipboard struct {
