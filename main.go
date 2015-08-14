@@ -6,6 +6,7 @@ package main
 import "C"
 import (
 	"pkg.deepin.io/service/file-manager-backend/clipboard"
+	"pkg.deepin.io/service/file-manager-backend/desktop"
 	"pkg.deepin.io/service/file-manager-backend/fileinfo"
 	"pkg.deepin.io/service/file-manager-backend/monitor"
 	// "fmt"
@@ -67,6 +68,8 @@ func main() {
 		return fileinfo.NewQueryFileInfoJob(), nil
 	}).Init(func() (dbus.DBusObject, error) {
 		return clipboard.NewClipboard(), nil
+	}).Init(func() (dbus.DBusObject, error) {
+		return desktop.NewDesktopDaemon()
 	})
 
 	if err := initializer.GetError(); err != nil {
