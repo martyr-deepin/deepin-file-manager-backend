@@ -3,6 +3,7 @@ package fileinfo
 import (
 	"encoding/json"
 	"fmt"
+	"pkg.deepin.io/dde/api/thumbnails"
 	"pkg.deepin.io/lib/gio-2.0"
 	"pkg.deepin.io/service/file-manager-backend/operations"
 )
@@ -356,7 +357,6 @@ func (job *QueryFileInfoJob) GetThemeIcon(file string, size int32) string {
 	return operations.GetThemeIcon(file, int(size))
 }
 
-func (job *QueryFileInfoJob) GetThumbnail(file string, size int32) string {
-	// TODO
-	return ""
+func (job *QueryFileInfoJob) GetThumbnail(file string, size int32) (string, error) {
+	return thumbnails.GenThumbnail(file, int(size))
 }
