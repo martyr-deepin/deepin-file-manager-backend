@@ -77,7 +77,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	glib.StartLoop()
+	go glib.StartLoop()
 	dbus.DealWithUnhandledMessage()
 	if err := dbus.Wait(); err != nil {
 		log.Println(err)
