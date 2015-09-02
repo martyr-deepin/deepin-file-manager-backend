@@ -25,7 +25,8 @@ build: prepare
 do-install: 
 	install -Dm 755 -t $(TARGET_DIR) $(binary)
 	install -Dm 644 -t $(DESTDIR)/usr/share/glib-2.0/schemas schema/com.deepin.filemanager.gschema.xml
-	install -Dm 644 -t $(DESTDIR)/usr/share/dbus-1/services services/*
+	mkdir -p $(DESTDIR)/usr/share/dbus-1/services 
+	cp services/* $(DESTDIR)/usr/share/dbus-1/services 
 
 install: build do-install
 
