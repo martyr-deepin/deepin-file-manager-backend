@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"pkg.deepin.io/lib/gio-2.0"
 	"pkg.deepin.io/lib/glib-2.0"
-	"pkg.deepin.io/lib/utils"
 	"strings"
 )
 
@@ -196,8 +195,12 @@ func (job *RenameJob) setDesktopName() error {
 		return err
 	}
 
-	utils.WriteStringToKeyFile(filePath, content)
-	return nil
+	stat, err := os.Stat(filePath)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(filePath, []byte(content), stat.Mode().Perm())
 }
 
 func (job *RenameJob) init() {
@@ -246,13 +249,16 @@ func (job *RenameJob) Execute() {
 	}
 
 	mimeType := info.GetContentType()
-	if mimeType == _DesktopMIMEType &&
-		info.GetAttributeBoolean(gio.FileAttributeAccessCanExecute) {
-		err = job.setDesktopName()
-		if err != nil {
-			// FIXME: this error will be overwrite if error occurs later.
-			job.setError(err)
+	if mimeType == _DesktopMIMEType {
+		if info.GetAttributeBoolean(gio.FileAttributeAccessCanExecute) {
+			err = job.setDesktopName()
+			if err != nil {
+				job.setError(err)
+				return
+			}
 		}
+
+		job.newName = job.newName + ".desktop"
 	}
 
 	job.emitOldName(displayName)
