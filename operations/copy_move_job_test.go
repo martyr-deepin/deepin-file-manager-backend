@@ -62,6 +62,15 @@ func TestCopyJob(t *testing.T) {
 		copyedFile := gio.FileNewForCommandlineArg(copyedFileURL)
 		So(copyedFile.QueryExists(nil), ShouldBeTrue)
 	})
+
+	SkipConvey("dup a file", t, func() {
+		os.Setenv("LANGUAGE", "en_US")
+		srcFilePath, _ := filepath.Abs("./testdata/copy/dest/exsitfile")
+		// destPath, _ := filepath.Abs("./testdata/copy/dest")
+
+		job := NewCopyJob([]string{srcFilePath}, "", "", gio.FileCopyFlagsNone, skipMock)
+		job.Execute()
+	})
 }
 
 // TODO

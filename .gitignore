@@ -1,3 +1,9 @@
 deepin-file-manager-backend
 deepin-file-manager
 build/
+
+core
+
+*.swp
+*~
+#*#

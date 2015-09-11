@@ -525,7 +525,7 @@ func (job *CopyMoveJob) needRetry(
 
 		// TODO:
 		response := job.uiDelegate.ConflictDialog()
-		fmt.Println(response)
+		fmt.Println("response from ConflictDialog:", response)
 		switch response.Code() {
 		case ResponseCancel:
 			job.Abort()
@@ -1147,8 +1147,17 @@ func newCopyMoveJob(srcs []*gio.File, destDir *gio.File, targetName string, flag
 
 func newCopyMoveJobFromURL(srcURLs []string, destDirURL string, targetName string, flags gio.FileCopyFlags, uiDelegate IUIDelegate) *CopyMoveJob {
 	srcs := locationListFromUriList(srcURLs)
-	destDir := gio.FileNewForCommandlineArg(destDirURL)
+	var destDir *gio.File
+	if destDirURL != "" {
+		destDir = gio.FileNewForCommandlineArg(destDirURL)
+		// force duplicate when destDir is parent dir.
+		if srcs[0].GetParent().GetUri() == destDir.GetUri() {
+			destDir.Unref()
+			destDir = nil
+		}
+	}
 
+	// when destDir is nil, duplicate files.
 	return newCopyMoveJob(srcs, destDir, targetName, flags, uiDelegate)
 }
 

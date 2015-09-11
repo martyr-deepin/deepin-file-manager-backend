@@ -52,7 +52,7 @@ func (code ResponseCode) String() string {
 		return "AutoRename"
 	}
 
-	return fmt.Sprintf("Unknow code: %d", int32(code))
+	return fmt.Sprintf("Unknown code: %d", int32(code))
 }
 
 // Response stores the response relavant information like ResponseCode.
@@ -67,6 +67,15 @@ func NewResponse(code ResponseCode, applyToAll bool) Response {
 	return Response{
 		code:       int32(code),
 		applyToAll: applyToAll,
+	}
+}
+
+// NewResponseWithUserData creates a Response from response code code, apply to all and user data.
+func NewResponseWithUserData(code ResponseCode, applyToAll bool, userData string) Response {
+	return Response{
+		code:       int32(code),
+		applyToAll: applyToAll,
+		userData:   userData,
 	}
 }
 

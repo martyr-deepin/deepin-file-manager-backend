@@ -11,8 +11,8 @@ import (
 	"path/filepath"
 	"pkg.deepin.io/lib/dbus"
 	"pkg.deepin.io/lib/glib-2.0"
-	"pkg.deepin.io/service/file-manager-backend/operations"
 	d "pkg.deepin.io/service/file-manager-backend/delegator"
+	"pkg.deepin.io/service/file-manager-backend/operations"
 	"strings"
 	"sync"
 )
@@ -255,7 +255,7 @@ func (*OperationBackend) NewSetDefaultLaunchAppJob(id string, mimeType string) (
 func (backend *OperationBackend) NewCopyJob(srcs []string, destDir string, targetName string, flags uint32, dest string, objPath string, iface string) (string, dbus.ObjectPath, string, error) {
 	return newOperationJob(srcs, func(uris []string, args ...interface{}) dbus.DBusObject {
 		destDirURL, err := pathToURL(destDir)
-		if err != nil {
+		if destDir != "" && err != nil {
 			log.Println(err)
 			return nil
 		}
@@ -269,7 +269,7 @@ func (backend *OperationBackend) NewCopyJob(srcs []string, destDir string, targe
 func (backend *OperationBackend) NewMoveJob(paths []string, destDir string, targetName string, flags uint32, dest string, objPath string, iface string) (string, dbus.ObjectPath, string, error) {
 	return newOperationJob(paths, func(uris []string, args ...interface{}) dbus.DBusObject {
 		destDirURL, err := pathToURL(destDir)
-		if err != nil {
+		if destDir != "" && err != nil {
 			log.Println(err)
 			return nil
 		}
