@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"pkg.deepin.io/lib/dbus"
 	"pkg.deepin.io/lib/gio-2.0"
+	"pkg.deepin.io/service/file-manager-backend/log"
 )
 
 type MonitorID uint32
@@ -52,7 +53,7 @@ func NewMonitor(id uint32, fileURI string, flags gio.FileMonitorFlags) (*Monitor
 		}
 		err := dbus.Emit(monitor, "Changed", file.GetUri(), newFileURI, uint32(events))
 		if err != nil {
-			fmt.Println("emit signal failed:", err)
+			log.Warning("emit signal failed:", err)
 		}
 	})
 

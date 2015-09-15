@@ -1,8 +1,8 @@
 package clipboard
 
 import (
-	"fmt"
 	"pkg.deepin.io/lib/dbus"
+	"pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"
 )
 
@@ -26,7 +26,7 @@ func (c *Clipboard) GetDBusInfo() dbus.DBusInfo {
 func (c *Clipboard) EmitPaste(file string) {
 	contents := operations.GetClipboardContents()
 	if len(contents) < 2 {
-		fmt.Println("invalid content or empty content")
+		log.Warning("invalid content or empty content in clipboard")
 		return
 	}
 
@@ -39,7 +39,7 @@ func (c *Clipboard) EmitPaste(file string) {
 	case operations.OpCopy:
 		dbus.Emit(c, "RequestPaste", op, files, file)
 	default:
-		fmt.Println("not valid operation")
+		log.Warning("not valid operation")
 	}
 }
 

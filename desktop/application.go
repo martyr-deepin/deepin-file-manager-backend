@@ -17,6 +17,7 @@ import (
 	"pkg.deepin.io/lib/dbus"
 	"pkg.deepin.io/lib/gio-2.0"
 	"pkg.deepin.io/lib/glib-2.0"
+	"pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"
 	"strings"
 )
@@ -254,12 +255,12 @@ func (app *Application) getMenuable(uris []string) IMenuable {
 func (app *Application) GenMenuContent(uris []string) string {
 	app.menuable = app.getMenuable(uris)
 	if app.menuable == nil {
-		fmt.Println("get menuable item failed")
+		log.Error("get menuable item failed")
 		return ""
 	}
 	menu, err := app.menuable.GenMenu()
 	if err != nil {
-		fmt.Println("gen menu failed:", err)
+		log.Error("gen menu failed:", err)
 		return ""
 	}
 
@@ -311,7 +312,7 @@ func (app *Application) RequestCreatingAppGroup(files []string) error {
 	createJob.Execute()
 
 	if err := createJob.GetError(); err != nil {
-		fmt.Println("create appgroup failed:", err)
+		log.Error("create appgroup failed:", err)
 		return err
 	}
 
@@ -321,7 +322,7 @@ func (app *Application) RequestCreatingAppGroup(files []string) error {
 	moveJob := operations.NewMoveJob(availableFiles, appGroupURI, "", 0, nil)
 	moveJob.Execute()
 	if err := moveJob.GetError(); err != nil {
-		fmt.Println("move apps to appgroup failed:", err)
+		log.Error("move apps to appgroup failed:", err)
 		return err
 	}
 
@@ -513,7 +514,7 @@ func (app *Application) getItemInfo(p operations.ListProperty) ItemInfo {
 		info.Thumbnail = thumbnail
 
 		if err != nil {
-			fmt.Printf("Get thumbnail for %q failed: %s\n", p.URI, err)
+			log.Errorf("Get thumbnail for %q failed: %s\n", p.URI, err)
 		}
 	}
 

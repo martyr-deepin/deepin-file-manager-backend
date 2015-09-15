@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"pkg.deepin.io/lib/gio-2.0"
 	"pkg.deepin.io/lib/timer"
+	"pkg.deepin.io/service/file-manager-backend/log"
 	"strings"
 	"time"
 )
@@ -130,7 +131,7 @@ func (job *CommonJob) ListenProcessedAmount(fn func(amount int64, unit AmountUni
 func (job *CommonJob) emitProcessedAmount(amount int64, unit AmountUnit) {
 	err := job.Emit(_JobSignalProcessedAmount, amount, unit)
 	if err != nil {
-		fmt.Println("emit ProcessedAmount signal failed:", err)
+		log.Error("emit ProcessedAmount signal failed:", err)
 	}
 }
 
@@ -150,7 +151,7 @@ func (job *CommonJob) setProcessedAmount(size int64, unit AmountUnit) {
 func (job *CommonJob) doEmitSpeed(speed uint64) {
 	err := job.Emit(_JobSignalSpeed, speed)
 	if err != nil {
-		fmt.Println("emit Speed signal failed:", err)
+		log.Error("emit Speed signal failed:", err)
 	}
 }
 
@@ -182,7 +183,7 @@ func (job *CommonJob) ListenSpeed(fn func(uint64)) (func(), error) {
 func (job *CommonJob) doEmitPercent(percent int64) {
 	err := job.Emit(_JobSignalPercent, percent)
 	if err != nil {
-		fmt.Println("emit Percent signal failed", err)
+		log.Error("emit Percent signal failed", err)
 	}
 }
 
@@ -203,7 +204,7 @@ func (job *CommonJob) ListenPercent(fn func(int64)) (func(), error) {
 func (job *CommonJob) emitTotalAmount(totalAmount int64, unit AmountUnit) {
 	err := job.Emit(_JobSignalTotalAmount, totalAmount, unit)
 	if err != nil {
-		fmt.Println("emit TotalAmount signal failed:", err)
+		log.Error("emit TotalAmount signal failed:", err)
 	}
 }
 
@@ -286,7 +287,6 @@ retry:
 		response := job.uiDelegate.AskRetry(primaryText, secondaryText, detailText)
 		switch response.Code() {
 		case ResponseCancel:
-			fmt.Println("AskRetry aborted")
 			job.Abort()
 		case ResponseRetry:
 			goto retry
@@ -309,7 +309,6 @@ retry:
 		// TODO: emit error
 		// primaryText = Tr("Error while copying to “%B”.") //, dest
 		// secondaryText = Tr("The destination is not a folder.")
-		fmt.Println("aa Abort")
 		job.Abort()
 	}
 
@@ -327,7 +326,7 @@ retry:
 		freeSize := fsInfo.GetAttributeUint64(gio.FileAttributeFilesystemFree)
 
 		if freeSize < requiredSize {
-			fmt.Println("freeSize:", freeSize, "requiredSize:", requiredSize)
+			log.Debug("freeSize:", freeSize, "requiredSize:", requiredSize)
 			sizeDifference := requiredSize - freeSize
 			//TODO
 			primaryText := Tr("Error while copying to “%B”.") //, dest
@@ -339,7 +338,6 @@ retry:
 
 			switch response.Code() {
 			case ResponseCancel:
-				fmt.Println("bbb abort")
 				job.Abort()
 			case ResponseRetry:
 				goto retry
@@ -351,7 +349,6 @@ retry:
 		// TODO: emit error
 		// primaryText = Tr("Error while copying to “%B”.") //, dest)
 		// secondaryText = Tr("The destination is read-only.")
-		fmt.Println("ccc abort")
 		job.Abort()
 	}
 
@@ -497,7 +494,6 @@ retry:
 				response := job.uiDelegate.AskSkip(primaryText, secondaryText, detailText, UIFlagsMulti)
 				switch response.Code() {
 				case ResponseCancel:
-					fmt.Println("ddd abort")
 					job.Abort()
 				case ResponseRetry:
 					job.processedAmount[AmountUnitBytes] = savedInfo[AmountUnitBytes]
@@ -529,7 +525,6 @@ retry:
 			response := job.uiDelegate.AskSkip(primaryText, secondaryText, detailText, UIFlagsMulti|UIFlagsRetry)
 			switch response.Code() {
 			case ResponseCancel:
-				fmt.Println("ask skip abort")
 				job.Abort()
 			case ResponseSkip:
 				if response.ApplyToAll() {

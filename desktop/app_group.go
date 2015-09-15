@@ -9,6 +9,7 @@ import (
 	. "pkg.deepin.io/lib/gettext"
 	"pkg.deepin.io/lib/gio-2.0"
 	"pkg.deepin.io/lib/glib-2.0"
+	"pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"
 	"sort"
 	"strings"
@@ -52,14 +53,14 @@ func (item *AppGroup) GenMenu() (*Menu, error) {
 			})
 			listJob.Execute()
 			if err := listJob.GetError(); err != nil {
-				fmt.Printf("list appgroup %s failed: %s\n", uri, err)
+				log.Warningf("list appgroup %s failed: %s\n", uri, err)
 				continue
 			}
 
 			moveJob := operations.NewMoveJob(files, GetDesktopDir(), "", 0, nil)
 			moveJob.Execute()
 			if err := moveJob.GetError(); err != nil {
-				fmt.Printf("dismiss appgroup %s failed: %s\n", uri, err)
+				log.Warningf("dismiss appgroup %s failed: %s\n", uri, err)
 			}
 		}
 	}, true)).AddSeparator().AppendItem(NewMenuItem(Tr("_Delete"), func() {
@@ -227,7 +228,7 @@ func getGroupName(files []string) string {
 	}
 
 	if err != nil {
-		fmt.Println(err)
+		log.Warning("get group name from software center failed:", err)
 	}
 
 	name, err = getGroupNameFromDesktop(files)
@@ -236,7 +237,7 @@ func getGroupName(files []string) string {
 	}
 
 	if err != nil {
-		fmt.Println(err)
+		log.Warning("get group name from desktop categories field failed:", err)
 	}
 
 	return Tr("App Group")

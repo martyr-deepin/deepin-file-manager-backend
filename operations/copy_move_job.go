@@ -5,6 +5,7 @@ import (
 	"math"
 	"pkg.deepin.io/lib/gio-2.0"
 	"pkg.deepin.io/lib/timer"
+	"pkg.deepin.io/service/file-manager-backend/log"
 	"strings"
 )
 
@@ -501,7 +502,7 @@ func (job *CopyMoveJob) needRetry(
 
 	// conflict
 	if !*overwrite && errCode == gio.IOErrorEnumExists {
-		fmt.Println("file existing, get unique name?", uniqueName)
+		log.Info("file existing, get unique name?", uniqueName)
 		if uniqueName {
 			destW.Reset(getUniqueTargetFile(src, destDir, *sameFs, *destFsType, *uniqueNameNr))
 			(*uniqueNameNr)++
@@ -518,14 +519,14 @@ func (job *CopyMoveJob) needRetry(
 			return true
 		}
 
-		fmt.Println("skip all conflict?", job.skipAllConflict)
+		log.Info("skip all conflict?", job.skipAllConflict)
 		if job.skipAllConflict {
 			return false
 		}
 
 		// TODO:
 		response := job.uiDelegate.ConflictDialog()
-		fmt.Println("response from ConflictDialog:", response)
+		log.Info("response from ConflictDialog:", response)
 		switch response.Code() {
 		case ResponseCancel:
 			job.Abort()
@@ -670,7 +671,7 @@ func (job *CopyMoveJob) copyMoveFile(
 	skippedFile *bool,
 	readonlySourceFs bool) {
 	if job.shouldSkipFile(src) {
-		fmt.Println("file should skip", src.GetUri())
+		log.Debug("file should skip", src.GetUri())
 		*skippedFile = true
 		return
 	}
@@ -730,7 +731,6 @@ func (job *CopyMoveJob) copyMoveFile(
 
 		// TODO:
 		response := job.uiDelegate.AskSkip(primaryText, secondaryText, "", UIFlagsMulti) /*source_info.num_files, source_info.num_files-transfer_info.num_files*/
-		fmt.Println(primaryText, secondaryText, response)
 		switch response.Code() {
 		case ResponseCancel:
 			job.Abort()
@@ -757,7 +757,7 @@ retry:
 		flags |= gio.FileCopyFlagsTargetDefaultPerms
 	}
 
-	fmt.Println("job flags overwrite?", flags&gio.FileCopyFlagsOverwrite != 0)
+	log.Debug("job flags overwrite?", flags&gio.FileCopyFlagsOverwrite != 0)
 	var err error
 	var ok bool
 	progressCb := newCopyFileProgressCallback(job)
@@ -831,7 +831,7 @@ func (job *CopyMoveJob) copyJob() {
 	job.scanSources(job.files)
 
 	if job.isAborted() {
-		fmt.Println("aborted copy job")
+		log.Debug("aborted copy job")
 		return
 	}
 
@@ -1087,7 +1087,7 @@ func (job *CopyMoveJob) moveJob() {
 	destFsID := job.verifyDestination(job.destination, uint64(job.totalAmount[AmountUnitBytes]))
 
 	if job.isAborted() {
-		fmt.Println("aborted move job")
+		log.Info("aborted move job")
 		return
 	}
 
@@ -1123,7 +1123,8 @@ func (job *CopyMoveJob) Execute() {
 	if job.isMove {
 		jobName = "move"
 	}
-	fmt.Printf("execute %s job\n", jobName)
+
+	log.Debugf("execute %s job\n", jobName)
 	if job.isMove {
 		job.moveJob()
 	} else {

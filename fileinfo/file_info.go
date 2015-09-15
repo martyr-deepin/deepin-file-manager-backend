@@ -2,13 +2,11 @@ package fileinfo
 
 import (
 	"encoding/json"
-	"fmt"
 	"pkg.deepin.io/dde/api/thumbnails"
 	"pkg.deepin.io/lib/gio-2.0"
+	"pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"
 )
-
-var _ = fmt.Println
 
 var attributeTypeMap = map[string]gio.FileAttributeType{
 	gio.FileAttributeStandardType:        gio.FileAttributeTypeUint32,
@@ -306,7 +304,7 @@ func (job *QueryFileInfoJob) QueryInfo(arg string, attributes string, flags uint
 
 	info, err := file.QueryInfo(attributes, gio.FileQueryInfoFlags(flags), nil)
 	if err != nil {
-		// fmt.Println(err)
+		log.Error("Query file info failed:", err)
 		return ""
 	}
 	defer info.Unref()
@@ -336,7 +334,7 @@ func (job *QueryFileInfoJob) QueryInfo(arg string, attributes string, flags uint
 	}
 	infoJsonByteStr, err := json.Marshal(infoJsonMap)
 	if err != nil {
-		// fmt.Println(err)
+		log.Error("Marshal json file info to string failed:", err)
 		return ""
 	}
 
