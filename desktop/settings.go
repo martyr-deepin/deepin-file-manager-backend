@@ -88,14 +88,14 @@ const (
 
 // sortPoliciesName is a map to sort policies and the display name.
 var sortPoliciesName = map[string]string{
-	"name":      Tr("Name"),
-	"size":      Tr("Size"),
-	"filetype":  Tr("Filetype"),
-	"mtime":     Tr("Modified time"),
-	"atime":     Tr("Accessed time"),
-	"open-with": Tr("Open with"),
-	"tag-info":  Tr("Tag info"),
-	"tag-color": Tr("Tag Color"),
+	"name":     Tr("_Name"),
+	"size":     Tr("_Size"),
+	"filetype": Tr("_Filetype"),
+	"mtime":    Tr("_Date Modified"),
+	// TODO: not for now
+	// "open-with": Tr("Open with"),
+	// "tag-info":  Tr("Tag info"),
+	// "tag-color": Tr("Tag color"),
 }
 
 const (

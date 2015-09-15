@@ -212,7 +212,7 @@ func (item *Item) destroy() {
 }
 
 func (item *Item) addOpenWithMenu(possibleOpenProgrammings []*gio.AppInfo) {
-	openWithMenuItem := NewMenuItem(Tr("Open _with"), func() {}, true)
+	openWithMenuItem := NewMenuItem(Tr("Open with(_A)"), func() {}, true)
 	item.menu.AppendItem(openWithMenuItem)
 
 	openWithSubMenu := NewMenu()
@@ -240,7 +240,7 @@ func (item *Item) addOpenWithMenu(possibleOpenProgrammings []*gio.AppInfo) {
 		openWithSubMenu.AddSeparator()
 	}
 
-	openWithSubMenu.AppendItem(NewMenuItem(Tr("_Chose"), func() {
+	openWithSubMenu.AppendItem(NewMenuItem(Tr("_Others"), func() {
 		// TODO: chose open with programming
 		log.Error("TODO: chose open with")
 	}, true))
@@ -384,16 +384,17 @@ func (item *Item) GenMenu() (*Menu, error) {
 		operations.CopyToClipboard(item.uris)
 	}, true))
 
-	if !item.multiple {
-		fileType := item.files[0].QueryFileType(gio.FileQueryInfoFlagsNone, nil)
-		if fileType == gio.FileTypeDirectory {
-			menu.AppendItem(NewMenuItem(Tr("Paste _Into"), func() {
-				item.app.emitRequestPaste(item.uri)
-			}, operations.CanPaste(item.uri))).AddSeparator().AppendItem(NewMenuItem(Tr("Open in _terminal"), func() {
-				runInTerminal(item.uri, "")
-			}, !item.multiple))
-		}
-	}
+	// TODO: no design
+	// if !item.multiple {
+	// 	fileType := item.files[0].QueryFileType(gio.FileQueryInfoFlagsNone, nil)
+	// 	if fileType == gio.FileTypeDirectory {
+	// 		menu.AppendItem(NewMenuItem(Tr("Paste _Into"), func() {
+	// 			item.app.emitRequestPaste(item.uri)
+	// 		}, operations.CanPaste(item.uri))).AddSeparator().AppendItem(NewMenuItem(Tr("Open in _terminal"), func() {
+	// 			runInTerminal(item.uri, "")
+	// 		}, !item.multiple))
+	// 	}
+	// }
 
 	menu.AddSeparator()
 

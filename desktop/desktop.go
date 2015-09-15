@@ -8,7 +8,6 @@ import (
 	"pkg.deepin.io/lib/utils"
 	"pkg.deepin.io/service/file-manager-backend/operations"
 	"sort"
-	"strings"
 )
 
 func getBaseName(uri string) string {
@@ -73,23 +72,20 @@ func (desktop *Desktop) GenMenu() (*Menu, error) {
 		}
 	}
 
-	newMenuItem := NewMenuItem(Tr("_New document"), func() {}, true)
+	newMenuItem := NewMenuItem(Tr("New _document"), func() {}, true)
 	newMenuItem.subMenu = newSubMenu
 	menu.AppendItem(newMenuItem)
 
 	sortSubMenu := NewMenu().SetIDGenerator(desktop.menu.genID)
 	sortPolicies := desktop.app.settings.getSortPolicies()
 	for _, sortPolicy := range sortPolicies {
-		// TODO: not handle tag for now.
-		if strings.HasPrefix(sortPolicy, "tag") {
-			continue
-		}
 		sortSubMenu.AppendItem(NewMenuItem(sortPoliciesName[sortPolicy], func(sortPolicy string) func() {
 			return func() {
 				desktop.app.emitRequestSort(sortPolicy)
 			}
 		}(sortPolicy), true))
 	}
+
 	// TODO: not handle clean up for now.
 	// sortSubMenu.AddSeparator().AppendItem(NewMenuItem(Tr("Clean up"), func() {
 	// 	desktop.app.emitRequestCleanup()

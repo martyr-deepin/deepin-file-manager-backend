@@ -34,10 +34,10 @@
                                             if performance is not good enough, group directories and sort by items number and name
                                             -->
         <value nick="filetype" value="3"/>
-        <value nick="open-with" value="4"/> <!-- the name of open application -->
+        <!-- <value nick="open&#45;with" value="4"/> <!&#45;&#45; the name of open application &#45;&#45;> -->
         <value nick="mtime" value="5"/>
-        <value nick="tag-info" value="6"/>
-        <value nick="tag-color" value="7"/>
+        <!-- <value nick="tag&#45;info" value="6"/> -->
+        <!-- <value nick="tag&#45;color" value="7"/> -->
     </enum>
 
     <enum id="com.deepin.filemanager.SidebarDisplayPolicy">
@@ -88,7 +88,7 @@
         <key name="sort-order" enum="com.deepin.filemanager.SortPolicy">
             <default>'name'</default>
             <summary>Default sort policy.</summary>
-            <description>Possible values are "name", "size", "filetype", "open-with", "modified_time"("mtime"), "accessed_time"("atime"), "tag-info" and "tag-color"</description>
+            <description>Possible values are "name", "size", "filetype", "open-with", "modified_time"("mtime"), "tag-info" and "tag-color"</description>
         </key>
 
         <key name="show-thumbnail" enum="com.deepin.filemanager.ShowThumbnailPolicy">
