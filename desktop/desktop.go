@@ -3,7 +3,6 @@ package desktop
 import (
 	"os/exec"
 	"path/filepath"
-	"pkg.deepin.io/lib/dbus"
 	. "pkg.deepin.io/lib/gettext"
 	"pkg.deepin.io/lib/glib-2.0"
 	"pkg.deepin.io/lib/utils"
@@ -105,24 +104,12 @@ func (desktop *Desktop) GenMenu() (*Menu, error) {
 
 	// TODO: plugin
 	if true {
-		ShowModule := func(module string) {
-			go func() {
-				conn, err := dbus.SessionBus()
-				if err != nil {
-					return
-				}
-
-				obj := conn.Object("com.deepin.dde.ControlCenter", "/com/deepin/dde/ControlCenter")
-				if obj != nil {
-					obj.Call("com.deepin.dde.ControlCenter.ShowModule", 0, module).Store()
-				}
-			}()
-		}
-
-		menu.AddSeparator().AppendItem(NewMenuItem(Tr("_Corner navigation"), func() {
+		menu.AddSeparator().AppendItem(NewMenuItem(Tr("Display settings(_M)"), func() {
+			showModule("display")
+		}, true)).AppendItem(NewMenuItem(Tr("_Corner navigation"), func() {
 			exec.Command("/usr/lib/deepin-daemon/dde-zone").Start()
-		}, true)).AppendItem(NewMenuItem(Tr("Pe_rsonalize"), func() {
-			ShowModule("personalization")
+		}, true)).AppendItem(NewMenuItem(Tr("_Personalize"), func() {
+			showModule("personalization")
 		}, true))
 	}
 

@@ -20,6 +20,6 @@ func (item *ComputerItem) GenMenu() (*Menu, error) {
 	return item.menu.AppendItem(NewMenuItem(Tr("_Open"), func() {
 		item.app.displayFile("computer://")
 	}, true)).AddSeparator().AppendItem(NewMenuItem(Tr("_Properties"), func() {
-		item.showProperties()
+		showModule("system_info")
 	}, true)), nil
 }
