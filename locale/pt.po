@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Deepin Desktop Environment 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-09-16 15:40+0800\n"
-"PO-Revision-Date: 2015-09-17 05:33+0000\n"
+"POT-Creation-Date: 2015-09-17 15:50+0800\n"
+"PO-Revision-Date: 2015-09-17 08:09+0000\n"
 "Last-Translator: deepin_transifex <xiabin@linuxdeepin.com>\n"
 "Language-Team: Portuguese (http://www.transifex.com/linuxdeepin/deepin-desktop-environment/language/pt/)\n"
 "MIME-Version: 1.0\n"
@@ -80,7 +80,7 @@ msgid "_Filetype"
 msgstr "_Tipo de Ficheiro"
 
 #: ../desktop/settings.go:94
-msgid "_Date Modified"
+msgid "_Date modified"
 msgstr ""
 
 #: ../desktop/trash_item.go:22
@@ -94,34 +94,34 @@ msgid_plural "_Clear %d Items"
 msgstr[0] "_Limpar %d Item"
 msgstr[1] "_Limpar %d Itens"
 
-#: ../desktop/desktop.go:53
+#: ../desktop/desktop.go:52
 msgid "New _folder"
 msgstr "Nova _pasta"
 
-#: ../desktop/desktop.go:58
+#: ../desktop/desktop.go:57
 msgid "_Text document"
 msgstr "_Documento de texto"
 
-#: ../desktop/desktop.go:76
+#: ../desktop/desktop.go:75
 msgid "New _document"
 msgstr "Novo _documento"
 
-#: ../desktop/desktop.go:95
+#: ../desktop/desktop.go:98
 msgid "_Sort by"
 msgstr "_Ordenar por"
 
-#: ../desktop/desktop.go:98
+#: ../desktop/desktop.go:101
 msgid "_Paste"
 msgstr "_Colar"
 
-#: ../desktop/desktop.go:118
+#: ../desktop/desktop.go:107
 msgid "Display settings(_M)"
 msgstr "Definições de visualização(_M)"
 
-#: ../desktop/desktop.go:120
+#: ../desktop/desktop.go:109
 msgid "_Corner navigation"
 msgstr "_Navegação nos cantos"
 
-#: ../desktop/desktop.go:122
+#: ../desktop/desktop.go:111
 msgid "_Personalize"
 msgstr "_Personalizar"
