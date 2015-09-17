@@ -26,4 +26,5 @@ mo:
 install_mo = install -Dm644 $(1) $(DESTDIR)/usr/share/locale/$(subst .po.mo,,$(1))/LC_MESSAGES/DFMB.mo;
 
 install: mo
-	$(foreach file, $(wildcard *.mo), $(call install_mo,$(file)))
+install:
+	$(foreach file, $(shell ls *.mo), $(call install_mo,$(file)))
