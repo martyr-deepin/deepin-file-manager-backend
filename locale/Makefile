@@ -17,12 +17,12 @@ all:
 clean:
 	echo > $(POT)
 
-generate_mo = msgfmt -o $(1).mo $(1)
+generate_mo = msgfmt -o $(1).mo $(1);
 
 mo:
 	$(foreach file, $(wildcard *.po), $(call generate_mo, $(file)))
 
-install_mo = cp $(1) /usr/share/locale/$(subst .po.mo,,$(1))/LC_MESSAGES/DFMB.mo
+install_mo = cp $(1) /usr/share/locale/$(subst .po.mo,,$(1))/LC_MESSAGES/DFMB.mo;
 
 install:
 	$(foreach file, $(wildcard *.mo), $(call install_mo,$(file)))

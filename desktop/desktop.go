@@ -79,7 +79,11 @@ func (desktop *Desktop) GenMenu() (*Menu, error) {
 	sortSubMenu := NewMenu().SetIDGenerator(desktop.menu.genID)
 	sortPolicies := desktop.app.settings.getSortPolicies()
 	for _, sortPolicy := range sortPolicies {
-		sortSubMenu.AppendItem(NewMenuItem(sortPoliciesName[sortPolicy], func(sortPolicy string) func() {
+		if _, ok := sortPoliciesName[sortPolicy]; !ok {
+			continue
+		}
+
+		sortSubMenu.AppendItem(NewMenuItem(Tr(sortPoliciesName[sortPolicy]), func(sortPolicy string) func() {
 			return func() {
 				desktop.app.emitRequestSort(sortPolicy)
 			}
