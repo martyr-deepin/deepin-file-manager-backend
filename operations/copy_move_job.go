@@ -5,7 +5,7 @@ import (
 	"math"
 	"pkg.deepin.io/lib/gio-2.0"
 	"pkg.deepin.io/lib/timer"
-	"pkg.deepin.io/service/file-manager-backend/log"
+	. "pkg.deepin.io/service/file-manager-backend/log"
 	"strings"
 )
 
@@ -502,7 +502,7 @@ func (job *CopyMoveJob) needRetry(
 
 	// conflict
 	if !*overwrite && errCode == gio.IOErrorEnumExists {
-		log.Info("file existing, get unique name?", uniqueName)
+		Log.Info("file existing, get unique name?", uniqueName)
 		if uniqueName {
 			destW.Reset(getUniqueTargetFile(src, destDir, *sameFs, *destFsType, *uniqueNameNr))
 			(*uniqueNameNr)++
@@ -519,14 +519,14 @@ func (job *CopyMoveJob) needRetry(
 			return true
 		}
 
-		log.Info("skip all conflict?", job.skipAllConflict)
+		Log.Info("skip all conflict?", job.skipAllConflict)
 		if job.skipAllConflict {
 			return false
 		}
 
 		// TODO:
 		response := job.uiDelegate.ConflictDialog()
-		log.Info("response from ConflictDialog:", response)
+		Log.Info("response from ConflictDialog:", response)
 		switch response.Code() {
 		case ResponseCancel:
 			job.Abort()
@@ -671,7 +671,7 @@ func (job *CopyMoveJob) copyMoveFile(
 	skippedFile *bool,
 	readonlySourceFs bool) {
 	if job.shouldSkipFile(src) {
-		log.Debug("file should skip", src.GetUri())
+		Log.Debug("file should skip", src.GetUri())
 		*skippedFile = true
 		return
 	}
@@ -757,7 +757,7 @@ retry:
 		flags |= gio.FileCopyFlagsTargetDefaultPerms
 	}
 
-	log.Debug("job flags overwrite?", flags&gio.FileCopyFlagsOverwrite != 0)
+	Log.Debug("job flags overwrite?", flags&gio.FileCopyFlagsOverwrite != 0)
 	var err error
 	var ok bool
 	progressCb := newCopyFileProgressCallback(job)
@@ -831,7 +831,7 @@ func (job *CopyMoveJob) copyJob() {
 	job.scanSources(job.files)
 
 	if job.isAborted() {
-		log.Debug("aborted copy job")
+		Log.Debug("aborted copy job")
 		return
 	}
 
@@ -1087,7 +1087,7 @@ func (job *CopyMoveJob) moveJob() {
 	destFsID := job.verifyDestination(job.destination, uint64(job.totalAmount[AmountUnitBytes]))
 
 	if job.isAborted() {
-		log.Info("aborted move job")
+		Log.Info("aborted move job")
 		return
 	}
 
@@ -1124,7 +1124,7 @@ func (job *CopyMoveJob) Execute() {
 		jobName = "move"
 	}
 
-	log.Debugf("execute %s job\n", jobName)
+	Log.Debugf("execute %s job\n", jobName)
 	if job.isMove {
 		job.moveJob()
 	} else {

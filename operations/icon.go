@@ -13,7 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"pkg.deepin.io/lib/gio-2.0"
-	"pkg.deepin.io/service/file-manager-backend/log"
+	. "pkg.deepin.io/service/file-manager-backend/log"
 )
 
 func getIcon(icon *gio.Icon, size int, fn func(*C.char, C.int) *C.char) string {
@@ -78,7 +78,7 @@ func GetThemeIcon(iconStr string, size int) string {
 		u, _ := url.Parse(iconStr)
 		stat, err := os.Stat(u.Path)
 		if err != nil {
-			log.Warning("stat", u.Path, "failed:", err)
+			Log.Warning("stat", u.Path, "failed:", err)
 		} else {
 			if isUserExecutable(stat.Mode().Perm()) {
 				app := gio.NewDesktopAppInfoFromFilename(u.Path)
@@ -100,7 +100,7 @@ func GetThemeIcon(iconStr string, size int) string {
 
 		info, err := file.QueryInfo(gio.FileAttributeStandardIcon, gio.FileQueryInfoFlagsNone, nil)
 		if info == nil {
-			log.Warning("Query file standard icon failed:", err)
+			Log.Warning("Query file standard icon failed:", err)
 			return icon
 		}
 		defer info.Unref()

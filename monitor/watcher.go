@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/howeyc/fsnotify"
 	"pkg.deepin.io/lib/dbus"
-	"pkg.deepin.io/service/file-manager-backend/log"
+	. "pkg.deepin.io/service/file-manager-backend/log"
 )
 
 type WatcherID uint32
@@ -73,7 +73,7 @@ func NewWatcher(id uint32, fileURI string) (*Watcher, error) {
 				}
 				dbus.Emit(watcher, "Changed", ev.Name, event)
 			case err := <-fsWatcher.Error:
-				log.Warning("fsWatcher error:", err)
+				Log.Warning("fsWatcher error:", err)
 				return
 			case <-watcher.end:
 				return

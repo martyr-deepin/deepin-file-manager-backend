@@ -13,7 +13,7 @@ import (
 	"pkg.deepin.io/service/file-manager-backend/clipboard"
 	"pkg.deepin.io/service/file-manager-backend/desktop"
 	"pkg.deepin.io/service/file-manager-backend/fileinfo"
-	"pkg.deepin.io/service/file-manager-backend/log"
+	. "pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/monitor"
 )
 
@@ -53,51 +53,51 @@ func main() {
 
 	info := operationBackend.GetDBusInfo()
 	if !lib.UniqueOnSession(info.Dest) {
-		log.Info("already exists a session bus named", info.Dest)
+		Log.Info("already exists a session bus named", info.Dest)
 		os.Exit(1)
 	}
 
 	initializer := new(Initializer)
 
 	initializer.Init(func() (dbus.DBusObject, error) {
-		log.Info("initialize operation backend...")
+		Log.Info("initialize operation backend...")
 		return operationBackend, nil
 	}).Init(func() (dbus.DBusObject, error) {
-		log.Info("ok")
-		log.Info("initialize operation flags dbus interface...")
+		Log.Info("ok")
+		Log.Info("initialize operation flags dbus interface...")
 		return NewOperationFlags(), nil
 	}).Init(func() (dbus.DBusObject, error) {
-		log.Info("ok")
-		log.Info("initialize monitor manager...")
+		Log.Info("ok")
+		Log.Info("initialize monitor manager...")
 		return monitor.NewMonitorManager(), nil
 	}).Init(func() (dbus.DBusObject, error) {
-		log.Info("ok")
-		log.Info("initialize trash monitor...")
+		Log.Info("ok")
+		Log.Info("initialize trash monitor...")
 		return monitor.NewTrashMonitor()
 	}).Init(func() (dbus.DBusObject, error) {
-		log.Info("ok")
-		log.Info("initialize file info...")
+		Log.Info("ok")
+		Log.Info("initialize file info...")
 		return fileinfo.NewQueryFileInfoJob(), nil
 	}).Init(func() (dbus.DBusObject, error) {
-		log.Info("ok")
-		log.Info("initialize Clipboard...")
+		Log.Info("ok")
+		Log.Info("initialize Clipboard...")
 		return clipboard.NewClipboard(), nil
 	}).Init(func() (dbus.DBusObject, error) {
-		log.Info("ok")
-		log.Info("initialize desktop daemon...")
+		Log.Info("ok")
+		Log.Info("initialize desktop daemon...")
 		return desktop.NewDesktopDaemon()
 	})
 
 	if err := initializer.GetError(); err != nil {
-		log.Info("Failed:", err)
+		Log.Info("Failed:", err)
 		os.Exit(1)
 	}
 
-	log.Info("ok")
+	Log.Info("ok")
 	go glib.StartLoop()
 	dbus.DealWithUnhandledMessage()
 	if err := dbus.Wait(); err != nil {
-		log.Info(err)
+		Log.Info(err)
 		os.Exit(2)
 	}
 }

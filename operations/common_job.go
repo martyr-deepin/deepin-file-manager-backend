@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"pkg.deepin.io/lib/gio-2.0"
 	"pkg.deepin.io/lib/timer"
-	"pkg.deepin.io/service/file-manager-backend/log"
+	. "pkg.deepin.io/service/file-manager-backend/log"
 	"strings"
 	"time"
 )
@@ -131,7 +131,7 @@ func (job *CommonJob) ListenProcessedAmount(fn func(amount int64, unit AmountUni
 func (job *CommonJob) emitProcessedAmount(amount int64, unit AmountUnit) {
 	err := job.Emit(_JobSignalProcessedAmount, amount, unit)
 	if err != nil {
-		log.Error("emit ProcessedAmount signal failed:", err)
+		Log.Error("emit ProcessedAmount signal failed:", err)
 	}
 }
 
@@ -151,7 +151,7 @@ func (job *CommonJob) setProcessedAmount(size int64, unit AmountUnit) {
 func (job *CommonJob) doEmitSpeed(speed uint64) {
 	err := job.Emit(_JobSignalSpeed, speed)
 	if err != nil {
-		log.Error("emit Speed signal failed:", err)
+		Log.Error("emit Speed signal failed:", err)
 	}
 }
 
@@ -183,7 +183,7 @@ func (job *CommonJob) ListenSpeed(fn func(uint64)) (func(), error) {
 func (job *CommonJob) doEmitPercent(percent int64) {
 	err := job.Emit(_JobSignalPercent, percent)
 	if err != nil {
-		log.Error("emit Percent signal failed", err)
+		Log.Error("emit Percent signal failed", err)
 	}
 }
 
@@ -204,7 +204,7 @@ func (job *CommonJob) ListenPercent(fn func(int64)) (func(), error) {
 func (job *CommonJob) emitTotalAmount(totalAmount int64, unit AmountUnit) {
 	err := job.Emit(_JobSignalTotalAmount, totalAmount, unit)
 	if err != nil {
-		log.Error("emit TotalAmount signal failed:", err)
+		Log.Error("emit TotalAmount signal failed:", err)
 	}
 }
 
@@ -326,7 +326,7 @@ retry:
 		freeSize := fsInfo.GetAttributeUint64(gio.FileAttributeFilesystemFree)
 
 		if freeSize < requiredSize {
-			log.Debug("freeSize:", freeSize, "requiredSize:", requiredSize)
+			Log.Debug("freeSize:", freeSize, "requiredSize:", requiredSize)
 			sizeDifference := requiredSize - freeSize
 			//TODO
 			primaryText := Tr("Error while copying to “%B”.") //, dest

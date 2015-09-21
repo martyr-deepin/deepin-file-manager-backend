@@ -2,7 +2,7 @@ package operations
 
 import (
 	"fmt"
-	"pkg.deepin.io/service/file-manager-backend/log"
+	. "pkg.deepin.io/service/file-manager-backend/log"
 )
 
 // type DeletionType int
@@ -164,7 +164,7 @@ func (*_DefaultUIDelegate) AskDelete(primaryText string, secondaryText string, d
 }
 
 func (*_DefaultUIDelegate) AskSkip(primaryText string, secondaryText string, detailText string, flags UIFlags) Response {
-	log.Debugf("AskSkip:\n\tprimaryText: %s\n\tsecondaryText: %s\n\tdetailText: %s\n\tflags: %v\n", primaryText, secondaryText, detailText, flags)
+	Log.Debugf("AskSkip:\n\tprimaryText: %s\n\tsecondaryText: %s\n\tdetailText: %s\n\tflags: %v\n", primaryText, secondaryText, detailText, flags)
 	// TODO:
 	return NewResponse(ResponseSkip, true)
 }

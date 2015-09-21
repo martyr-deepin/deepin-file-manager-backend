@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	. "pkg.deepin.io/lib/gettext"
 	"pkg.deepin.io/lib/gio-2.0"
-	"pkg.deepin.io/service/file-manager-backend/log"
+	. "pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"
 	"sort"
 	"strings"
@@ -88,7 +88,7 @@ var ArchiveMimeTypes = []string{
 func isArchived(f *gio.File) bool {
 	info, err := f.QueryInfo(gio.FileAttributeStandardContentType, gio.FileQueryInfoFlagsNone, nil)
 	if err != nil {
-		log.Error("Query file ContentType failed:", err)
+		Log.Error("Query file ContentType failed:", err)
 		return false
 	}
 	defer info.Unref()
@@ -222,10 +222,10 @@ func (item *Item) addOpenWithMenu(possibleOpenProgrammings []*gio.AppInfo) {
 	for _, app := range possibleOpenProgrammings {
 		openWithSubMenu.AppendItem(NewMenuItem(app.GetDisplayName(), func(id string) func() {
 			return func() {
-				log.Debug("open with", id)
+				Log.Debug("open with", id)
 				app := gio.NewDesktopAppInfo(id)
 				if app == nil {
-					log.Error("get app failed when open files:", id)
+					Log.Error("get app failed when open files:", id)
 					return
 				}
 				defer app.Unref()
@@ -242,7 +242,7 @@ func (item *Item) addOpenWithMenu(possibleOpenProgrammings []*gio.AppInfo) {
 
 	openWithSubMenu.AppendItem(NewMenuItem(Tr("_Others"), func() {
 		// TODO: chose open with programming
-		log.Error("TODO: chose open with")
+		Log.Error("TODO: chose open with")
 	}, true))
 }
 
@@ -355,7 +355,7 @@ func (item *Item) GenMenu() (*Menu, error) {
 		menu.AppendItem(NewMenuItem(Tr("Co_mpress"), func() {
 			err := runFileRoller("file-roller -d %U", item.files)
 			if err != nil {
-				log.Error("run file-roller failed:", err)
+				Log.Error("run file-roller failed:", err)
 			}
 		}, true))
 
@@ -371,7 +371,7 @@ func (item *Item) GenMenu() (*Menu, error) {
 			menu.AppendItem(NewMenuItem(Tr("_Extract Here"), func() {
 				err := runFileRoller("file-roller -h", item.files)
 				if err != nil {
-					log.Error("run file-roller failed:", err)
+					Log.Error("run file-roller failed:", err)
 				}
 			}, true)).AddSeparator()
 		}

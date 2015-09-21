@@ -3,7 +3,7 @@ package monitor
 import (
 	"pkg.deepin.io/lib/dbus"
 	"pkg.deepin.io/lib/gio-2.0"
-	"pkg.deepin.io/service/file-manager-backend/log"
+	. "pkg.deepin.io/service/file-manager-backend/log"
 	"sync/atomic"
 )
 
@@ -86,7 +86,7 @@ func (manager *MonitorManager) Monitor(fileURI string, flags uint32) (string, db
 	}
 
 	if err := dbus.InstallOnSession(monitor); err != nil {
-		log.Error("Install Monitor to Session Bus failed:", err)
+		Log.Error("Install Monitor to Session Bus failed:", err)
 		monitor.finalize()
 		return "", dbus.ObjectPath("/"), "", err
 	}
@@ -100,11 +100,11 @@ func (manager *MonitorManager) Unmonitor(id uint32) {
 	monitorID := MonitorID(id)
 	monitor, ok := manager.monitors[monitorID]
 	if !ok {
-		log.Warning("monitor %d not found", monitorID)
+		Log.Warning("monitor %d not found", monitorID)
 		return
 	}
 
-	log.Info("unmonitor", monitorID)
+	Log.Info("unmonitor", monitorID)
 	dbus.UnInstallObject(monitor)
 	monitor.finalize()
 	delete(manager.monitors, monitorID)
@@ -131,11 +131,11 @@ func (manager *MonitorManager) Unwatcher(id uint32) {
 	watcherID := WatcherID(id)
 	watcher, ok := manager.watchers[watcherID]
 	if !ok {
-		log.Warning("watcher %d not found", watcherID)
+		Log.Warning("watcher %d not found", watcherID)
 		return
 	}
 
-	log.Info("unwatcher", watcherID)
+	Log.Info("unwatcher", watcherID)
 	dbus.UnInstallObject(watcher)
 	watcher.finalize()
 	delete(manager.watchers, watcherID)

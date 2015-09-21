@@ -10,7 +10,7 @@ import (
 	"pkg.deepin.io/lib/dbus"
 	"pkg.deepin.io/lib/glib-2.0"
 	d "pkg.deepin.io/service/file-manager-backend/delegator"
-	"pkg.deepin.io/service/file-manager-backend/log"
+	. "pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"
 	"strings"
 	"sync"
@@ -24,7 +24,7 @@ var getConn = (func() func() *dbus.Conn {
 			var err error
 			conn, err = dbus.SessionBus()
 			if err != nil {
-				log.Fatal("Connect to Session Bus failed:", err)
+				Log.Fatal("Connect to Session Bus failed:", err)
 			}
 		})
 		return conn
@@ -44,7 +44,7 @@ func NewOperationBackend() *OperationBackend {
 func (*OperationBackend) newUIDelegate(dest string, objPath string, iface string) d.IUIDelegate {
 	uiDelegate, err := d.NewUIDelegate(getConn(), dest, objPath, iface)
 	if err != nil {
-		log.Errorf("Create UI Delegate from (%s, %s, %s) failed: %v", dest, objPath, iface, err)
+		Log.Errorf("Create UI Delegate from (%s, %s, %s) failed: %v", dest, objPath, iface, err)
 	}
 	return uiDelegate
 }
@@ -65,13 +65,13 @@ func installJob(job dbus.DBusObject) (string, dbus.ObjectPath, string, error) {
 	objPath := dbus.ObjectPath(d.JobObjectPath)
 	iface := ""
 	if job == nil {
-		log.Warning("cannot install a nil object on dbus.")
+		Log.Warning("cannot install a nil object on dbus.")
 		return dest, objPath, iface, errors.New("cannot install a nil object on dbus.")
 	}
 
 	err := dbus.InstallOnSession(job)
 	if err != nil {
-		log.Warning("install dbus on session bus failed:", err)
+		Log.Warning("install dbus on session bus failed:", err)
 		return dest, objPath, iface, err
 	}
 
@@ -108,7 +108,7 @@ func newOperationJob(paths []string, fn func([]string, ...interface{}) dbus.DBus
 	for i, path := range paths {
 		srcURL, err := pathToURL(path)
 		if err != nil {
-			log.Error("convert path to URL failed:", err)
+			Log.Error("convert path to URL failed:", err)
 			return "", objPath, iface, err // maybe continue is a better choice.
 		}
 		srcURLs[i] = srcURL.String()
@@ -119,7 +119,7 @@ func newOperationJob(paths []string, fn func([]string, ...interface{}) dbus.DBus
 
 // NewListJob creates a new list job for front end.
 func (*OperationBackend) NewListJob(path string, flags int32) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewListJob")
+	Log.Debug("NewListJob")
 	return newOperationJob([]string{path}, func(uri []string, args ...interface{}) dbus.DBusObject {
 		return d.NewListJob(uri[0], operations.ListJobFlag(flags))
 	})
@@ -127,7 +127,7 @@ func (*OperationBackend) NewListJob(path string, flags int32) (string, dbus.Obje
 
 // NewStatJob creates a new stat job for front end.
 func (*OperationBackend) NewStatJob(path string) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewStatJob")
+	Log.Debug("NewStatJob")
 	return newOperationJob([]string{path}, func(uri []string, args ...interface{}) dbus.DBusObject {
 		return d.NewStatJob(uri[0])
 	})
@@ -135,7 +135,7 @@ func (*OperationBackend) NewStatJob(path string) (string, dbus.ObjectPath, strin
 
 // NewDeleteJob creates a new delete job for front end.
 func (backend *OperationBackend) NewDeleteJob(path []string, shouldConfirm bool, dest string, objPath string, iface string) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewDeleteJob")
+	Log.Debug("NewDeleteJob")
 	return newOperationJob(path, func(uri []string, args ...interface{}) dbus.DBusObject {
 		uiDelegate := backend.newUIDelegate(dest, objPath, iface)
 		return d.NewDeleteJob(uri, shouldConfirm, uiDelegate)
@@ -144,7 +144,7 @@ func (backend *OperationBackend) NewDeleteJob(path []string, shouldConfirm bool,
 
 // NewTrashJob creates a new TrashJob for front end.
 func (backend *OperationBackend) NewTrashJob(path []string, shouldConfirm bool, dest string, objPath string, iface string) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewTrashJob")
+	Log.Debug("NewTrashJob")
 	return newOperationJob(path, func(uri []string, args ...interface{}) dbus.DBusObject {
 		uiDelegate := backend.newUIDelegate(dest, objPath, iface)
 		return d.NewTrashJob(uri, shouldConfirm, uiDelegate)
@@ -153,7 +153,7 @@ func (backend *OperationBackend) NewTrashJob(path []string, shouldConfirm bool, 
 
 // NewEmptyTrashJob creates a new EmptyTrashJob for front end.
 func (backend *OperationBackend) NewEmptyTrashJob(shouldConfirm bool, dest string, objPath string, iface string) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewEmptyTrashJob")
+	Log.Debug("NewEmptyTrashJob")
 	return newOperationJob([]string{}, func(uris []string, args ...interface{}) dbus.DBusObject {
 		uiDelegate := backend.newUIDelegate(dest, objPath, iface)
 		return d.NewEmptyTrashJob(shouldConfirm, uiDelegate)
@@ -162,7 +162,7 @@ func (backend *OperationBackend) NewEmptyTrashJob(shouldConfirm bool, dest strin
 
 // NewChmodJob creates a new change mode job for dbus.
 func (*OperationBackend) NewChmodJob(path string, permission uint32) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewChmodJob")
+	Log.Debug("NewChmodJob")
 	return newOperationJob([]string{path}, func(uris []string, args ...interface{}) dbus.DBusObject {
 		return d.NewChmodJob(uris[0], permission)
 	})
@@ -170,7 +170,7 @@ func (*OperationBackend) NewChmodJob(path string, permission uint32) (string, db
 
 // NewChownJob creates a new change owner job for dbus.
 func (*OperationBackend) NewChownJob(path string, newOwner string, newGroup string) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewChownJob")
+	Log.Debug("NewChownJob")
 	return newOperationJob([]string{path}, func(uris []string, args ...interface{}) dbus.DBusObject {
 		return d.NewChownJob(uris[0], newOwner, newGroup)
 	})
@@ -178,7 +178,7 @@ func (*OperationBackend) NewChownJob(path string, newOwner string, newGroup stri
 
 // NewCreateFileJob creates a new create file job for dbus.
 func (backend *OperationBackend) NewCreateFileJob(destDir string, filename string, initContent string, dest string, objPath string, iface string) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewCreateFileJob")
+	Log.Debug("NewCreateFileJob")
 	return newOperationJob([]string{destDir}, func(uris []string, args ...interface{}) dbus.DBusObject {
 		uiDelegate := backend.newUIDelegate(dest, objPath, iface)
 		return d.NewCreateFileJob(uris[0], filename, []byte(initContent), uiDelegate)
@@ -187,7 +187,7 @@ func (backend *OperationBackend) NewCreateFileJob(destDir string, filename strin
 
 // NewCreateDirectoryJob creates a new create directory job for dbus.
 func (backend *OperationBackend) NewCreateDirectoryJob(destDir string, dirname string, dest string, objPath string, iface string) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewCreateDirectoryJob")
+	Log.Debug("NewCreateDirectoryJob")
 	return newOperationJob([]string{destDir}, func(uris []string, args ...interface{}) dbus.DBusObject {
 		uiDelegate := backend.newUIDelegate(dest, objPath, iface)
 		return d.NewCreateDirectoryJob(uris[0], dirname, uiDelegate)
@@ -196,11 +196,11 @@ func (backend *OperationBackend) NewCreateDirectoryJob(destDir string, dirname s
 
 // NewCreateFileFromTemplateJob creates a new create file job fro dbus.
 func (backend *OperationBackend) NewCreateFileFromTemplateJob(destDir string, templatePath string, dest string, objPath string, iface string) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewCreateFileFromTemplateJob")
+	Log.Debug("NewCreateFileFromTemplateJob")
 	return newOperationJob([]string{destDir}, func(uris []string, args ...interface{}) dbus.DBusObject {
 		templateURL, err := pathToURL(templatePath)
 		if err != nil {
-			log.Error("convert path to URL failed:", err)
+			Log.Error("convert path to URL failed:", err)
 			return nil
 		}
 
@@ -211,11 +211,11 @@ func (backend *OperationBackend) NewCreateFileFromTemplateJob(destDir string, te
 
 // NewLinkJob creates a new link job for dbus.
 func (backend *OperationBackend) NewLinkJob(src string, destDir string, dest string, objPath string, iface string) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewLinkJob")
+	Log.Debug("NewLinkJob")
 	return newOperationJob([]string{src}, func(uris []string, args ...interface{}) dbus.DBusObject {
 		destDirURL, err := pathToURL(destDir)
 		if err != nil {
-			log.Error("convert path to URL failed:", err)
+			Log.Error("convert path to URL failed:", err)
 			return nil
 		}
 
@@ -226,21 +226,21 @@ func (backend *OperationBackend) NewLinkJob(src string, destDir string, dest str
 
 // NewGetDefaultLaunchAppJob creates a new get launch app job for dbus.
 func (*OperationBackend) NewGetDefaultLaunchAppJob(path string, mustSupportURI bool) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewGetDefaultLaunchAppJob")
+	Log.Debug("NewGetDefaultLaunchAppJob")
 	return newOperationJob([]string{path}, func(uris []string, args ...interface{}) dbus.DBusObject {
 		return d.NewGetDefaultLaunchAppJob(uris[0], mustSupportURI)
 	})
 }
 
 func (*OperationBackend) NewGetRecommendedLaunchAppsJob(uri string) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewGetRecommendedLaunchAppsJob")
+	Log.Debug("NewGetRecommendedLaunchAppsJob")
 	return newOperationJob([]string{uri}, func(uris []string, args ...interface{}) dbus.DBusObject {
 		return d.NewGetRecommendedLaunchAppsJob(uris[0])
 	})
 }
 
 func (*OperationBackend) NewGetAllLaunchAppsJob() (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewGetAllLaunchAppsJob")
+	Log.Debug("NewGetAllLaunchAppsJob")
 	return newOperationJob([]string{}, func(uris []string, args ...interface{}) dbus.DBusObject {
 		return d.NewGetAllLaunchAppsJob()
 	})
@@ -248,10 +248,10 @@ func (*OperationBackend) NewGetAllLaunchAppsJob() (string, dbus.ObjectPath, stri
 
 // NewSetDefaultLaunchAppJob creates a new set default launch app job for dbus.
 func (*OperationBackend) NewSetDefaultLaunchAppJob(id string, mimeType string) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewSetDefaultLaunchAppJob")
+	Log.Debug("NewSetDefaultLaunchAppJob")
 	return newOperationJob([]string{}, func(uris []string, args ...interface{}) dbus.DBusObject {
 		if !strings.HasSuffix(id, ".desktop") {
-			log.Errorf("wrong desktop id: %q", id)
+			Log.Errorf("wrong desktop id: %q", id)
 			return nil
 		}
 		return d.NewSetDefaultLaunchAppJob(id, mimeType)
@@ -260,11 +260,11 @@ func (*OperationBackend) NewSetDefaultLaunchAppJob(id string, mimeType string) (
 
 // NewCopyJob creates a new copy job for dbus.
 func (backend *OperationBackend) NewCopyJob(srcs []string, destDir string, targetName string, flags uint32, dest string, objPath string, iface string) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewCopyJob")
+	Log.Debug("NewCopyJob")
 	return newOperationJob(srcs, func(uris []string, args ...interface{}) dbus.DBusObject {
 		destDirURL, err := pathToURL(destDir)
 		if destDir != "" && err != nil {
-			log.Error("convert path to URL failed:", err)
+			Log.Error("convert path to URL failed:", err)
 			return nil
 		}
 
@@ -275,11 +275,11 @@ func (backend *OperationBackend) NewCopyJob(srcs []string, destDir string, targe
 
 // NewMoveJob creates a new move job for dbus.
 func (backend *OperationBackend) NewMoveJob(paths []string, destDir string, targetName string, flags uint32, dest string, objPath string, iface string) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewMoveJob")
+	Log.Debug("NewMoveJob")
 	return newOperationJob(paths, func(uris []string, args ...interface{}) dbus.DBusObject {
 		destDirURL, err := pathToURL(destDir)
 		if destDir != "" && err != nil {
-			log.Error("convert path to URL failed:", err)
+			Log.Error("convert path to URL failed:", err)
 			return nil
 		}
 
@@ -289,7 +289,7 @@ func (backend *OperationBackend) NewMoveJob(paths []string, destDir string, targ
 }
 
 func (backend *OperationBackend) NewRenameJob(fileURL string, newName string) (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewRenameJob")
+	Log.Debug("NewRenameJob")
 	return newOperationJob([]string{fileURL}, func(uris []string, args ...interface{}) dbus.DBusObject {
 		fileURL := uris[0]
 		return d.NewRenameJob(fileURL, newName)
@@ -297,7 +297,7 @@ func (backend *OperationBackend) NewRenameJob(fileURL string, newName string) (s
 }
 
 func (backend *OperationBackend) NewGetTemplateJob() (string, dbus.ObjectPath, string, error) {
-	log.Debug("NewGetTemplateJob")
+	Log.Debug("NewGetTemplateJob")
 	C.g_reload_user_special_dirs_cache()
 	templateDirPath := glib.GetUserSpecialDir(glib.UserDirectoryDirectoryTemplates)
 
