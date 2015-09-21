@@ -1143,6 +1143,11 @@ func newCopyMoveJob(srcs []*gio.File, destDir *gio.File, targetName string, flag
 		flags:         flags,
 	}
 
+	job.RegisterMonitor(_CopyMoveSignalCreatingDir)
+	job.RegisterMonitor(_CopyMoveSignalMoving)
+	job.RegisterMonitor(_CopyMoveSignalCopying)
+	job.RegisterMonitor(_CopyMoveSignalCopyingMovingDone)
+
 	return job
 }
 

@@ -90,6 +90,15 @@ func (m *SignalManager) getSignalReactor(signalName string) (*SignalReactor, err
 	return reactor, nil
 }
 
+func (m *SignalManager) RegisterMonitor(signalName string) *SignalManager {
+	reactor, _ := m.getSignalReactor(signalName)
+	if reactor == nil {
+		m.createMonitor(signalName)
+	}
+
+	return m
+}
+
 func (m *SignalManager) createMonitor(signalName string) *SignalReactor {
 	signalName = normalizeSignalName(signalName)
 	m.reactors[signalName] = NewSignalReactor(signalName, m.cancellable)
@@ -99,12 +108,7 @@ func (m *SignalManager) createMonitor(signalName string) *SignalReactor {
 func (m *SignalManager) ListenSignal(signalName string, fn interface{}) (func(), error) {
 	reactor, err := m.getSignalReactor(signalName)
 	if err != nil {
-		switch err.(SignalError).Code {
-		case ErrorNoMonitor:
-			reactor = m.createMonitor(signalName)
-		default:
-			return func() {}, err
-		}
+		return func() {}, err
 	}
 
 	if reflect.TypeOf(fn).Kind() != reflect.Func {

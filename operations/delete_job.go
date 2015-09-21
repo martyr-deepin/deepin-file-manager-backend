@@ -401,6 +401,9 @@ func (job *DeleteJob) confirmDeleteDirectly(files []*gio.File) bool {
 
 func (job *DeleteJob) init(files []*gio.File, uiDelegate IUIDelegate) {
 	job.CommonJob = newCommon(uiDelegate)
+	job.RegisterMonitor(_DeleteJobSignalTrashing)
+	job.RegisterMonitor(_DeleteJobSignalDeleting)
+
 	job.files = files
 	job.userCancel = false
 	job.progressUnit = AmountUnitSumOfFilesAndDirs

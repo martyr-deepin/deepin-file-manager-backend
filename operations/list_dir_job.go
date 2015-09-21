@@ -60,6 +60,8 @@ func (job *ListJob) emitProperty(property ListProperty) error {
 }
 
 func (job *ListJob) init() {
+	job.RegisterMonitor(_ListJobSignalProperty)
+
 	job.op = OpKindList
 	job.progressUnit = AmountUnitSumOfFilesAndDirs
 }

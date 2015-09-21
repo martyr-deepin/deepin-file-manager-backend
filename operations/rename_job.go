@@ -204,6 +204,9 @@ func (job *RenameJob) setDesktopName() error {
 }
 
 func (job *RenameJob) init() {
+	job.RegisterMonitor(_RenameJobSignalNewFile)
+	job.RegisterMonitor(_RenameJobSignalOldName)
+
 	job.checkUserDirs()
 }
 

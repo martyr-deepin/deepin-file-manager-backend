@@ -590,7 +590,7 @@ func newCommon(uiDelegate IUIDelegate) *CommonJob {
 	}
 
 	cancellable := gio.NewCancellable()
-	return &CommonJob{
+	commonJob := &CommonJob{
 		SignalManager:         NewSignalManager(cancellable),
 		cancellable:           cancellable,
 		uiDelegate:            uiDelegate,
@@ -617,4 +617,12 @@ func newCommon(uiDelegate IUIDelegate) *CommonJob {
 			// AmountUnitSumOfFilesAndDirs: 0,
 		},
 	}
+
+	commonJob.RegisterMonitor(_JobSignalDone)
+	commonJob.RegisterMonitor(_JobSignalSpeed)
+	commonJob.RegisterMonitor(_JobSignalPercent)
+	commonJob.RegisterMonitor(_JobSignalTotalAmount)
+	commonJob.RegisterMonitor(_JobSignalProcessedAmount)
+
+	return commonJob
 }
