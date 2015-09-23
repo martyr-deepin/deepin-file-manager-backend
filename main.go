@@ -5,6 +5,7 @@ package main
 // void GtkInit() { gtk_init(NULL, NULL); }
 import "C"
 import (
+	"flag"
 	"os"
 	"pkg.deepin.io/lib"
 	"pkg.deepin.io/lib/dbus"
@@ -15,6 +16,7 @@ import (
 	"pkg.deepin.io/service/file-manager-backend/fileinfo"
 	. "pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/monitor"
+	"time"
 )
 
 type Initializer struct {
@@ -45,12 +47,25 @@ func (init *Initializer) GetError() error {
 }
 
 func main() {
-	C.GtkInit()
-	operationBackend := NewOperationBackend()
+	cpuprof := flag.String("cpuprof", "", "-cpuprof=profile_path")
 
+	flag.Parse()
+	if *cpuprof != "" {
+		startCPUProfile(*cpuprof)
+	}
+
+	startTime := time.Now()
+
+	C.GtkInit()
+
+	Log.Info("initialize i18n...")
 	gettext.InitI18n()
 	gettext.Textdomain("DFMB")
+	Log.Info("initialize i18n done, cost", time.Now().Sub(startTime))
 
+	moduleStartTime := time.Now()
+	Log.Info("initialize operation backend...")
+	operationBackend := NewOperationBackend()
 	info := operationBackend.GetDBusInfo()
 	if !lib.UniqueOnSession(info.Dest) {
 		Log.Info("already exists a session bus named", info.Dest)
@@ -59,32 +74,45 @@ func main() {
 
 	initializer := new(Initializer)
 
+	var moduleEndTime time.Time
 	initializer.Init(func() (dbus.DBusObject, error) {
-		Log.Info("initialize operation backend...")
+		moduleStartTime = time.Now()
 		return operationBackend, nil
 	}).Init(func() (dbus.DBusObject, error) {
-		Log.Info("ok")
+		moduleEndTime = time.Now()
+		Log.Info("ok, cost", moduleEndTime.Sub(moduleStartTime))
 		Log.Info("initialize operation flags dbus interface...")
+		moduleStartTime = moduleEndTime
 		return NewOperationFlags(), nil
 	}).Init(func() (dbus.DBusObject, error) {
-		Log.Info("ok")
+		moduleEndTime = time.Now()
+		Log.Info("ok, cost", moduleEndTime.Sub(moduleStartTime))
 		Log.Info("initialize monitor manager...")
+		moduleStartTime = moduleEndTime
 		return monitor.NewMonitorManager(), nil
 	}).Init(func() (dbus.DBusObject, error) {
-		Log.Info("ok")
+		moduleEndTime = time.Now()
+		Log.Info("ok, cost", moduleEndTime.Sub(moduleStartTime))
 		Log.Info("initialize trash monitor...")
+		moduleStartTime = moduleEndTime
 		return monitor.NewTrashMonitor()
 	}).Init(func() (dbus.DBusObject, error) {
-		Log.Info("ok")
+		moduleEndTime = time.Now()
+		Log.Info("ok, cost", moduleEndTime.Sub(moduleStartTime))
 		Log.Info("initialize file info...")
+		moduleStartTime = moduleEndTime
 		return fileinfo.NewQueryFileInfoJob(), nil
 	}).Init(func() (dbus.DBusObject, error) {
-		Log.Info("ok")
+		moduleEndTime = time.Now()
+		Log.Info("ok, cost", moduleEndTime.Sub(moduleStartTime))
 		Log.Info("initialize Clipboard...")
+		moduleStartTime = moduleEndTime
 		return clipboard.NewClipboard(), nil
 	}).Init(func() (dbus.DBusObject, error) {
-		Log.Info("ok")
+		moduleEndTime = time.Now()
+		Log.Info("ok, cost", moduleEndTime.Sub(moduleStartTime))
 		Log.Info("initialize desktop daemon...")
+		moduleStartTime = moduleEndTime
 		return desktop.NewDesktopDaemon()
 	})
 
@@ -93,9 +121,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	Log.Info("ok")
+	moduleEndTime = time.Now()
+	Log.Info("ok, cost", moduleEndTime.Sub(moduleStartTime))
+
 	go glib.StartLoop()
 	dbus.DealWithUnhandledMessage()
+
+	Log.Info("Total cost", time.Now().Sub(startTime))
+
 	if err := dbus.Wait(); err != nil {
 		Log.Info(err)
 		os.Exit(2)
