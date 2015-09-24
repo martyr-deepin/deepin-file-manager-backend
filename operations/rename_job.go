@@ -259,9 +259,9 @@ func (job *RenameJob) Execute() {
 				job.setError(err)
 				return
 			}
+			job.newName = job.newName + ".desktop"
 		}
 
-		job.newName = job.newName + ".desktop"
 	}
 
 	job.emitOldName(displayName)

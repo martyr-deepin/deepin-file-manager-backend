@@ -151,7 +151,11 @@ func TestRenameFile(t *testing.T) {
 		defer exec.Command("rm", newTargetPath).Run()
 		a := gio.FileNewForPath(newTargetPath)
 		So(a, ShouldNotBeNil)
-		info, _ = a.QueryInfo(gio.FileAttributeStandardDisplayName, gio.FileQueryInfoFlagsNofollowSymlinks, nil)
+		var err error
+		info, err = a.QueryInfo(gio.FileAttributeStandardDisplayName, gio.FileQueryInfoFlagsNofollowSymlinks, nil)
+		if err != nil {
+			t.Error(err)
+		}
 		So(info, ShouldNotBeNil)
 		So(info.GetDisplayName(), ShouldEqual, newName)
 		info.Unref()
@@ -201,7 +205,7 @@ func TestRenameFile(t *testing.T) {
 			job.Execute()
 
 			a := gio.NewDesktopAppInfoFromFilename(targetPath)
-			So(a, ShouldNotBeNil)
+			So(a, ShouldBeNil)
 			So(a.GetDisplayName(), ShouldEqual, newName)
 			a.Unref()
 		})
