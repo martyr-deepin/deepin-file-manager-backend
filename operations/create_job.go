@@ -229,6 +229,7 @@ func (job *CreateJob) needRetry(targetInfo *_TargetInfo, err gio.GError) bool {
 // Execute create job
 func (job *CreateJob) Execute() error {
 	defer job.finalize()
+	job.setResult("")
 	if job.makeLink {
 		job.linkJob()
 		return nil
@@ -484,6 +485,7 @@ retry:
 	} else if ok, err = dest.MakeSymbolicLink(path, job.cancellable); ok {
 		// TODO: undo
 		// nautilus_file_changes_queue_file_added (dest);
+		job.setResult(dest.GetUri())
 		dest.Unref()
 		return
 	}

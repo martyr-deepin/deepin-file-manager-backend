@@ -18,7 +18,7 @@ type CreateJob struct {
 	op              *operations.CreateJob
 	commandRecorder *operations.CommandRecorder
 
-	Done func(string)
+	Done func(string, string)
 }
 
 // GetDBusInfo returns dbus information.
@@ -28,17 +28,19 @@ func (job *CreateJob) GetDBusInfo() dbus.DBusInfo {
 
 // Execute create job.
 func (job *CreateJob) Execute() {
-	defer dbus.UnInstallObject(job)
-	err := job.op.Execute()
-	errMsg := ""
-	if err != nil {
-		errMsg = err.Error()
-	}
+	go func() {
+		defer dbus.UnInstallObject(job)
+		err := job.op.Execute()
+		errMsg := ""
+		if err != nil {
+			errMsg = err.Error()
+		}
 
-	dbus.Emit(job, "Done", errMsg)
-	// TODO:
-	// job.commandRecorder
-	// operations.FileUndoManagerInstance().RecordJob(create, job.op)
+		dbus.Emit(job, "Done", job.op.Result().(string), errMsg)
+		// TODO:
+		// job.commandRecorder
+		// operations.FileUndoManagerInstance().RecordJob(create, job.op)
+	}()
 }
 
 // NewCreateFileJob creates a new create job to create a new file.
