@@ -116,6 +116,8 @@ func main() {
 		return desktop.NewDesktopDaemon()
 	})
 
+	ddeSessionRegister()
+
 	if err := initializer.GetError(); err != nil {
 		Log.Info("Failed:", err)
 		os.Exit(1)
