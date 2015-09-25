@@ -6,7 +6,12 @@ binary=deepin-file-manager-backend
 BUILD_DIR=$(shell pwd)/build
 SRC_DIR=$(BUILD_DIR)/src/pkg.deepin.io/service/
 
-GOBUILD=go build
+ifndef USE_GCCGO
+    GOBUILD = go build
+else
+    LDFLAGS = $(shell pkg-config --libs gio-2.0 gtk+-3.0 gdk-3.0 gdk-pixbuf-xlib-2.0 x11 xi libcanberra cairo-ft poppler-glib libmetacity-private librsvg-2.0)
+    GOBUILD = go build -compiler gccgo -gccgoflags "${LDFLAGS}"
+endif
 
 
 all: build
