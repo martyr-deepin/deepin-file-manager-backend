@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Deepin Desktop Environment 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-09-16 15:40+0800\n"
-"PO-Revision-Date: 2015-09-17 06:16+0000\n"
-"Last-Translator: Piotr Strębski <strebski@o2.pl>\n"
+"POT-Creation-Date: 2015-09-17 15:50+0800\n"
+"PO-Revision-Date: 2015-09-17 08:09+0000\n"
+"Last-Translator: deepin_transifex <xiabin@linuxdeepin.com>\n"
 "Language-Team: Polish (http://www.transifex.com/linuxdeepin/deepin-desktop-environment/language/pl/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -80,8 +80,8 @@ msgid "_Filetype"
 msgstr "Rodza_j pliku"
 
 #: ../desktop/settings.go:94
-msgid "_Date Modified"
-msgstr "Data _modyfikacji"
+msgid "_Date modified"
+msgstr ""
 
 #: ../desktop/trash_item.go:22
 msgid "_Clear"
@@ -95,34 +95,34 @@ msgstr[0] "Wy_czyść %d element"
 msgstr[1] "Wy_czyść %d elementy"
 msgstr[2] "Wy_czyść %d elementów"
 
-#: ../desktop/desktop.go:53
+#: ../desktop/desktop.go:52
 msgid "New _folder"
 msgstr "Nowy _katalog"
 
-#: ../desktop/desktop.go:58
+#: ../desktop/desktop.go:57
 msgid "_Text document"
 msgstr "Dokument _tekstowy"
 
-#: ../desktop/desktop.go:76
+#: ../desktop/desktop.go:75
 msgid "New _document"
 msgstr "Nowy _dokument"
 
-#: ../desktop/desktop.go:95
+#: ../desktop/desktop.go:98
 msgid "_Sort by"
 msgstr "_Sortuj według"
 
-#: ../desktop/desktop.go:98
+#: ../desktop/desktop.go:101
 msgid "_Paste"
 msgstr "_Wklej"
 
-#: ../desktop/desktop.go:118
+#: ../desktop/desktop.go:107
 msgid "Display settings(_M)"
 msgstr "Wyświetl ustawienia (_U)"
 
-#: ../desktop/desktop.go:120
+#: ../desktop/desktop.go:109
 msgid "_Corner navigation"
 msgstr "_Nawigacja narożnikowa"
 
-#: ../desktop/desktop.go:122
+#: ../desktop/desktop.go:111
 msgid "_Personalize"
 msgstr "D_ostosuj"
