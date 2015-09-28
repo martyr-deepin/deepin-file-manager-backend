@@ -7,10 +7,17 @@ BUILD_DIR=$(shell pwd)/build
 SRC_DIR=$(BUILD_DIR)/src/pkg.deepin.io/service/
 
 ifndef USE_GCCGO
-    GOBUILD = go build
+	ifndef GOLANG_DEBUG
+		LDFLAGS = -ldflags '-s -w'
+	endif
+
+	GOBUILD = go build ${LDFLAGS}
 else
-    LDFLAGS = $(shell pkg-config --libs gio-2.0 gtk+-3.0 gdk-3.0 gdk-pixbuf-xlib-2.0 x11 xi libcanberra cairo-ft poppler-glib libmetacity-private librsvg-2.0)
-    GOBUILD = go build -compiler gccgo -gccgoflags "${LDFLAGS}"
+	ifndef GOLANG_DEBUG
+		LDFLAGS += -s -w  -Os -O2
+	endif
+	LDFLAGS += $(shell pkg-config --libs gio-2.0 gtk+-3.0 gdk-3.0 gdk-pixbuf-xlib-2.0 x11 xi libcanberra cairo-ft poppler-glib libmetacity-private librsvg-2.0)
+	GOBUILD = go build -compiler gccgo -gccgoflags "${LDFLAGS}"
 endif
 
 
