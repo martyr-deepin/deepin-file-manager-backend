@@ -304,7 +304,7 @@ func (job *QueryFileInfoJob) QueryInfo(arg string, attributes string, flags uint
 
 	info, err := file.QueryInfo(attributes, gio.FileQueryInfoFlags(flags), nil)
 	if err != nil {
-		Log.Error("Query file info failed:", err)
+		Log.Warning("Query file info failed:", err)
 		return ""
 	}
 	defer info.Unref()
@@ -334,7 +334,7 @@ func (job *QueryFileInfoJob) QueryInfo(arg string, attributes string, flags uint
 	}
 	infoJsonByteStr, err := json.Marshal(infoJsonMap)
 	if err != nil {
-		Log.Error("Marshal json file info to string failed:", err)
+		Log.Warning("Marshal json file info to string failed:", err)
 		return ""
 	}
 

@@ -514,7 +514,7 @@ func (app *Application) getItemInfo(p operations.ListProperty) ItemInfo {
 		info.Thumbnail = thumbnail
 
 		if err != nil {
-			Log.Errorf("Get thumbnail for %q failed: %s\n", p.URI, err)
+			Log.Warningf("Get thumbnail for %q failed: %s\n", p.URI, err)
 		}
 	}
 
