@@ -58,7 +58,7 @@ func (job *CreateJob) getFilename(destFsType string) (string, bool) {
 		filenameIsUtf8 = utf8.ValidString(filename)
 	} else {
 		if job.makeDir {
-			filename = Tr("New Folder")
+			filename = Tr("New folder")
 			filenameIsUtf8 = true
 		} else {
 			if job.src != nil {
