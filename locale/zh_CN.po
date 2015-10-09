@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Deepin Desktop Environment 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-09-17 15:50+0800\n"
-"PO-Revision-Date: 2015-09-17 08:11+0000\n"
+"POT-Creation-Date: 2015-10-09 11:07+0800\n"
+"PO-Revision-Date: 2015-10-09 06:03+0000\n"
 "Last-Translator: szd_liufei <liufei@linuxdeepin.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/linuxdeepin/deepin-desktop-environment/language/zh_CN/)\n"
 "MIME-Version: 1.0\n"
@@ -124,3 +124,59 @@ msgstr "热区设置(_C)"
 #: ../desktop/desktop.go:111
 msgid "_Personalize"
 msgstr "个性化(_P)"
+
+#: ../operations/create_job.go:61
+msgid "New folder"
+msgstr "新建文件夹"
+
+#: ../operations/create_job.go:66
+#, c-format
+msgid "New %s"
+msgstr "新建%s"
+
+#: ../operations/create_job.go:70
+msgid "New document"
+msgstr "新建文档"
+
+#: ../operations/create_job.go:209
+msgid "Error while creating directory %B"
+msgstr ""
+
+#: ../operations/create_job.go:211
+msgid "Error while creating file %B"
+msgstr ""
+
+#: ../operations/create_job.go:213
+#, c-format
+msgid "There was error creating the directory in %F."
+msgstr ""
+
+#: ../operations/create_job.go:366
+#, c-format
+msgid "Link to %s"
+msgstr ""
+
+#: ../operations/create_job.go:368
+#, c-format
+msgid "Another link to %s"
+msgstr ""
+
+#: ../operations/create_job.go:373
+#, c-format
+msgid "%'dst link to %s"
+msgstr ""
+
+#: ../operations/create_job.go:375
+#, c-format
+msgid "%'dnd link to %s"
+msgstr ""
+
+#: ../operations/create_job.go:377
+#, c-format
+msgid "%'drd link to %s"
+msgstr ""
+
+#: ../operations/create_job.go:379
+#, c-format
+msgid "%'dth link to %s"
+msgstr ""
