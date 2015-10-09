@@ -58,17 +58,16 @@ func (job *CreateJob) getFilename(destFsType string) (string, bool) {
 		filenameIsUtf8 = utf8.ValidString(filename)
 	} else {
 		if job.makeDir {
-			// TODO
-			filename = Tr("Untitled Folder") // TODO: doc
+			filename = Tr("New Folder")
 			filenameIsUtf8 = true
 		} else {
 			if job.src != nil {
 				basename := job.src.GetBasename()
-				filename = fmt.Sprintf(Tr("Untitled %s"), basename) // TODO: doc
+				filename = fmt.Sprintf(Tr("New %s"), basename)
 			}
 
 			if filename == "" {
-				filename = Tr("Untitled Document") // TODO: doc
+				filename = Tr("New document")
 				filenameIsUtf8 = true
 			}
 		}

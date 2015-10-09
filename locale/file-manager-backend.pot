@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: file-manager-backend unknown\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-09-17 15:50+0800\n"
+"POT-Creation-Date: 2015-10-09 10:36+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -124,4 +124,60 @@ msgstr ""
 
 #: ../desktop/desktop.go:111
 msgid "_Personalize"
+msgstr ""
+
+#: ../operations/create_job.go:61
+msgid "New Folder"
+msgstr ""
+
+#: ../operations/create_job.go:66
+#, c-format
+msgid "New %s"
+msgstr ""
+
+#: ../operations/create_job.go:70
+msgid "New document"
+msgstr ""
+
+#: ../operations/create_job.go:209
+msgid "Error while creating directory %B"
+msgstr ""
+
+#: ../operations/create_job.go:211
+msgid "Error while creating file %B"
+msgstr ""
+
+#: ../operations/create_job.go:213
+#, c-format
+msgid "There was error creating the directory in %F."
+msgstr ""
+
+#: ../operations/create_job.go:366
+#, c-format
+msgid "Link to %s"
+msgstr ""
+
+#: ../operations/create_job.go:368
+#, c-format
+msgid "Another link to %s"
+msgstr ""
+
+#: ../operations/create_job.go:373
+#, c-format
+msgid "%'dst link to %s"
+msgstr ""
+
+#: ../operations/create_job.go:375
+#, c-format
+msgid "%'dnd link to %s"
+msgstr ""
+
+#: ../operations/create_job.go:377
+#, c-format
+msgid "%'drd link to %s"
+msgstr ""
+
+#: ../operations/create_job.go:379
+#, c-format
+msgid "%'dth link to %s"
 msgstr ""

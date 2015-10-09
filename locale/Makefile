@@ -13,7 +13,7 @@ PKG_VERSION?=unknown
 #      --force-po will always generate a file even if it's not exist.
 # TODO: just desktop for now.
 all:
-	find ../desktop -name '*.go' | xargs xgettext --force-po -k -kTr:1 -kNTr:1,2 -C --from-code=UTF-8 --package-name=$(PKG_NAME) --package-version=$(PKG_VERSION) -o $(POT)
+	find ../desktop ../operations -name '*.go' | grep -P 'desktop|create_job.go' | xargs xgettext --force-po -k -kTr:1 -kNTr:1,2 -C --from-code=UTF-8 --package-name=$(PKG_NAME) --package-version=$(PKG_VERSION) -o $(POT)
 
 clean:
 	echo > $(POT)
