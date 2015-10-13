@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Deepin Desktop Environment 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-09-17 15:50+0800\n"
-"PO-Revision-Date: 2015-09-17 08:09+0000\n"
+"POT-Creation-Date: 2015-10-13 09:21+0800\n"
+"PO-Revision-Date: 2015-10-13 01:37+0000\n"
 "Last-Translator: deepin_transifex <xiabin@linuxdeepin.com>\n"
 "Language-Team: Portuguese (http://www.transifex.com/linuxdeepin/deepin-desktop-environment/language/pt/)\n"
 "MIME-Version: 1.0\n"
@@ -81,7 +81,7 @@ msgstr "_Tipo de Ficheiro"
 
 #: ../desktop/settings.go:94
 msgid "_Date modified"
-msgstr ""
+msgstr "_Data de modificação"
 
 #: ../desktop/trash_item.go:22
 msgid "_Clear"
@@ -125,3 +125,16 @@ msgstr "_Navegação nos cantos"
 #: ../desktop/desktop.go:111
 msgid "_Personalize"
 msgstr "_Personalizar"
+
+#: ../operations/create_job.go:61
+msgid "New folder"
+msgstr "Nova pasta"
+
+#: ../operations/create_job.go:66
+#, c-format
+msgid "New %s"
+msgstr "Novo %s"
+
+#: ../operations/create_job.go:70
+msgid "New document"
+msgstr "Novo documento"

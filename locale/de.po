@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Deepin Desktop Environment 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-09-17 15:50+0800\n"
-"PO-Revision-Date: 2015-09-17 17:37+0000\n"
-"Last-Translator: Ettore Atalan <atalanttore@googlemail.com>\n"
+"POT-Creation-Date: 2015-10-13 09:21+0800\n"
+"PO-Revision-Date: 2015-10-13 01:37+0000\n"
+"Last-Translator: deepin_transifex <xiabin@linuxdeepin.com>\n"
 "Language-Team: German (http://www.transifex.com/linuxdeepin/deepin-desktop-environment/language/de/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -125,3 +125,16 @@ msgstr "_Eckennavigation"
 #: ../desktop/desktop.go:111
 msgid "_Personalize"
 msgstr "_Personalisieren"
+
+#: ../operations/create_job.go:61
+msgid "New folder"
+msgstr "Neuer Ordner"
+
+#: ../operations/create_job.go:66
+#, c-format
+msgid "New %s"
+msgstr "Neue %s"
+
+#: ../operations/create_job.go:70
+msgid "New document"
+msgstr "Neues Dokument"
