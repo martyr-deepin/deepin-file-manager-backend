@@ -206,11 +206,11 @@ func (job *CreateJob) needRetry(targetInfo *_TargetInfo, err gio.GError) bool {
 		primaryText := ""
 		// TODO: doc
 		if job.makeDir {
-			primaryText = Tr("Error while creating directory %B") //, dest)
+			primaryText = /*Tr*/ ("Error while creating directory %B") //, dest)
 		} else {
-			primaryText = Tr("Error while creating file %B") //, dest)
+			primaryText = /* Tr */ ("Error while creating file %B") //, dest)
 		}
-		secondaryText := Tr("There was error creating the directory in %F.") //, job.destDir)
+		secondaryText := /* Tr */ ("There was error creating the directory in %F.") //, job.destDir)
 		detailText := err.Error()
 
 		response := job.uiDelegate.AskSkip(primaryText, secondaryText, detailText, UIFlagsNone)
@@ -363,20 +363,20 @@ func getLinkName(name string, count int, maxLength int) string {
 		case 0:
 			format = "%s"
 		case 1:
-			format = Tr("Link to %s") // TODO: doc
+			format = /* Tr */ ("Link to %s") // TODO: doc
 		case 2:
-			format = Tr("Another link to %s") // TODO: doc
+			format = /* Tr */ ("Another link to %s") // TODO: doc
 		}
 	} else {
 		switch count % 10 {
 		case 1:
-			format = Tr("%'dst link to %s") // TODO: doc
+			format = /* Tr */ ("%'dst link to %s") // TODO: doc
 		case 2:
-			format = Tr("%'dnd link to %s") // TODO: doc
+			format = /* Tr */ ("%'dnd link to %s") // TODO: doc
 		case 3:
-			format = Tr("%'drd link to %s") // TODO: doc
+			format = /* Tr */ ("%'drd link to %s") // TODO: doc
 		default:
-			format = Tr("%'dth link to %s") // TODO: doc
+			format = /* Tr */ ("%'dth link to %s") // TODO: doc
 		}
 		useCount = true
 	}
