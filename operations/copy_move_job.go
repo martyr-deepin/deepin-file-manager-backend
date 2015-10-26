@@ -1132,12 +1132,12 @@ func (job *CopyMoveJob) Execute() {
 	}
 }
 
-func newCopyMoveJob(srcs []*gio.File, destDir *gio.File, targetName string, flags gio.FileCopyFlags, uiDelegate IUIDelegate) *CopyMoveJob {
+func newCopyMoveJob(srcs []*gio.File, destDir *gio.File, targetName string, isMove bool, flags gio.FileCopyFlags, uiDelegate IUIDelegate) *CopyMoveJob {
 	job := &CopyMoveJob{
 		CommonJob:     newCommon(uiDelegate),
 		files:         srcs,
 		destination:   destDir,
-		isMove:        false,
+		isMove:        isMove,
 		targetName:    targetName,
 		debutingFiles: map[string]bool{},
 		flags:         flags,
@@ -1151,25 +1151,25 @@ func newCopyMoveJob(srcs []*gio.File, destDir *gio.File, targetName string, flag
 	return job
 }
 
-func newCopyMoveJobFromURL(srcURLs []string, destDirURL string, targetName string, flags gio.FileCopyFlags, uiDelegate IUIDelegate) *CopyMoveJob {
+func newCopyMoveJobFromURL(srcURLs []string, destDirURL string, targetName string, isMove bool, flags gio.FileCopyFlags, uiDelegate IUIDelegate) *CopyMoveJob {
 	srcs := locationListFromUriList(srcURLs)
 	var destDir *gio.File
 	if destDirURL != "" {
 		destDir = gio.FileNewForCommandlineArg(destDirURL)
 		// force duplicate when destDir is parent dir.
-		if srcs[0].GetParent().GetUri() == destDir.GetUri() {
+		if !isMove && srcs[0].GetParent().GetUri() == destDir.GetUri() {
 			destDir.Unref()
 			destDir = nil
 		}
 	}
 
 	// when destDir is nil, duplicate files.
-	return newCopyMoveJob(srcs, destDir, targetName, flags, uiDelegate)
+	return newCopyMoveJob(srcs, destDir, targetName, isMove, flags, uiDelegate)
 }
 
 // NewCopyJob creates a copy job.
 func NewCopyJob(srcURLs []string, destDirURL string, targetName string, flags gio.FileCopyFlags, uiDelegate IUIDelegate) *CopyMoveJob {
-	return newCopyMoveJobFromURL(srcURLs, destDirURL, targetName, flags, uiDelegate)
+	return newCopyMoveJobFromURL(srcURLs, destDirURL, targetName, false, flags, uiDelegate)
 }
 
 func markAsMoveJob(job *CopyMoveJob) *CopyMoveJob {
@@ -1201,5 +1201,5 @@ func markAsMoveJob(job *CopyMoveJob) *CopyMoveJob {
 
 // NewMoveJob creates a move job.
 func NewMoveJob(srcURLs []string, destDirURL string, targetName string, flags gio.FileCopyFlags, uiDelegate IUIDelegate) *CopyMoveJob {
-	return markAsMoveJob(newCopyMoveJobFromURL(srcURLs, destDirURL, targetName, flags, uiDelegate))
+	return markAsMoveJob(newCopyMoveJobFromURL(srcURLs, destDirURL, targetName, true, flags, uiDelegate))
 }
