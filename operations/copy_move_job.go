@@ -1,6 +1,7 @@
 package operations
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"pkg.deepin.io/lib/gio-2.0"
@@ -894,16 +895,11 @@ func (job *CopyMoveJob) moveFilePrepare(
 	destFsType *string,
 	fallbacks *[]_MoveFileCopyFallback,
 	left int) {
-	overwrite := false
-	handledInvalidName := *destFsType != ""
-	dest := getTargetFile(src, destDir, *destFsType, sameFs)
-
 	/* Don't allow recursive move/copy into itself.
 	 * (We would get a file system error if we proceeded but it is nicer to
 	 * detect and report it at this level) */
 	if DirIsParentOf(src, destDir) {
 		if job.skipAllError {
-			dest.Unref()
 			return
 		}
 
@@ -932,9 +928,12 @@ func (job *CopyMoveJob) moveFilePrepare(
 			}
 		}
 
-		dest.Unref()
 		return
 	}
+
+	overwrite := false
+	handledInvalidName := *destFsType != ""
+	dest := getTargetFile(src, destDir, *destFsType, sameFs)
 
 	uniqueNameNr := 0
 retry:
@@ -1173,6 +1172,11 @@ func NewCopyJob(srcURLs []string, destDirURL string, targetName string, flags gi
 }
 
 func markAsMoveJob(job *CopyMoveJob) *CopyMoveJob {
+	if job.destination == nil {
+		job.setError(errors.New("unknown destination"))
+		return job
+	}
+
 	isMove := true
 	targetIsMapping := false
 	haveNonmappingSource := false
