@@ -45,7 +45,7 @@ type ListJob struct {
 
 	dir           *gio.File
 	flags         ListJobFlag
-	recusive      bool
+	recursive     bool
 	includeHidden bool
 	waiter        sync.WaitGroup // make sure the channel data is all handled.
 }
@@ -69,7 +69,7 @@ func (job *ListJob) init() {
 func (job *ListJob) finalize() {
 	// don't job.dir.Unref() here, because gobject has no Ref method,
 	// if the job.dir is used somewhere else, like list directory
-	// recusively, then program will be broken.
+	// recursively, then program will be broken.
 	job.waiter.Wait()
 	job.CommonJob.finalize()
 }
@@ -182,12 +182,13 @@ func (job *ListJob) Execute() {
 	}
 
 	// walk through the dir for progress.
-	job.scanSources([]*gio.File{job.dir})
+	job.scanSources([]*gio.File{job.dir}, false)
 
 	var info *gio.FileInfo
 	for !job.isAborted() {
 		info, err = enumerator.NextFile(job.cancellable)
 		if info == nil || err != nil {
+			job.setError(err)
 			break
 		}
 
@@ -201,7 +202,7 @@ func (job *ListJob) Execute() {
 
 		// 1. if hidden files are included, check file type.
 		// 2. if hidden files are not included and file is not hidden, check file type.
-		if job.recusive && (job.includeHidden || name[0] != '.') &&
+		if job.recursive && (job.includeHidden || name[0] != '.') &&
 			child.QueryFileType(gio.FileQueryInfoFlagsNofollowSymlinks, job.cancellable) == gio.FileTypeDirectory {
 			newJob := newListDir(child, job.flags) // job.flags always has ListJobFlagRecusive here.
 			subDirProcessedAmount := map[AmountUnit]int64{
@@ -240,13 +241,13 @@ func (job *ListJob) Execute() {
 }
 
 func newListDir(dir *gio.File, flags ListJobFlag) *ListJob {
-	recusive := flags&ListJobFlagRecusive != 0
+	recursive := flags&ListJobFlagRecusive != 0
 	includeHidden := flags&ListJobFlagIncludeHidden != 0
 	job := &ListJob{
 		CommonJob:     newCommon(nil),
 		dir:           dir,
 		flags:         flags,
-		recusive:      recusive,
+		recursive:     recursive,
 		includeHidden: includeHidden,
 	}
 	job.init()
@@ -255,7 +256,7 @@ func newListDir(dir *gio.File, flags ListJobFlag) *ListJob {
 }
 
 // NewListDirJob creates a new list job to list the contents of a directory.
-// if recusive, recusively list the contents of a directory.
+// if recursive, recursively list the contents of a directory.
 // if includeHidden, list hidden files and direcories as well.
 func NewListDirJob(dir string, flags ListJobFlag) *ListJob {
 	dest := gio.FileNewForCommandlineArg(dir)

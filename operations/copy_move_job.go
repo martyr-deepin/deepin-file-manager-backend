@@ -829,7 +829,7 @@ func (job *CopyMoveJob) copyFiles(destFsID string) {
 
 func (job *CopyMoveJob) copyJob() {
 	job.op = OpKindCopy
-	job.scanSources(job.files)
+	job.scanSources(job.files, true)
 
 	if job.isAborted() {
 		Log.Debug("aborted copy job")
@@ -1098,7 +1098,7 @@ func (job *CopyMoveJob) moveJob() {
 
 	fallbackFiles := getFilesFromFallbacks(fallbacks)
 	job.op = OpKindMove
-	job.scanSources(fallbackFiles)
+	job.scanSources(fallbackFiles, true)
 
 	if job.isAborted() {
 		return

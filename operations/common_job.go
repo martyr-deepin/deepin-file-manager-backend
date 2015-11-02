@@ -360,7 +360,7 @@ func (job *CommonJob) reportCountProgress() {
 	// job.emitCounting(job.processedAmount[AmountUnitFiles] + job.processedAmount[AmountUnitDirectories])
 }
 
-func (job *CommonJob) scanSources(files []*gio.File) {
+func (job *CommonJob) scanSources(files []*gio.File, recursive bool) {
 	// TODO:
 	// job.reportCountProgress()
 
@@ -369,7 +369,7 @@ func (job *CommonJob) scanSources(files []*gio.File) {
 			break
 		}
 
-		job.scanFile(file)
+		job.scanFile(file, recursive)
 	}
 
 	// job.reportCountProgress()
@@ -380,7 +380,7 @@ func (job *CommonJob) scanSources(files []*gio.File) {
 	job.emitTotalAmount(job.totalAmount[AmountUnitDirectories], AmountUnitDirectories)
 }
 
-func (job *CommonJob) scanFile(file *gio.File) {
+func (job *CommonJob) scanFile(file *gio.File, recursive bool) {
 	dirs := list.New()
 
 retry:
@@ -392,7 +392,7 @@ retry:
 	if err == nil {
 		job.countFile(info)
 
-		if info.GetFileType() == gio.FileTypeDirectory {
+		if info.GetFileType() == gio.FileTypeDirectory && recursive {
 			dirs.PushBack(file)
 		}
 		info.Unref()

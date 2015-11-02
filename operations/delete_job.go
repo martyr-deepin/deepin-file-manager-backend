@@ -118,7 +118,7 @@ retry:
 					localSkippedFile = true
 				}
 			case ResponseRetry:
-				goto retry // avoid recusive
+				goto retry // avoid recursive
 			default: // not reached
 			}
 		}
@@ -206,7 +206,7 @@ func (job *DeleteJob) deleteFiles(files []*gio.File) int {
 
 	// all files that cannot be trashed sometimes will be deleted.
 	if !job.trash {
-		job.scanSources(files)
+		job.scanSources(files, true)
 		job.processedAmount[AmountUnitSumOfFilesAndDirs] = job.processedAmount[AmountUnitFiles] + job.processedAmount[AmountUnitDirectories]
 	}
 
