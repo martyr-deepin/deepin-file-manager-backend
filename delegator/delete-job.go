@@ -16,6 +16,7 @@ type DeleteJob struct {
 	op       *operations.DeleteJob
 
 	Done            func()
+	TotalAmount     func(int64, uint16)
 	ProcessedAmount func(int64, uint16)
 	Aborted         func()
 	Deleting        func(string)
@@ -37,6 +38,9 @@ func NewDeleteJob(urls []string, shouldConfirm bool, uiDelegate IUIDelegate) *De
 }
 
 func (job *DeleteJob) listenSignals() {
+	job.op.ListenTotalAmount(func(amount int64, unit operations.AmountUnit) {
+		dbus.Emit(job, "TotalAmount", amount, uint16(unit))
+	})
 	job.op.ListenProcessedAmount(func(size int64, unit operations.AmountUnit) {
 		dbus.Emit(job, "ProcessedAmount", size, uint16(unit))
 	})

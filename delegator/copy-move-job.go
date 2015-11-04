@@ -20,6 +20,7 @@ type CopyJob struct {
 	op   *operations.CopyMoveJob
 
 	Done            func(string)
+	TotalAmount     func(int64, uint16)
 	ProcessedAmount func(int64, uint16)
 	Copying         func(string)
 	Aborted         func()
@@ -37,6 +38,9 @@ func (job *CopyJob) Abort() {
 }
 
 func (job *CopyJob) listenSignals() {
+	job.op.ListenTotalAmount(func(amount int64, unit operations.AmountUnit) {
+		dbus.Emit(job, "TotalAmount", amount, uint16(unit))
+	})
 	job.op.ListenProcessedAmount(func(amount int64, unit operations.AmountUnit) {
 		dbus.Emit(job, "ProcessedAmount", amount, uint16(unit))
 	})
@@ -85,6 +89,7 @@ type MoveJob struct {
 	op   *operations.CopyMoveJob
 
 	Done            func(string)
+	TotalAmount     func(int64, uint16)
 	ProcessedAmount func(int64, uint16)
 	Moving          func(string)
 	Aborted         func()
@@ -96,6 +101,9 @@ func (job *MoveJob) GetDBusInfo() dbus.DBusInfo {
 }
 
 func (job *MoveJob) listenSignals() {
+	job.op.ListenTotalAmount(func(amount int64, unit operations.AmountUnit) {
+		dbus.Emit(job, "TotalAmount", amount, uint16(unit))
+	})
 	job.op.ListenProcessedAmount(func(amount int64, unit operations.AmountUnit) {
 		dbus.Emit(job, "ProcessedAmount", amount, uint16(unit))
 	})
