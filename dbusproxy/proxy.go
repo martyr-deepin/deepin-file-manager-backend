@@ -2,8 +2,21 @@ package dbusproxy
 
 import (
 	"errors"
+	"fmt"
 	"pkg.deepin.io/lib/dbus"
+	"reflect"
+	"runtime"
+	"sync"
 )
+
+func SignalName(iface, name string) string {
+	return iface + "." + name
+}
+
+type Signal struct {
+	Chan <-chan *dbus.Signal
+	Name string
+}
 
 // DBusProxy is a proxy for a dbus interface.
 type DBusProxy struct {
@@ -14,6 +27,8 @@ type DBusProxy struct {
 	iface             string
 	introspectorIface string
 	flags             dbus.Flags
+	sigChanMap        map[string][]Signal
+	lock              sync.Mutex
 }
 
 // ProxyError
@@ -43,7 +58,7 @@ func NewDBusProxy(conn *dbus.Conn, dest string, objPath string, iface string, fl
 		return nil, ErrorProxyEmptyInterface
 	}
 	obj := conn.Object(dest, dbus.ObjectPath(objPath))
-	return &DBusProxy{
+	proxy := &DBusProxy{
 		conn:              conn,
 		obj:               obj,
 		dest:              dest,
@@ -51,7 +66,12 @@ func NewDBusProxy(conn *dbus.Conn, dest string, objPath string, iface string, fl
 		iface:             iface,
 		introspectorIface: "org.freedesktop.DBus.Introspectable",
 		flags:             flags,
-	}, nil
+		sigChanMap:        map[string][]Signal{},
+	}
+	runtime.SetFinalizer(proxy, func(proxy *DBusProxy) {
+		proxy.finalize()
+	})
+	return proxy, nil
 }
 
 func (proxy *DBusProxy) fullName(name string) string {
@@ -70,4 +90,75 @@ func (proxy *DBusProxy) Introspect() (string, error) {
 	return x, err
 }
 
-// TODO: add property and signal supports.
+func (proxy *DBusProxy) createSignalChan(sigName string) Signal {
+	proxy.lock.Lock()
+	defer proxy.lock.Unlock()
+	sigChan := proxy.conn.Signal()
+	sig := Signal{
+		Chan: sigChan,
+		Name: sigName,
+	}
+	sigs := proxy.sigChanMap[sigName]
+	proxy.sigChanMap[sigName] = append(sigs, sig)
+
+	return sig
+}
+
+func (proxy *DBusProxy) removeSignalChan(removingSig Signal) {
+	proxy.lock.Lock()
+	defer proxy.lock.Unlock()
+
+	for _, sig := range proxy.sigChanMap[removingSig.Name] {
+		if sig.Chan == removingSig.Chan {
+			proxy.conn.DetachSignal(sig.Chan)
+			break
+		}
+	}
+}
+
+func (proxy *DBusProxy) deleteSignalChan(sigName string) {
+	proxy.lock.Lock()
+	defer proxy.lock.Unlock()
+
+	for _, sig := range proxy.sigChanMap[sigName] {
+		proxy.conn.DetachSignal(sig.Chan)
+	}
+	delete(proxy.sigChanMap, sigName)
+}
+
+func (proxy *DBusProxy) finalize() {
+	proxy.lock.Lock()
+	defer proxy.lock.Unlock()
+	for sigName := range proxy.sigChanMap {
+		proxy.deleteSignalChan(sigName)
+	}
+}
+
+func (proxy *DBusProxy) Subscribe(sigName string, f interface{}) func() {
+	sig := proxy.createSignalChan(sigName)
+	rule := fmt.Sprintf("type='signal',sender='%s',path='%s',interface='%s',member='%s'", proxy.dest, proxy.objPath, proxy.iface, sigName)
+	proxy.conn.BusObject().Call("org.freedesktop.DBus.AddMatch", 0, rule)
+	go func() {
+		fn := reflect.ValueOf(f)
+		for v := range sig.Chan {
+			if v.Name != SignalName(proxy.iface, sigName) || v.Path != dbus.ObjectPath(proxy.objPath) {
+				continue
+			}
+			l := len(v.Body)
+			args := make([]reflect.Value, l)
+			for i, v := range v.Body {
+				args[i] = reflect.ValueOf(v)
+			}
+			fn.Call(args)
+		}
+	}()
+	return func() {
+		proxy.removeSignalChan(sig)
+	}
+}
+
+func (proxy *DBusProxy) Unsubscribe(sigName string) {
+	proxy.deleteSignalChan(sigName)
+}
+
+// TODO: handle property

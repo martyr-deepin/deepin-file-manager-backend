@@ -4,6 +4,7 @@ import (
 	"pkg.deepin.io/lib/dbus"
 	"pkg.deepin.io/service/file-manager-backend/dbusproxy"
 	"pkg.deepin.io/service/file-manager-backend/operations"
+	"sync"
 )
 
 // Response will be used to store dbus result,
@@ -43,7 +44,7 @@ func (delegate *UIDelegate) AskSkip(primaryText string, secondaryText string, de
 	var response Response
 	retry := flags&operations.UIFlagsRetry != 0
 	multi := flags&operations.UIFlagsMulti != 0
-	delegate.call("AskSkip", primaryText, secondaryText, detailText, retry, multi).Store(&response)
+	response = delegate.getResponseFor("AskSkip", primaryText, secondaryText, detailText, retry, multi)
 	return toResponse(response)
 }
 
@@ -52,7 +53,7 @@ func (delegate *UIDelegate) AskDelete(primaryText string, secondaryText string, 
 	var response Response
 	retry := flags&operations.UIFlagsRetry != 0
 	multi := flags&operations.UIFlagsMulti != 0
-	delegate.call("AskDelete", primaryText, secondaryText, detailText, retry, multi).Store(&response)
+	response = delegate.getResponseFor("AskDelete", primaryText, secondaryText, detailText, retry, multi)
 	return toResponse(response)
 }
 
@@ -66,13 +67,30 @@ func (delegate *UIDelegate) AskDeleteConfirmation(primaryText string, secondaryT
 // ConflictDialog is used for the conflict situaction like copy.
 func (delegate *UIDelegate) ConflictDialog() operations.Response {
 	var response Response
-	delegate.call("ConflictDialog").Store(&response)
+	response = delegate.getResponseFor("ConflictDialog")
 	return toResponse(response)
 }
 
 // AskRetry asks user whether to retry this operation.
 func (delegate *UIDelegate) AskRetry(primaryText string, secondaryText string, detailText string) operations.Response {
 	var response Response
-	delegate.call("AskRetry", primaryText, secondaryText, detailText).Store(&response)
+	response = delegate.getResponseFor("AskRetry", primaryText, secondaryText, detailText)
 	return toResponse(response)
+}
+
+func (delegate *UIDelegate) getResponseFor(name string, args ...interface{}) Response {
+	var response Response
+	var wg sync.WaitGroup
+	wg.Add(1)
+	var unsubscriber func()
+	unsubscriber = delegate.proxy.Subscribe("response", func(value []interface{}) {
+		response.Code = value[0].(int32)
+		response.ApplyToAll = value[1].(bool)
+		response.UserData = value[2].(string)
+		wg.Done()
+		unsubscriber()
+	})
+	go delegate.proxy.Call(name, args...)
+	wg.Wait()
+	return response
 }
