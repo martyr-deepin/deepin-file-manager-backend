@@ -503,7 +503,7 @@ func (job *CopyMoveJob) needRetry(
 
 	// conflict
 	if !*overwrite && errCode == gio.IOErrorEnumExists {
-		Log.Info("file existing, get unique name?", uniqueName)
+		Log.Info("file", destW.GetUri(), "is existed, get unique name?", uniqueName)
 		if uniqueName {
 			destW.Reset(getUniqueTargetFile(src, destDir, *sameFs, *destFsType, *uniqueNameNr))
 			(*uniqueNameNr)++
@@ -546,9 +546,18 @@ func (job *CopyMoveJob) needRetry(
 			*overwrite = true
 			return true
 		case ResponseAutoRename:
-			newDest := getUniqueTargetFile(src, destDir, *sameFs, *destFsType, *uniqueNameNr)
-			(*uniqueNameNr)++
-			destW.Reset(newDest)
+			for {
+				newDest := getUniqueTargetFile(src, destDir, *sameFs, *destFsType, *uniqueNameNr)
+				(*uniqueNameNr)++
+				if newDest.QueryExists(job.cancellable) {
+					newDest.Unref()
+					continue
+				}
+
+				destW.Reset(newDest)
+				Log.Info("new file is", destW.GetUri())
+				break
+			}
 			return true
 		}
 	} else if *overwrite && errCode == gio.IOErrorEnumIsDirectory {
