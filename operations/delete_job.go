@@ -207,7 +207,6 @@ func (job *DeleteJob) deleteFiles(files []*gio.File) int {
 	// all files that cannot be trashed sometimes will be deleted.
 	if !job.trash {
 		job.scanSources(files, true)
-		job.processedAmount[AmountUnitSumOfFilesAndDirs] = job.processedAmount[AmountUnitFiles] + job.processedAmount[AmountUnitDirectories]
 	}
 
 	if job.isAborted() {
@@ -406,7 +405,7 @@ func (job *DeleteJob) init(files []*gio.File, uiDelegate IUIDelegate) {
 
 	job.files = files
 	job.userCancel = false
-	job.progressUnit = AmountUnitSumOfFilesAndDirs
+	job.sumFileAndDir = true
 
 	// TODO:
 	// if job.trash {

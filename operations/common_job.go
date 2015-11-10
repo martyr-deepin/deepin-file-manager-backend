@@ -63,7 +63,8 @@ type CommonJob struct {
 	closeSpeedTimer chan struct{}
 	percentage      int64
 
-	progressUnit AmountUnit
+	progressUnit  AmountUnit
+	sumFileAndDir bool
 
 	skippedFiles    map[string]*gio.File
 	skippedDirs     map[string]*gio.File
@@ -546,7 +547,12 @@ func (job *CommonJob) countFile(fileInfo *gio.FileInfo) {
 	} else {
 		job.totalAmount[AmountUnitFiles]++
 	}
-	job.totalAmount[AmountUnitBytes] += fileInfo.GetSize()
+
+	if job.sumFileAndDir {
+		job.totalAmount[AmountUnitSumOfFilesAndDirs]++
+	} else {
+		job.totalAmount[AmountUnitBytes] += fileInfo.GetSize()
+	}
 
 	// if job.numFilesSineProgress > 100 {
 	// 	// TODO: is count signal needed?
