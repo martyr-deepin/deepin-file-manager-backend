@@ -17,11 +17,12 @@ type TrashJob struct {
 	uris     []string
 	op       *operations.DeleteJob
 
-	Done            func()
-	Trashing        func(string)
-	Deleting        func(string)
-	ProcessedAmount func(int64, uint16)
-	Aborted         func()
+	Done             func()
+	Trashing         func(string)
+	Deleting         func(string)
+	ProcessedAmount  func(int64, uint16)
+	ProcessedPercent func(int64)
+	Aborted          func()
 }
 
 // GetDBusInfo returns dbus information.
@@ -41,6 +42,9 @@ func NewTrashJob(urls []string, shouldConfirmTrash bool, uiDelegate IUIDelegate)
 func (job *TrashJob) Execute() {
 	job.op.ListenProcessedAmount(func(size int64, unit operations.AmountUnit) {
 		dbus.Emit(job, "ProcessedAmount", size, uint16(unit))
+	})
+	job.op.ListenPercent(func(percent int64) {
+		dbus.Emit(job, "ProcessedPercent", percent)
 	})
 	// TODO: fill signals.
 	defer dbus.UnInstallObject(job)

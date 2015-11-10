@@ -19,11 +19,12 @@ type CopyJob struct {
 	uris []string
 	op   *operations.CopyMoveJob
 
-	Done            func(string)
-	TotalAmount     func(int64, uint16)
-	ProcessedAmount func(int64, uint16)
-	Copying         func(string)
-	Aborted         func()
+	Done             func(string)
+	TotalAmount      func(int64, uint16)
+	ProcessedAmount  func(int64, uint16)
+	ProcessedPercent func(int64)
+	Copying          func(string)
+	Aborted          func()
 }
 
 // GetDBusInfo returns dbus information.
@@ -43,6 +44,9 @@ func (job *CopyJob) listenSignals() {
 	})
 	job.op.ListenProcessedAmount(func(amount int64, unit operations.AmountUnit) {
 		dbus.Emit(job, "ProcessedAmount", amount, uint16(unit))
+	})
+	job.op.ListenPercent(func(percent int64) {
+		dbus.Emit(job, "ProcessedPercent", percent)
 	})
 	job.op.ListenCopying(func(srcURL string) {
 		Log.Debug("copying", srcURL)
@@ -88,11 +92,12 @@ type MoveJob struct {
 	uris []string
 	op   *operations.CopyMoveJob
 
-	Done            func(string)
-	TotalAmount     func(int64, uint16)
-	ProcessedAmount func(int64, uint16)
-	Moving          func(string)
-	Aborted         func()
+	Done             func(string)
+	TotalAmount      func(int64, uint16)
+	ProcessedAmount  func(int64, uint16)
+	ProcessedPercent func(int64)
+	Moving           func(string)
+	Aborted          func()
 }
 
 // GetDBusInfo returns dbus information.
@@ -106,6 +111,9 @@ func (job *MoveJob) listenSignals() {
 	})
 	job.op.ListenProcessedAmount(func(amount int64, unit operations.AmountUnit) {
 		dbus.Emit(job, "ProcessedAmount", amount, uint16(unit))
+	})
+	job.op.ListenPercent(func(percent int64) {
+		dbus.Emit(job, "ProcessedPercent", percent)
 	})
 	job.op.ListenMoving(func(srcURL string) {
 		dbus.Emit(job, "Moving", srcURL)

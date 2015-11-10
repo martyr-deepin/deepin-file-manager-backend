@@ -15,11 +15,12 @@ type DeleteJob struct {
 	uris     []string
 	op       *operations.DeleteJob
 
-	Done            func()
-	TotalAmount     func(int64, uint16)
-	ProcessedAmount func(int64, uint16)
-	Aborted         func()
-	Deleting        func(string)
+	Done             func()
+	TotalAmount      func(int64, uint16)
+	ProcessedAmount  func(int64, uint16)
+	ProcessedPercent func(int64)
+	Aborted          func()
+	Deleting         func(string)
 }
 
 // GetDBusInfo returns dbus information.
@@ -43,6 +44,9 @@ func (job *DeleteJob) listenSignals() {
 	})
 	job.op.ListenProcessedAmount(func(size int64, unit operations.AmountUnit) {
 		dbus.Emit(job, "ProcessedAmount", size, uint16(unit))
+	})
+	job.op.ListenPercent(func(percent int64) {
+		dbus.Emit(job, "ProcessedPercent", percent)
 	})
 
 	job.op.ListenDeleting(func(deletingURL string) {

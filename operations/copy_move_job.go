@@ -664,7 +664,7 @@ func newCopyFileProgressCallback(job *CopyMoveJob) gio.FileProgressCallback {
 		newSize := currentNumBytes - lastSize
 		if newSize > 0 {
 			job.setProcessedAmount(job.processedAmount[AmountUnitBytes]+newSize, AmountUnitBytes)
-			lastSize = newSize
+			lastSize = currentNumBytes
 			job.reportCopyProgress()
 		}
 	}
