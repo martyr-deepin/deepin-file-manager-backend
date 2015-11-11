@@ -9,8 +9,9 @@ import (
 
 // TODO: make a real Enumerator.
 type Enumerator struct {
-	ch     chan interface{}
-	closed bool
+	ch        chan interface{}
+	closed    bool
+	closeOnce sync.Once
 }
 
 func NewEnumerator(ch chan interface{}) *Enumerator {
@@ -28,10 +29,10 @@ func (e *Enumerator) IsClosed() bool {
 }
 
 func (e *Enumerator) Close() {
-	if !e.closed {
+	e.closeOnce.Do(func() {
 		close(e.ch)
 		e.closed = true
-	}
+	})
 }
 
 // ReactorElement holds signal handler and a id for that.
@@ -100,10 +101,10 @@ func (l *SignalReactor) Enumerator() *Enumerator {
 			if cancellable != nil && cancellable.IsCancelled() {
 				break
 			}
+			listener := iter.Value.(*ReactorElement)
 			if e.IsClosed() {
 				break
 			}
-			listener := iter.Value.(*ReactorElement)
 			e.ch <- listener.fn
 			iter = iter.Next()
 		}
