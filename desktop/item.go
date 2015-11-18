@@ -2,6 +2,7 @@ package desktop
 
 import (
 	"fmt"
+	"os/exec"
 	"path/filepath"
 	. "pkg.deepin.io/lib/gettext"
 	"pkg.deepin.io/lib/gio-2.0"
@@ -241,8 +242,7 @@ func (item *Item) addOpenWithMenu(possibleOpenProgrammings []*gio.AppInfo) {
 	}
 
 	openWithSubMenu.AppendItem(NewMenuItem(Tr("_Others"), func() {
-		// TODO: chose open with programming
-		Log.Error("TODO: chose open with")
+		exec.Command("deepin-open-chooser", item.uris...).Start()
 	}, true))
 }
 
