@@ -358,3 +358,7 @@ func (job *QueryFileInfoJob) GetThemeIcon(file string, size int32) string {
 func (job *QueryFileInfoJob) GetThumbnail(file string, size int32) (string, error) {
 	return thumbnails.GenThumbnail(file, int(size))
 }
+
+func (job *QueryFileInfoJob) GetIconName(file string) string {
+	return operations.GetIconName(file)
+}

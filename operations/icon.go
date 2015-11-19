@@ -60,6 +60,67 @@ func GetThemeIconFromIconName(iconName string, size int) string {
 	return C.GoString(cIcon)
 }
 
+// GetIconForApp get gio.Icon for application.
+// @param filePath app's filepath.
+func GetIconForApp(filePath string) *gio.Icon {
+	u, _ := url.Parse(filePath)
+	stat, err := os.Stat(u.Path)
+	if err != nil {
+		Log.Warning("stat", u.Path, "failed:", err)
+		return nil
+	}
+
+	if isUserExecutable(stat.Mode().Perm()) {
+		app := gio.NewDesktopAppInfoFromFilename(u.Path)
+		if app != nil {
+			defer app.Unref()
+			gicon := app.GetIcon() // transfer none, not unref it.
+			return gicon
+		}
+	}
+
+	return nil
+}
+
+// GetIconForFile gets gio.Icon for file.
+// @param filePath is file's path
+func GetIconForFile(filePath string) *gio.Icon {
+	// gio.FileNewForCommandlineArg never failed, even if the arg is malformed path.
+	file := gio.FileNewForCommandlineArg(filePath)
+	defer file.Unref()
+
+	info, err := file.QueryInfo(gio.FileAttributeStandardIcon, gio.FileQueryInfoFlagsNone, nil)
+	if info == nil {
+		Log.Warning("Query file standard icon failed:", err)
+		return nil
+	}
+	defer info.Unref()
+
+	gicon := info.GetIcon() // transfer none, not unref it.
+	return gicon
+}
+
+// GetIconName gets icon for app or file.
+// @param filePath path for app or file.
+func GetIconName(filePath string) string {
+	icon := ""
+	if icon == "" && filepath.Ext(filePath) == ".desktop" {
+		gicon := GetIconForApp(filePath)
+		if gicon != nil {
+			return gicon.ToString()
+		}
+	}
+
+	if icon == "" {
+		gicon := GetIconForFile(filePath)
+		if gicon != nil {
+			return gicon.ToString()
+		}
+	}
+
+	return icon
+}
+
 const (
 	_UserExecutable os.FileMode = 0500
 )
@@ -75,37 +136,14 @@ func GetThemeIcon(iconStr string, size int) string {
 	icon := GetThemeIconFromIconName(iconStr, size)
 
 	if icon == "" && filepath.Ext(iconStr) == ".desktop" {
-		u, _ := url.Parse(iconStr)
-		stat, err := os.Stat(u.Path)
-		if err != nil {
-			Log.Warning("stat", u.Path, "failed:", err)
-		} else {
-			if isUserExecutable(stat.Mode().Perm()) {
-				app := gio.NewDesktopAppInfoFromFilename(u.Path)
-				if app != nil {
-					defer app.Unref()
-					gicon := app.GetIcon()
-					if gicon != nil {
-						icon = GetThemeIconForApp(gicon, size)
-					}
-				}
-			}
+		gicon := GetIconForApp(iconStr)
+		if gicon != nil {
+			icon = GetThemeIconForApp(gicon, size)
 		}
 	}
 
 	if icon == "" {
-		// gio.FileNewForCommandlineArg never failed, even if the arg is malformed path.
-		file := gio.FileNewForCommandlineArg(iconStr)
-		defer file.Unref()
-
-		info, err := file.QueryInfo(gio.FileAttributeStandardIcon, gio.FileQueryInfoFlagsNone, nil)
-		if info == nil {
-			Log.Warning("Query file standard icon failed:", err)
-			return icon
-		}
-		defer info.Unref()
-
-		gicon := info.GetIcon()
+		gicon := GetIconForFile(iconStr)
 		if gicon != nil {
 			icon = GetThemeIconForFile(gicon, size)
 		}

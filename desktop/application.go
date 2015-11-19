@@ -469,6 +469,7 @@ type ItemInfo struct {
 	URI         string
 	MIME        string
 	Icon        string
+	IconName    string
 	Thumbnail   string
 	Size        int64
 	FileType    uint16
@@ -519,6 +520,7 @@ func (app *Application) getItemInfo(p operations.ListProperty) ItemInfo {
 	}
 
 	info.Icon = operations.GetThemeIcon(p.URI, app.settings.iconSize)
+	info.IconName = operations.GetIconName(p.URI)
 
 	return info
 }
