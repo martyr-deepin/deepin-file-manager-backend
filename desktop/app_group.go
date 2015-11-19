@@ -222,23 +222,24 @@ func getGroupNameFromDesktop(files []string) (string, error) {
 }
 
 func getGroupName(files []string) string {
-	name, err := getGroupNameFromSoftwareCenter(files)
-	if name != "" {
-		return name
-	}
-
-	if err != nil {
-		Log.Warning("get group name from software center failed:", err)
-	}
-
-	name, err = getGroupNameFromDesktop(files)
-	if name != "" {
-		return name
-	}
-
-	if err != nil {
-		Log.Warning("get group name from desktop categories field failed:", err)
-	}
+	// TODO: temp.
+	// name, err := getGroupNameFromSoftwareCenter(files)
+	// if name != "" {
+	// 	return name
+	// }
+	//
+	// if err != nil {
+	// 	Log.Warning("get group name from software center failed:", err)
+	// }
+	//
+	// name, err = getGroupNameFromDesktop(files)
+	// if name != "" {
+	// 	return name
+	// }
+	//
+	// if err != nil {
+	// 	Log.Warning("get group name from desktop categories field failed:", err)
+	// }
 
 	return Tr("App Group")
 }
