@@ -15,7 +15,7 @@ type ListJob struct {
 	dbusInfo dbus.DBusInfo
 	op       *operations.ListJob
 
-	EntryInfo       func(string, string, string, string, string, int64, uint16, bool, bool, bool, bool, bool, bool, bool, bool, bool)
+	EntryInfo       func(string, string, string, string, int64, uint16, bool, bool, bool, bool, bool, bool, bool, bool, bool, bool)
 	Done            func(string)
 	ProcessedAmount func(int64, uint16)
 	Aborted         func()
@@ -43,14 +43,11 @@ func (job *ListJob) Execute() []operations.ListProperty {
 		dbus.Emit(job, "ProcessedAmount", size, uint16(unit))
 	})
 	job.op.ListenProperty(func(property operations.ListProperty) {
-		// TODO: read setting for icon size.
-		icon := operations.GetThemeIcon(property.URI, 48)
 		dbus.Emit(job, "EntryInfo",
 			property.DisplayName,
 			property.BaseName,
 			property.URI,
 			property.MIME,
-			icon,
 			property.Size,
 			property.FileType,
 			property.IsBackup,
