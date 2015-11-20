@@ -5,6 +5,13 @@
 #define is_xpm(ext) (g_ascii_strcasecmp(ext, "xpm") == 0)
 #define is_dataurl(ext) g_str_has_prefix(ext, "data:image")
 
+char* get_icon_theme_name()
+{
+    GtkSettings* gs = gtk_settings_get_default();
+    char* name = NULL;
+    g_object_get(gs, "gtk-icon-theme-name", &name, NULL);
+    return name;
+}
 
 static
 char* get_data_uri_by_pixbuf(GdkPixbuf* pixbuf)
@@ -66,9 +73,15 @@ char* icon_name_to_path(const char* name, int size)
         }
     }
 
+    // In pratice, default icon theme may not gets the right icon path when program starting.
+    GtkIconTheme* them = gtk_icon_theme_new();
+    char* icon_theme_name = get_icon_theme_name();
+    gtk_icon_theme_set_custom_theme(them, icon_theme_name);
+    g_free(icon_theme_name);
+
     char* pic_name = g_strndup(name, pic_name_len);
-    GtkIconTheme* them = gtk_icon_theme_get_default(); // NB: do not ref or unref it
     GtkIconInfo* info = gtk_icon_theme_lookup_icon(them, pic_name, size, GTK_ICON_LOOKUP_GENERIC_FALLBACK);
+    g_object_unref(them);
 
     if (info == NULL) {
         g_warning("get gtk icon theme info failed for %s", pic_name);
