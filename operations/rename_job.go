@@ -16,6 +16,7 @@ const (
 	ErrorInvalidFileName = iota
 	ErrorSameFileName
 )
+const _FullNameKey = "X-GNOME-FullName"
 
 type RenameError struct {
 	Code int
@@ -188,6 +189,14 @@ func (job *RenameJob) setDesktopName() error {
 		keyFile.SetLocaleString(glib.KeyFileDesktopGroup, glib.KeyFileDesktopKeyName, locale, job.newName)
 	} else {
 		keyFile.SetString(glib.KeyFileDesktopGroup, glib.KeyFileDesktopKeyName, job.newName)
+	}
+
+	_, keys, _ := keyFile.GetKeys(glib.KeyFileDesktopGroup)
+	for _, key := range keys {
+		if key == _FullNameKey {
+			keyFile.SetString(glib.KeyFileDesktopGroup, _FullNameKey, job.newName)
+			break
+		}
 	}
 
 	_, content, err := keyFile.ToData()

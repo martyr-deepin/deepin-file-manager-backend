@@ -19,6 +19,18 @@ func TestRenameFile(t *testing.T) {
 	var renameSrcDir = filepath.Join(testdataDir, "rename", "src")
 	var renameTestDir = filepath.Join(testdataDir, "rename", "test")
 
+	Convey("rename with X-GNOME-FULLNAME desktop file", t, func() {
+		exec.Command("cp", "./testdata/rename/src/remmina.desktop", "./testdata/rename/test").Run()
+		targetPath := "./testdata/rename/test/a.desktop"
+		newName := "a"
+		job := NewRenameJob("./testdata/rename/test/remmina.desktop", newName)
+		defer exec.Command("rm", targetPath).Run()
+		job.Execute()
+
+		app := gio.NewDesktopAppInfoFromFilename(targetPath)
+		So(app.GetDisplayName(), ShouldEqual, "a")
+	})
+
 	Convey("rename a file", t, func() {
 		src := filepath.Join(renameSrcDir, "afile")
 		err := exec.Command("cp", src, renameTestDir).Run()
