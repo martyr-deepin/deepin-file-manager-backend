@@ -7,9 +7,10 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
+
 	"pkg.deepin.io/lib/gio-2.0"
 	"pkg.deepin.io/lib/glib-2.0"
-	"strings"
 )
 
 const (
@@ -175,7 +176,7 @@ func (job *RenameJob) setDesktopName() error {
 	keyFile := glib.NewKeyFile()
 	defer keyFile.Free()
 	filePath := job.file.GetPath()
-	_, err := keyFile.LoadFromFile(filePath, glib.KeyFileFlagsNone)
+	_, err := keyFile.LoadFromFile(filePath, glib.KeyFileFlagsKeepComments|glib.KeyFileFlagsKeepTranslations)
 	if err != nil {
 		return err
 	}
@@ -194,7 +195,11 @@ func (job *RenameJob) setDesktopName() error {
 	_, keys, _ := keyFile.GetKeys(glib.KeyFileDesktopGroup)
 	for _, key := range keys {
 		if key == _FullNameKey {
-			keyFile.SetString(glib.KeyFileDesktopGroup, _FullNameKey, job.newName)
+			if locale != "" {
+				keyFile.SetLocaleString(glib.KeyFileDesktopGroup, _FullNameKey, locale, job.newName)
+			} else {
+				keyFile.SetString(glib.KeyFileDesktopGroup, _FullNameKey, job.newName)
+			}
 			break
 		}
 	}
