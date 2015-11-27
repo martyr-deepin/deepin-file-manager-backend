@@ -13,13 +13,14 @@ import (
 	"net/url"
 	"os/exec"
 	"path/filepath"
+	"strings"
+
 	"pkg.deepin.io/dde/api/thumbnails"
 	"pkg.deepin.io/lib/dbus"
 	"pkg.deepin.io/lib/gio-2.0"
 	"pkg.deepin.io/lib/glib-2.0"
 	. "pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"
-	"strings"
 )
 
 // GetUserSpecialDir returns user special dir, like music directory.
@@ -268,12 +269,17 @@ func (app *Application) GenMenuContent(uris []string) string {
 	return menu.ToJSON()
 }
 
-// HandleSelectedMenuItem will handle selected menu item according to passed id.
-func (app *Application) HandleSelectedMenuItem(id string) {
+// HandleSelectedMenuItemWithTimestamp will handle selected menu item according to passed id and timestamp.
+func (app *Application) HandleSelectedMenuItemWithTimestamp(id string, timestamp uint32) {
 	if app.menu == nil {
 		return
 	}
-	app.menu.HandleAction(id)
+	app.menu.HandleAction(id, timestamp)
+}
+
+// HandleSelectedMenuItem will handle selected menu item according to passed id.
+func (app *Application) HandleSelectedMenuItem(id string) {
+	app.HandleSelectedMenuItemWithTimestamp(id, 0)
 }
 
 // DestroyMenu destroys the useless menu.
@@ -342,20 +348,20 @@ func (app *Application) RequestMergeIntoAppGroup(files []string, appGroup string
 	return app.emitAppGroupMerged(appGroup, availableFiles)
 }
 
-func (app *Application) doDisplayFile(file *gio.File, contentType string) error {
+func (app *Application) doDisplayFile(file *gio.File, contentType string, timestamp uint32) error {
 	defaultApp := gio.AppInfoGetDefaultForType(contentType, false)
 	if defaultApp == nil {
 		return errors.New("unknown default application")
 	}
 	defer defaultApp.Unref()
 
-	_, err := defaultApp.Launch([]*gio.File{file}, gio.GetGdkAppLaunchContext())
+	_, err := defaultApp.Launch([]*gio.File{file}, gio.GetGdkAppLaunchContext().SetTimestamp(timestamp))
 
 	return err
 }
 
 // displayFile will display file using default app.
-func (app *Application) displayFile(file string) error {
+func (app *Application) displayFile(file string, timestamp uint32) error {
 	f := gio.FileNewForCommandlineArg(file)
 	if f == nil {
 		return errors.New("invalid file")
@@ -369,16 +375,22 @@ func (app *Application) displayFile(file string) error {
 	defer info.Unref()
 
 	contentType := info.GetContentType()
-	return app.doDisplayFile(f, contentType)
+	return app.doDisplayFile(f, contentType, timestamp)
 }
 
 // ActivateFile will activate file.
-func (app *Application) ActivateFile(file string, args []string, isExecutable bool, flag int32) error {
+// NB: **deprecated**, compatible interface, use ActivateFileWithTimestamp instead.
+func (app *Application) ActivateFile(file string, args []string, isExecutable bool, timestamp uint32, flag int32) error {
+	return app.ActivateFileWithTimestamp(file, args, isExecutable, 0, flag)
+}
+
+// ActivateFileWithTimestamp will activate file.
+func (app *Application) ActivateFileWithTimestamp(file string, args []string, isExecutable bool, timestamp uint32, flag int32) error {
 	if isDesktopFile(file) && isExecutable {
 		return app.activateDesktopFile(file, args)
 	}
 
-	return app.activateFile(file, args, isExecutable, flag)
+	return app.activateFile(file, args, isExecutable, timestamp, flag)
 }
 
 func (app *Application) activateDesktopFile(file string, args []string) error {
@@ -419,7 +431,7 @@ func isExecutableScript() bool {
 	return false
 }
 
-func (app *Application) doActivateFile(f *gio.File, args []string, isExecutable bool, contentType string, flag int32) error {
+func (app *Application) doActivateFile(f *gio.File, args []string, isExecutable bool, contentType string, timestamp uint32, flag int32) error {
 	plainType := "text/plain"
 	file := f.GetUri()
 
@@ -432,7 +444,7 @@ func (app *Application) doActivateFile(f *gio.File, args []string, isExecutable 
 			case app.ActivateFlagRun:
 				return exec.Command(file).Start()
 			case app.ActivateFlagDisplay:
-				return app.doDisplayFile(f, contentType)
+				return app.doDisplayFile(f, contentType, timestamp)
 			}
 		} else { // binary file
 			// FIXME: strange logic from dde-workspace, why args is not used on the other places.
@@ -440,10 +452,10 @@ func (app *Application) doActivateFile(f *gio.File, args []string, isExecutable 
 		}
 	}
 
-	return app.doDisplayFile(f, contentType)
+	return app.doDisplayFile(f, contentType, timestamp)
 }
 
-func (app *Application) activateFile(file string, args []string, isExecutable bool, flag int32) error {
+func (app *Application) activateFile(file string, args []string, isExecutable bool, timestamp uint32, flag int32) error {
 	f := gio.FileNewForCommandlineArg(file)
 	if f == nil {
 		return errors.New("invalid file")
@@ -457,7 +469,7 @@ func (app *Application) activateFile(file string, args []string, isExecutable bo
 	defer info.Unref()
 
 	contentType := info.GetContentType()
-	return app.doActivateFile(f, args, isExecutable, contentType, flag)
+	return app.doActivateFile(f, args, isExecutable, contentType, timestamp, flag)
 }
 
 // TODO: move to filemanager.

@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"sort"
+	"strings"
+
 	. "pkg.deepin.io/lib/gettext"
 	"pkg.deepin.io/lib/gio-2.0"
 	. "pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"
-	"sort"
-	"strings"
 )
 
 type byDisplayName []*gio.AppInfo
@@ -213,7 +214,7 @@ func (item *Item) destroy() {
 }
 
 func (item *Item) addOpenWithMenu(possibleOpenProgrammings []*gio.AppInfo) {
-	openWithMenuItem := NewMenuItem(Tr("Open with(_A)"), func() {}, true)
+	openWithMenuItem := NewMenuItem(Tr("Open with(_A)"), func(uint32) {}, true)
 	item.menu.AppendItem(openWithMenuItem)
 
 	openWithSubMenu := NewMenu()
@@ -221,8 +222,8 @@ func (item *Item) addOpenWithMenu(possibleOpenProgrammings []*gio.AppInfo) {
 	openWithMenuItem.subMenu = openWithSubMenu
 
 	for _, app := range possibleOpenProgrammings {
-		openWithSubMenu.AppendItem(NewMenuItem(app.GetDisplayName(), func(id string) func() {
-			return func() {
+		openWithSubMenu.AppendItem(NewMenuItem(app.GetDisplayName(), func(id string) func(uint32) {
+			return func(timestamp uint32) {
 				Log.Debug("open with", id)
 				app := gio.NewDesktopAppInfo(id)
 				if app == nil {
@@ -231,7 +232,7 @@ func (item *Item) addOpenWithMenu(possibleOpenProgrammings []*gio.AppInfo) {
 				}
 				defer app.Unref()
 
-				app.Launch(item.files, gio.GetGdkAppLaunchContext())
+				app.Launch(item.files, gio.GetGdkAppLaunchContext().SetTimestamp(timestamp))
 			}
 		}(app.GetId()), true))
 		app.Unref()
@@ -241,7 +242,7 @@ func (item *Item) addOpenWithMenu(possibleOpenProgrammings []*gio.AppInfo) {
 		openWithSubMenu.AddSeparator()
 	}
 
-	openWithSubMenu.AppendItem(NewMenuItem(Tr("_Others"), func() {
+	openWithSubMenu.AppendItem(NewMenuItem(Tr("_Others"), func(uint32) {
 		exec.Command("deepin-open-chooser", item.uris...).Start()
 	}, true))
 }
@@ -266,7 +267,7 @@ func (item *Item) GenMenu() (*Menu, error) {
 		}
 	}
 
-	menu := item.menu.AppendItem(NewMenuItem(Tr("_Open"), func() {
+	menu := item.menu.AppendItem(NewMenuItem(Tr("_Open"), func(timestamp uint32) {
 		activationPolicy := item.app.settings.ActivationPolicy()
 
 		askingFiles := []string{}
@@ -313,7 +314,7 @@ func (item *Item) GenMenu() (*Menu, error) {
 			}
 			defaultApp.Unref()
 
-			item.app.doActivateFile(f, []string{}, isExecutable, contentType, ActivateFlagRun)
+			item.app.doActivateFile(f, []string{}, isExecutable, contentType, timestamp, ActivateFlagRun)
 
 			f.Unref()
 		}
@@ -342,18 +343,18 @@ func (item *Item) GenMenu() (*Menu, error) {
 	// TODO: use plugin, remove useless function.
 	isAppGroupItem := isAppGroup(filepath.Dir(item.uri))
 	if !isAppGroupItem {
-		runFileRoller := func(cmd string, files []*gio.File) error {
+		runFileRoller := func(cmd string, files []*gio.File, timestamp uint32) error {
 			app, err := gio.AppInfoCreateFromCommandline(cmd, "", gio.AppInfoCreateFlagsSupportsStartupNotification)
 			if err != nil {
 				return err
 			}
 			defer app.Unref()
-			_, err = app.Launch(files, gio.GetGdkAppLaunchContext())
+			_, err = app.Launch(files, gio.GetGdkAppLaunchContext().SetTimestamp(timestamp))
 			return err
 		}
 
-		menu.AppendItem(NewMenuItem(Tr("Co_mpress"), func() {
-			err := runFileRoller("file-roller -d %U", item.files)
+		menu.AppendItem(NewMenuItem(Tr("Co_mpress"), func(timestamp uint32) {
+			err := runFileRoller("file-roller -d %U", item.files, timestamp)
 			if err != nil {
 				Log.Error("run file-roller failed:", err)
 			}
@@ -368,8 +369,8 @@ func (item *Item) GenMenu() (*Menu, error) {
 		}
 
 		if allIsArchived {
-			menu.AppendItem(NewMenuItem(Tr("_Extract Here"), func() {
-				err := runFileRoller("file-roller -h", item.files)
+			menu.AppendItem(NewMenuItem(Tr("_Extract Here"), func(timestamp uint32) {
+				err := runFileRoller("file-roller -h", item.files, timestamp)
 				if err != nil {
 					Log.Error("run file-roller failed:", err)
 				}
@@ -377,10 +378,10 @@ func (item *Item) GenMenu() (*Menu, error) {
 		}
 	}
 
-	menu.AppendItem(NewMenuItem(Tr("Cu_t"), func() {
+	menu.AppendItem(NewMenuItem(Tr("Cu_t"), func(uint32) {
 		operations.CutToClipboard(item.uris)
 		item.app.emitItemCut(item.uris)
-	}, true)).AppendItem(NewMenuItem(Tr("_Copy"), func() {
+	}, true)).AppendItem(NewMenuItem(Tr("_Copy"), func(uint32) {
 		operations.CopyToClipboard(item.uris)
 	}, true))
 
@@ -388,9 +389,9 @@ func (item *Item) GenMenu() (*Menu, error) {
 	// if !item.multiple {
 	// 	fileType := item.files[0].QueryFileType(gio.FileQueryInfoFlagsNone, nil)
 	// 	if fileType == gio.FileTypeDirectory {
-	// 		menu.AppendItem(NewMenuItem(Tr("Paste _Into"), func() {
+	// 		menu.AppendItem(NewMenuItem(Tr("Paste _Into"), func(uint32) {
 	// 			item.app.emitRequestPaste(item.uri)
-	// 		}, operations.CanPaste(item.uri))).AddSeparator().AppendItem(NewMenuItem(Tr("Open in _terminal"), func() {
+	// 		}, operations.CanPaste(item.uri))).AddSeparator().AppendItem(NewMenuItem(Tr("Open in _terminal"), func(uint32) {
 	// 			runInTerminal(item.uri, "")
 	// 		}, !item.multiple))
 	// 	}
@@ -399,18 +400,18 @@ func (item *Item) GenMenu() (*Menu, error) {
 	menu.AddSeparator()
 
 	if !isAppGroupItem {
-		menu.AppendItem(NewMenuItem(Tr("_Rename"), func() {
+		menu.AppendItem(NewMenuItem(Tr("_Rename"), func(uint32) {
 			item.emitRequestRename()
 		}, !item.multiple))
 	}
 
-	menu.AppendItem(NewMenuItem(Tr("_Delete"), func() {
+	menu.AppendItem(NewMenuItem(Tr("_Delete"), func(uint32) {
 		item.emitRequestDelete()
 	}, true))
 
 	menu.AddSeparator()
 
-	return item.menu.AppendItem(NewMenuItem(Tr("_Properties"), func() {
+	return item.menu.AppendItem(NewMenuItem(Tr("_Properties"), func(uint32) {
 		item.showProperties()
 	}, true)), nil
 }

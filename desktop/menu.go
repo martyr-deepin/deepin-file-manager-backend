@@ -20,13 +20,13 @@ type MenuItem struct {
 	showCheckMark    bool
 	subMenu          *Menu
 
-	Action func()
+	Action func(uint32)
 
 	id string
 }
 
 // NewMenuItem creates new menu item.
-func NewMenuItem(name string, action func(), enable bool) *MenuItem {
+func NewMenuItem(name string, action func(uint32), enable bool) *MenuItem {
 	return &MenuItem{
 		itemText:         name,
 		isActive:         enable,
@@ -99,17 +99,17 @@ func (m *Menu) AppendItem(items ...*MenuItem) *Menu {
 	return m
 }
 
-func (m *Menu) handleAction(id string) bool {
+func (m *Menu) handleAction(id string, timestamp uint32) bool {
 	item, ok := m.ids[id]
 	if ok {
 		if item.isActive {
-			item.Action()
+			item.Action(timestamp)
 		}
 		return true
 	}
 
 	for _, item := range m.ids {
-		if item.subMenu != nil && item.subMenu.handleAction(id) {
+		if item.subMenu != nil && item.subMenu.handleAction(id, timestamp) {
 			return true
 		}
 	}
@@ -118,8 +118,8 @@ func (m *Menu) handleAction(id string) bool {
 }
 
 // HandleAction will call the action corresponding to the id.
-func (m *Menu) HandleAction(id string) {
-	m.handleAction(id)
+func (m *Menu) HandleAction(id string, timestamp uint32) {
+	m.handleAction(id, timestamp)
 }
 
 // ToJSON generates json format menu content used in DeepinMenu.

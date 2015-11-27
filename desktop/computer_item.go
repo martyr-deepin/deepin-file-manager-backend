@@ -17,9 +17,9 @@ func NewComputerItem(app *Application, uri string) *ComputerItem {
 // GenMenu generates json format menu content used in DeepinMenu for ComputerItem.
 func (item *ComputerItem) GenMenu() (*Menu, error) {
 	item.menu = NewMenu()
-	return item.menu.AppendItem(NewMenuItem(Tr("_Open"), func() {
-		item.app.displayFile("computer://")
-	}, true)).AddSeparator().AppendItem(NewMenuItem(Tr("_Properties"), func() {
+	return item.menu.AppendItem(NewMenuItem(Tr("_Open"), func(timestamp uint32) {
+		item.app.displayFile("computer://", timestamp)
+	}, true)).AddSeparator().AppendItem(NewMenuItem(Tr("_Properties"), func(uint32) {
 		showModule("system_info")
 	}, true)), nil
 }

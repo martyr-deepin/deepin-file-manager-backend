@@ -4,15 +4,16 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	_ "github.com/mattn/go-sqlite3"
 	"path/filepath"
+	"sort"
+	"strings"
+
+	_ "github.com/mattn/go-sqlite3"
 	. "pkg.deepin.io/lib/gettext"
 	"pkg.deepin.io/lib/gio-2.0"
 	"pkg.deepin.io/lib/glib-2.0"
 	. "pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"
-	"sort"
-	"strings"
 )
 
 var _ = sort.Sort
@@ -35,15 +36,15 @@ func NewAppGroup(app *Application, uris []string) *AppGroup {
 // GenMenu generates json format menu content used in DeepinMenu for AppGroup.
 func (item *AppGroup) GenMenu() (*Menu, error) {
 	item.menu = NewMenu()
-	return item.menu.AppendItem(NewMenuItem(Tr("_Open"), func() {
+	return item.menu.AppendItem(NewMenuItem(Tr("_Open"), func(uint32) {
 		ops := make([]int32, len(item.uris))
 		for i := range item.uris {
 			ops[i] = OpOpen
 		}
 		item.app.emitRequestOpen(item.uris, ops)
-	}, true)).AddSeparator().AppendItem(NewMenuItem(Tr("_Rename"), func() {
+	}, true)).AddSeparator().AppendItem(NewMenuItem(Tr("_Rename"), func(uint32) {
 		item.emitRequestRename()
-	}, !item.multiple)).AddSeparator().AppendItem(NewMenuItem(Tr("_Ungroup"), func() {
+	}, !item.multiple)).AddSeparator().AppendItem(NewMenuItem(Tr("_Ungroup"), func(uint32) {
 		for _, uri := range item.uris {
 			files := []string{}
 
@@ -63,7 +64,7 @@ func (item *AppGroup) GenMenu() (*Menu, error) {
 				Log.Warningf("dismiss appgroup %s failed: %s\n", uri, err)
 			}
 		}
-	}, true)).AddSeparator().AppendItem(NewMenuItem(Tr("_Delete"), func() {
+	}, true)).AddSeparator().AppendItem(NewMenuItem(Tr("_Delete"), func(uint32) {
 		item.emitRequestDelete()
 	}, true)), nil
 }

@@ -2,6 +2,7 @@ package desktop
 
 import (
 	"fmt"
+
 	. "pkg.deepin.io/lib/gettext"
 	"pkg.deepin.io/lib/gio-2.0"
 )
@@ -33,9 +34,9 @@ func (item *TrashItem) GenMenu() (*Menu, error) {
 		clearMenuItemText = fmt.Sprintf(NTr("_Clear %d Item", "_Clear %d Items", int(trashedItemCount)), trashedItemCount)
 	}
 
-	return item.menu.AppendItem(NewMenuItem(Tr("_Open"), func() {
-		item.app.displayFile("trash://")
-	}, true)).AddSeparator().AppendItem(NewMenuItem(clearMenuItemText, func() {
+	return item.menu.AppendItem(NewMenuItem(Tr("_Open"), func(timestamp uint32) {
+		item.app.displayFile("trash://", timestamp)
+	}, true)).AddSeparator().AppendItem(NewMenuItem(clearMenuItemText, func(uint32) {
 		item.emitRequestEmptyTrash()
 	}, trashedItemCount != 0)), nil
 }
