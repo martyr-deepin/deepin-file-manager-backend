@@ -380,7 +380,7 @@ func (app *Application) displayFile(file string, timestamp uint32) error {
 
 // ActivateFile will activate file.
 // NB: **deprecated**, compatible interface, use ActivateFileWithTimestamp instead.
-func (app *Application) ActivateFile(file string, args []string, isExecutable bool, timestamp uint32, flag int32) error {
+func (app *Application) ActivateFile(file string, args []string, isExecutable bool, flag int32) error {
 	return app.ActivateFileWithTimestamp(file, args, isExecutable, 0, flag)
 }
 
