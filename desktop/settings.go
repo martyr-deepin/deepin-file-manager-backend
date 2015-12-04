@@ -90,7 +90,7 @@ const (
 var sortPoliciesName = map[string]string{
 	"name":     Tr("_Name"), // won't be translated, for scanning.
 	"size":     Tr("_Size"),
-	"filetype": Tr("_Filetype"),
+	"filetype": Tr("_Type"),
 	"mtime":    Tr("_Date modified"),
 	// TODO: not for now
 	// "open-with": Tr("Open with"),
