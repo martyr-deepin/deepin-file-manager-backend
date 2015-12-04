@@ -1,8 +1,9 @@
 package operations
 
 import (
-	"pkg.deepin.io/lib/gio-2.0"
 	"strings"
+
+	"pkg.deepin.io/lib/gio-2.0"
 )
 
 // DeleteJob delete or trash files/directories.
@@ -365,7 +366,7 @@ func (job *DeleteJob) confirmDeleteFromTrash(files []*gio.File) bool {
 		panic("file should be greater than 0")
 	}
 
-	primaryText := NTr("permanently delete from trash??", "", fileNum)
+	primaryText := NTr("permanently delete from trash??", "", int(fileNum))
 	secondaryText := Tr("")
 	detailText := Tr("")
 	response := job.uiDelegate.AskDeleteConfirmation(
@@ -387,7 +388,7 @@ func (job *DeleteJob) confirmDeleteDirectly(files []*gio.File) bool {
 
 	fileNum := uint64(len(files))
 	// TODO: doc
-	primaryText := NTr("delete???", "", fileNum)
+	primaryText := NTr("delete???", "", int(fileNum))
 	secondaryText := Tr("")
 	detailText := Tr("")
 	response := job.uiDelegate.AskDeleteConfirmation(

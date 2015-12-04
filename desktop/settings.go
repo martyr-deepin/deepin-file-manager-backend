@@ -88,7 +88,7 @@ const (
 
 // sortPoliciesName is a map to sort policies and the display name.
 var sortPoliciesName = map[string]string{
-	"name":     Tr("_Name"), // won't be translated, for scanning.
+	"name":     Tr("_Name"), // won't be translated, textdomain is not binded so far, for scanning.
 	"size":     Tr("_Size"),
 	"filetype": Tr("_Type"),
 	"mtime":    Tr("_Date modified"),

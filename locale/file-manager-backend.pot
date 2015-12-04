@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: file-manager-backend unknown\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-03 16:38+0800\n"
+"POT-Creation-Date: 2015-12-04 16:35+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -126,15 +126,28 @@ msgstr ""
 msgid "_Personalize"
 msgstr ""
 
-#: ../operations/create_job.go:61
+#: ../operations/create_job.go:62
 msgid "New folder"
 msgstr ""
 
-#: ../operations/create_job.go:66
-#, c-format
-msgid "New %s"
+#: ../operations/create_job.go:71
+msgid "New document"
 msgstr ""
 
-#: ../operations/create_job.go:70
-msgid "New document"
+#: ../operations/utils.go:258
+msgid " (Copy)"
+msgstr ""
+
+#: ../operations/utils.go:262
+#, c-format
+msgid " (Copy %d)"
+msgstr ""
+
+#: ../operations/utils.go:282
+msgid " (Copy "
+msgstr ""
+
+#: ../operations/utils.go:289
+#, c-format
+msgid " (Copy %d"
 msgstr ""

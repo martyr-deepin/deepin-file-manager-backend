@@ -4,9 +4,9 @@
 #include <unistd.h>
 #include <glib.h>
 #include <gio/gio.h>
-
-#define N_
-#define _
+#include <locale.h>
+#include <libintl.h>
+#include <glib/gi18n.h>
 
 static char *
 shorten_utf8_string (const char *base, int reduce_by_num_bytes)
@@ -16,7 +16,6 @@ shorten_utf8_string (const char *base, int reduce_by_num_bytes)
 	const char *p;
 
 	len = strlen (base);
-        fprintf(stderr,"xx%dxx\n", len);
 	len -= reduce_by_num_bytes;
 
 	if (len <= 0) {
@@ -707,121 +706,6 @@ get_target_file_for_link (GFile *src,
 	}
 
 	return dest;
-}
-
-static GFile *
-get_target_file_with_custom_name (GFile *src,
-				  GFile *dest_dir,
-				  const char *dest_fs_type,
-				  gboolean same_fs,
-				  const gchar *custom_name)
-{
-	char *basename;
-	GFile *dest;
-	GFileInfo *info;
-	char *copyname;
-
-	dest = NULL;
-
-	if (custom_name != NULL) {
-		copyname = g_strdup (custom_name);
-		make_file_name_valid_for_dest_fs (copyname, dest_fs_type);
-		dest = g_file_get_child_for_display_name (dest_dir, copyname, NULL);
-
-		g_free (copyname);
-	}
-
-	if (dest == NULL && !same_fs) {
-		info = g_file_query_info (src,
-					  G_FILE_ATTRIBUTE_STANDARD_COPY_NAME ","
-					  G_FILE_ATTRIBUTE_TRASH_ORIG_PATH,
-					  0, NULL, NULL);
-
-		if (info) {
-			copyname = NULL;
-
-			/* if file is being restored from trash make sure it uses its original name */
-			if (g_file_has_uri_scheme (src, "trash")) {
-				copyname = g_strdup (g_file_info_get_attribute_byte_string (info, G_FILE_ATTRIBUTE_TRASH_ORIG_PATH));
-			}
-
-			if (copyname == NULL) {
-				copyname = g_strdup (g_file_info_get_attribute_string (info, G_FILE_ATTRIBUTE_STANDARD_COPY_NAME));
-			}
-
-			if (copyname) {
-				make_file_name_valid_for_dest_fs (copyname, dest_fs_type);
-				dest = g_file_get_child_for_display_name (dest_dir, copyname, NULL);
-				g_free (copyname);
-			}
-
-			g_object_unref (info);
-		}
-	}
-
-	if (dest == NULL) {
-		basename = g_file_get_basename (src);
-		make_file_name_valid_for_dest_fs (basename, dest_fs_type);
-		dest = g_file_get_child (dest_dir, basename);
-		g_free (basename);
-	}
-
-	return dest;
-}
-
-static GFile *
-get_target_file (GFile *src,
-		 GFile *dest_dir,
-		 const char *dest_fs_type,
-		 gboolean same_fs)
-{
-	return get_target_file_with_custom_name (src, dest_dir, dest_fs_type, same_fs, NULL);
-}
-
-static gboolean
-has_fs_id (GFile *file, const char *fs_id)
-{
-	const char *id;
-	GFileInfo *info;
-	gboolean res;
-
-	res = FALSE;
-	info = g_file_query_info (file,
-				  G_FILE_ATTRIBUTE_ID_FILESYSTEM,
-				  G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS,
-				  NULL, NULL);
-
-	if (info) {
-		id = g_file_info_get_attribute_string (info, G_FILE_ATTRIBUTE_ID_FILESYSTEM);
-
-		if (id && strcmp (id, fs_id) == 0) {
-			res = TRUE;
-		}
-
-		g_object_unref (info);
-	}
-
-	return res;
-}
-static gboolean
-test_dir_is_parent (GFile *child, GFile *root)
-{
-	GFile *f, *tmp;
-
-	f = g_file_dup (child);
-	while (f) {
-		if (g_file_equal (f, root)) {
-			g_object_unref (f);
-			return TRUE;
-		}
-		tmp = f;
-		f = g_file_get_parent (f);
-		g_object_unref (tmp);
-	}
-	if (f) {
-		g_object_unref (f);
-	}
-	return FALSE;
 }
 
 

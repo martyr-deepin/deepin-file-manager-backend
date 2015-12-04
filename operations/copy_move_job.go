@@ -4,10 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
+
 	"pkg.deepin.io/lib/gio-2.0"
 	"pkg.deepin.io/lib/timer"
 	. "pkg.deepin.io/service/file-manager-backend/log"
-	"strings"
 )
 
 const (
@@ -1010,10 +1011,16 @@ retry:
 			overwrite = true
 			goto retry
 		case ResponseAutoRename:
-			dest.Unref()
-			dest = (getUniqueTargetFile(src, destDir, sameFs, *destFsType, uniqueNameNr))
-			(uniqueNameNr)++
-			goto retry
+			// TODO: get unique name
+			for {
+				dest.Unref()
+				dest = (getUniqueTargetFile(src, destDir, sameFs, *destFsType, uniqueNameNr))
+				(uniqueNameNr)++
+
+				if !dest.QueryExists(job.cancellable) {
+					goto retry
+				}
+			}
 		}
 	} else if errCode == gio.IOErrorEnumWouldRecurse ||
 		errCode == gio.IOErrorEnumWouldMerge ||

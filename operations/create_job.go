@@ -3,9 +3,10 @@ package operations
 import (
 	"fmt"
 	"path/filepath"
-	"pkg.deepin.io/lib/gio-2.0"
 	"strings"
 	"unicode/utf8"
+
+	"pkg.deepin.io/lib/gio-2.0"
 )
 
 // TODO: add flags?? like CreateFlagAutoRename
@@ -63,7 +64,7 @@ func (job *CreateJob) getFilename(destFsType string) (string, bool) {
 		} else {
 			if job.src != nil {
 				basename := job.src.GetBasename()
-				filename = fmt.Sprintf(Tr("New %s"), basename)
+				filename = basename
 			}
 
 			if filename == "" {
