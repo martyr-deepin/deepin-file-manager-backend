@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Deepin Desktop Environment 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-10-13 09:21+0800\n"
-"PO-Revision-Date: 2015-10-13 01:37+0000\n"
-"Last-Translator: deepin_transifex <xiabin@linuxdeepin.com>\n"
+"POT-Creation-Date: 2015-12-03 16:38+0800\n"
+"PO-Revision-Date: 2015-12-07 06:05+0000\n"
+"Last-Translator: szd_liufei <liufei@linuxdeepin.com>\n"
 "Language-Team: Portuguese (http://www.transifex.com/linuxdeepin/deepin-desktop-environment/language/pt/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -18,52 +18,52 @@ msgstr ""
 "Language: pt\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../desktop/computer_item.go:20 ../desktop/item.go:269
-#: ../desktop/app_group.go:38 ../desktop/trash_item.go:36
+#: ../desktop/computer_item.go:20 ../desktop/item.go:270
+#: ../desktop/app_group.go:39 ../desktop/trash_item.go:37
 msgid "_Open"
 msgstr "_Abrir"
 
-#: ../desktop/computer_item.go:22 ../desktop/item.go:413
+#: ../desktop/computer_item.go:22 ../desktop/item.go:414
 msgid "_Properties"
 msgstr "_Propriedades"
 
-#: ../desktop/item.go:215
+#: ../desktop/item.go:217
 msgid "Open with(_A)"
 msgstr "Abrir com(_A)"
 
-#: ../desktop/item.go:243
+#: ../desktop/item.go:245
 msgid "_Others"
 msgstr "_Outros"
 
-#: ../desktop/item.go:355
+#: ../desktop/item.go:356
 msgid "Co_mpress"
 msgstr "Co_mprimir"
 
-#: ../desktop/item.go:371
+#: ../desktop/item.go:372
 msgid "_Extract Here"
 msgstr "_Extrair Aqui"
 
-#: ../desktop/item.go:380
+#: ../desktop/item.go:381
 msgid "Cu_t"
 msgstr "Cor_tar"
 
-#: ../desktop/item.go:383
+#: ../desktop/item.go:384
 msgid "_Copy"
 msgstr "_Copiar"
 
-#: ../desktop/item.go:402 ../desktop/app_group.go:44
+#: ../desktop/item.go:403 ../desktop/app_group.go:45
 msgid "_Rename"
 msgstr "_Renomear"
 
-#: ../desktop/item.go:407 ../desktop/app_group.go:66
+#: ../desktop/item.go:408 ../desktop/app_group.go:67
 msgid "_Delete"
 msgstr "_Apagar"
 
-#: ../desktop/app_group.go:46
+#: ../desktop/app_group.go:47
 msgid "_Ungroup"
 msgstr "_Desagrupar"
 
-#: ../desktop/app_group.go:243
+#: ../desktop/app_group.go:245
 msgid "App Group"
 msgstr "Grupo de Apps"
 
@@ -76,53 +76,53 @@ msgid "_Size"
 msgstr "_Tamanho"
 
 #: ../desktop/settings.go:93
-msgid "_Filetype"
-msgstr "_Tipo de Ficheiro"
+msgid "_Type"
+msgstr ""
 
 #: ../desktop/settings.go:94
 msgid "_Date modified"
 msgstr "_Data de modificação"
 
-#: ../desktop/trash_item.go:22
+#: ../desktop/trash_item.go:23
 msgid "_Clear"
 msgstr "_Limpar"
 
-#: ../desktop/trash_item.go:33
+#: ../desktop/trash_item.go:34
 #, c-format
 msgid "_Clear %d Item"
 msgid_plural "_Clear %d Items"
 msgstr[0] "_Limpar %d Item"
 msgstr[1] "_Limpar %d Itens"
 
-#: ../desktop/desktop.go:52
+#: ../desktop/desktop.go:53
 msgid "New _folder"
 msgstr "Nova _pasta"
 
-#: ../desktop/desktop.go:57
+#: ../desktop/desktop.go:58
 msgid "_Text document"
 msgstr "_Documento de texto"
 
-#: ../desktop/desktop.go:75
+#: ../desktop/desktop.go:76
 msgid "New _document"
 msgstr "Novo _documento"
 
-#: ../desktop/desktop.go:98
+#: ../desktop/desktop.go:99
 msgid "_Sort by"
 msgstr "_Ordenar por"
 
-#: ../desktop/desktop.go:101
+#: ../desktop/desktop.go:102
 msgid "_Paste"
 msgstr "_Colar"
 
-#: ../desktop/desktop.go:107
+#: ../desktop/desktop.go:108
 msgid "Display settings(_M)"
 msgstr "Definições de visualização(_M)"
 
-#: ../desktop/desktop.go:109
+#: ../desktop/desktop.go:110
 msgid "_Corner navigation"
 msgstr "_Navegação nos cantos"
 
-#: ../desktop/desktop.go:111
+#: ../desktop/desktop.go:112
 msgid "_Personalize"
 msgstr "_Personalizar"
 
