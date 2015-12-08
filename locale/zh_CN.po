@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Deepin Desktop Environment 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-03 16:38+0800\n"
-"PO-Revision-Date: 2015-12-07 06:18+0000\n"
+"POT-Creation-Date: 2015-12-04 16:35+0800\n"
+"PO-Revision-Date: 2015-12-08 09:23+0000\n"
 "Last-Translator: szd_liufei <liufei@linuxdeepin.com>\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/linuxdeepin/deepin-desktop-environment/language/zh_CN/)\n"
 "MIME-Version: 1.0\n"
@@ -125,15 +125,28 @@ msgstr "热区设置(_C)"
 msgid "_Personalize"
 msgstr "个性化(_P)"
 
-#: ../operations/create_job.go:61
+#: ../operations/create_job.go:62
 msgid "New folder"
 msgstr "新建文件夹"
 
-#: ../operations/create_job.go:66
-#, c-format
-msgid "New %s"
-msgstr "新建%s"
-
-#: ../operations/create_job.go:70
+#: ../operations/create_job.go:71
 msgid "New document"
 msgstr "新建文档"
+
+#: ../operations/utils.go:258
+msgid " (Copy)"
+msgstr "（复件）"
+
+#: ../operations/utils.go:262
+#, c-format
+msgid " (Copy %d)"
+msgstr "（复件 %d）"
+
+#: ../operations/utils.go:282
+msgid " (Copy "
+msgstr "（复件 "
+
+#: ../operations/utils.go:289
+#, c-format
+msgid " (Copy %d"
+msgstr "（复件 %d"

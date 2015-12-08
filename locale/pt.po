@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Deepin Desktop Environment 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-03 16:38+0800\n"
-"PO-Revision-Date: 2015-12-07 06:05+0000\n"
+"POT-Creation-Date: 2015-12-04 16:35+0800\n"
+"PO-Revision-Date: 2015-12-08 07:22+0000\n"
 "Last-Translator: szd_liufei <liufei@linuxdeepin.com>\n"
 "Language-Team: Portuguese (http://www.transifex.com/linuxdeepin/deepin-desktop-environment/language/pt/)\n"
 "MIME-Version: 1.0\n"
@@ -126,15 +126,28 @@ msgstr "_Navegação nos cantos"
 msgid "_Personalize"
 msgstr "_Personalizar"
 
-#: ../operations/create_job.go:61
+#: ../operations/create_job.go:62
 msgid "New folder"
 msgstr "Nova pasta"
 
-#: ../operations/create_job.go:66
-#, c-format
-msgid "New %s"
-msgstr "Novo %s"
-
-#: ../operations/create_job.go:70
+#: ../operations/create_job.go:71
 msgid "New document"
 msgstr "Novo documento"
+
+#: ../operations/utils.go:258
+msgid " (Copy)"
+msgstr ""
+
+#: ../operations/utils.go:262
+#, c-format
+msgid " (Copy %d)"
+msgstr ""
+
+#: ../operations/utils.go:282
+msgid " (Copy "
+msgstr ""
+
+#: ../operations/utils.go:289
+#, c-format
+msgid " (Copy %d"
+msgstr ""
