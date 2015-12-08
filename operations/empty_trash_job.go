@@ -1,6 +1,7 @@
 package operations
 
 import (
+	"pkg.deepin.io/dde/api/soundutils"
 	"pkg.deepin.io/lib/gio-2.0"
 	"strings"
 )
@@ -76,6 +77,8 @@ func (job *EmptyTrashJob) deleteTrashFile(target *gio.File, delFile bool, delChi
 func (job *EmptyTrashJob) Execute() {
 	defer job.finalize()
 	defer job.emitDone()
+
+	soundutils.PlaySystemSound(soundutils.EventEmptyTrash, "", false)
 
 	confirmed := true
 	if job.shouldConfirm {
