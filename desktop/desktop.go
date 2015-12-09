@@ -54,16 +54,18 @@ func (desktop *Desktop) GenMenu() (*Menu, error) {
 		desktop.app.emitRequestCreateDirectory()
 	}, true))
 
+	// NB: remove new document item for now, revert it when deepin file manager is out.
 	newSubMenu := NewMenu().SetIDGenerator(menu.genID)
-	newSubMenu.AppendItem(NewMenuItem(Tr("_Text document"), func(uint32) {
-		desktop.app.emitRequestCreateFile()
-	}, true))
+	// newSubMenu.AppendItem(NewMenuItem(Tr("_Text document"), func(uint32) {
+	// 	desktop.app.emitRequestCreateFile()
+	// }, true))
 
 	templatePath := GetUserSpecialDir(glib.UserDirectoryDirectoryTemplates)
 	job := operations.NewGetTemplateJob(templatePath)
 	templates := job.Execute()
-	if len(templates) != 0 {
-		newSubMenu.AddSeparator()
+	hasTemplates := len(templates) != 0
+	if hasTemplates {
+		// newSubMenu.AddSeparator()
 		sort.Sort(byName(templates))
 		for _, template := range templates {
 			templateURI := template
@@ -73,7 +75,7 @@ func (desktop *Desktop) GenMenu() (*Menu, error) {
 		}
 	}
 
-	newMenuItem := NewMenuItem(Tr("New _document"), func(uint32) {}, true)
+	newMenuItem := NewMenuItem(Tr("New _document"), func(uint32) {}, hasTemplates)
 	newMenuItem.subMenu = newSubMenu
 	menu.AppendItem(newMenuItem)
 

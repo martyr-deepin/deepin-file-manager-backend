@@ -44,7 +44,7 @@ func NewOperationBackend() *OperationBackend {
 func (*OperationBackend) newUIDelegate(dest string, objPath string, iface string) d.IUIDelegate {
 	uiDelegate, err := d.NewUIDelegate(getConn(), dest, objPath, iface)
 	if err != nil {
-		Log.Errorf("Create UI Delegate from (%s, %s, %s) failed: %v", dest, objPath, iface, err)
+		Log.Warningf("Create UI Delegate from (%s, %s, %s) failed: %v", dest, objPath, iface, err)
 	}
 	return uiDelegate
 }
