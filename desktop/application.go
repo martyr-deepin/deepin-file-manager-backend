@@ -561,9 +561,20 @@ func (app *Application) listDir(dir string, flag operations.ListJobFlag) (map[st
 	return infos, nil
 }
 
+func fixDisplayNameForAppGroup(info ItemInfo) ItemInfo {
+	if info.FileType == uint16(gio.FileTypeDirectory) && strings.HasPrefix(info.BaseName, AppGroupPrefix) {
+		info.DisplayName = strings.TrimLeft(info.DisplayName, AppGroupPrefix)
+	}
+	return info
+}
+
 // GetDesktopItems returns all desktop files.
 func (app *Application) GetDesktopItems() (map[string]ItemInfo, error) {
-	return app.listDir(GetDesktopDir(), operations.ListJobFlagIncludeHidden)
+	infos, err := app.listDir(GetDesktopDir(), operations.ListJobFlagIncludeHidden)
+	for k := range infos {
+		infos[k] = fixDisplayNameForAppGroup(infos[k])
+	}
+	return infos, err
 }
 
 // GetItemInfo gets ItemInfo for file.
@@ -580,7 +591,8 @@ func (app *Application) GetItemInfo(file string) (ItemInfo, error) {
 		return info, err
 	}
 
-	return app.getItemInfo(listProperty), nil
+	info = fixDisplayNameForAppGroup(app.getItemInfo(listProperty))
+	return info, nil
 }
 
 func (app *Application) GetAppGroupItems(appGroup string) (map[string]ItemInfo, error) {
