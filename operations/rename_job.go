@@ -3,7 +3,7 @@ package operations
 import (
 	"bufio"
 	"bytes"
-	"fmt"
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -14,29 +14,26 @@ import (
 )
 
 const (
-	ErrorInvalidFileName = iota
+	ErrorInvalidFileName = -1 - iota
 	ErrorSameFileName
+	ErrorStatFileFailed
+	ErrorSaveFileFailed
+	ErrorReadFileFailed
 )
 const _FullNameKey = "X-GNOME-FullName"
 
 type RenameError struct {
 	Code int
-	Name string
+	Msg  string
 }
 
 func (e *RenameError) Error() string {
-	switch e.Code {
-	case ErrorInvalidFileName:
-		return fmt.Sprintf("invalid name %q", e.Name)
-	case ErrorSameFileName:
-		return fmt.Sprintf("the new name(%q) is the same as the old", e.Name)
-	default:
-		return "Unknown error"
-	}
+	j, _ := json.Marshal(e)
+	return string(j)
 }
 
-func newRenameError(code int, name string) error {
-	return &RenameError{Code: code, Name: name}
+func newRenameError(code int, msg string) error {
+	return &RenameError{Code: code, Msg: msg}
 }
 
 const (
@@ -136,7 +133,7 @@ func (job *RenameJob) changeUserDir() error {
 	userDirs := getUserDirsPath()
 	fileContent, err := ioutil.ReadFile(userDirs)
 	if err != nil {
-		return err
+		return newRenameError(ErrorReadFileFailed, err.Error())
 	}
 
 	fileReader := bytes.NewReader(fileContent)
@@ -166,10 +163,14 @@ func (job *RenameJob) changeUserDir() error {
 	writer.Flush()
 	stat, err := os.Stat(userDirs)
 	if err != nil {
-		return err
+		return newRenameError(ErrorStatFileFailed, err.Error())
 	}
 
-	return ioutil.WriteFile(userDirs, buffer.Bytes(), stat.Mode())
+	e := ioutil.WriteFile(userDirs, buffer.Bytes(), stat.Mode())
+	if e != nil {
+		return newRenameError(ErrorSaveFileFailed, e.Error())
+	}
+	return nil
 }
 
 func (job *RenameJob) setDesktopName() (string, error) {
@@ -180,7 +181,8 @@ func (job *RenameJob) setDesktopName() (string, error) {
 	filePath := job.file.GetPath()
 	_, err := keyFile.LoadFromFile(filePath, glib.KeyFileFlagsKeepComments|glib.KeyFileFlagsKeepTranslations)
 	if err != nil {
-		return oldDisplayName, err
+		e := err.(gio.GError)
+		return oldDisplayName, newRenameError(int(e.Code), e.Message)
 	}
 
 	appInfo := gio.NewDesktopAppInfoFromKeyfile(keyFile)
@@ -211,15 +213,19 @@ func (job *RenameJob) setDesktopName() (string, error) {
 
 	_, content, err := keyFile.ToData()
 	if err != nil {
-		return oldDisplayName, err
+		e := err.(gio.GError)
+		return oldDisplayName, newRenameError(int(e.Code), e.Message)
 	}
 
 	stat, err := os.Stat(filePath)
 	if err != nil {
-		return oldDisplayName, err
+		return oldDisplayName, newRenameError(ErrorStatFileFailed, err.Error())
 	}
-
-	return oldDisplayName, ioutil.WriteFile(filePath, []byte(content), stat.Mode().Perm())
+	e := ioutil.WriteFile(filePath, []byte(content), stat.Mode().Perm())
+	if e != nil {
+		return oldDisplayName, newRenameError(ErrorSaveFileFailed, e.Error())
+	}
+	return oldDisplayName, nil
 }
 
 func (job *RenameJob) init() {
@@ -255,7 +261,8 @@ func (job *RenameJob) Execute() {
 		}, ","),
 		gio.FileQueryInfoFlagsNofollowSymlinks, nil)
 	if err != nil {
-		job.setError(err)
+		e := err.(gio.GError)
+		job.setError(newRenameError(int(e.Code), e.Message))
 		return
 	}
 	defer info.Unref()
@@ -289,7 +296,8 @@ func (job *RenameJob) Execute() {
 		newFile.Unref()
 	}
 	if err != nil {
-		job.setError(err)
+		e := err.(gio.GError)
+		job.setError(newRenameError(int(e.Code), e.Message))
 		return
 	}
 
