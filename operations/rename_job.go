@@ -172,18 +172,23 @@ func (job *RenameJob) changeUserDir() error {
 	return ioutil.WriteFile(userDirs, buffer.Bytes(), stat.Mode())
 }
 
-func (job *RenameJob) setDesktopName() error {
+func (job *RenameJob) setDesktopName() (string, error) {
+	var oldDisplayName string
+
 	keyFile := glib.NewKeyFile()
 	defer keyFile.Free()
 	filePath := job.file.GetPath()
 	_, err := keyFile.LoadFromFile(filePath, glib.KeyFileFlagsKeepComments|glib.KeyFileFlagsKeepTranslations)
 	if err != nil {
-		return err
+		return oldDisplayName, err
 	}
 
 	appInfo := gio.NewDesktopAppInfoFromKeyfile(keyFile)
-	job.emitOldName(appInfo.GetDisplayName())
-	appInfo.Unref()
+	if appInfo != nil {
+		job.newName = job.newName + ".desktop"
+		oldDisplayName = appInfo.GetDisplayName()
+		appInfo.Unref()
+	}
 
 	locale := job.checkLocale(keyFile)
 	if locale != "" {
@@ -206,15 +211,15 @@ func (job *RenameJob) setDesktopName() error {
 
 	_, content, err := keyFile.ToData()
 	if err != nil {
-		return err
+		return oldDisplayName, err
 	}
 
 	stat, err := os.Stat(filePath)
 	if err != nil {
-		return err
+		return oldDisplayName, err
 	}
 
-	return ioutil.WriteFile(filePath, []byte(content), stat.Mode().Perm())
+	return oldDisplayName, ioutil.WriteFile(filePath, []byte(content), stat.Mode().Perm())
 }
 
 func (job *RenameJob) init() {
@@ -255,12 +260,12 @@ func (job *RenameJob) Execute() {
 	}
 	defer info.Unref()
 
-	displayName := info.GetDisplayName()
-	if displayName == "" {
-		displayName = job.file.GetBasename()
+	oldDisplayName := info.GetDisplayName()
+	if oldDisplayName == "" {
+		oldDisplayName = job.file.GetBasename()
 	}
 
-	if displayName == job.newName {
+	if oldDisplayName == job.newName {
 		job.setError(newRenameError(ErrorSameFileName, job.newName))
 		return
 	}
@@ -268,17 +273,16 @@ func (job *RenameJob) Execute() {
 	mimeType := info.GetContentType()
 	if mimeType == _DesktopMIMEType {
 		if info.GetAttributeBoolean(gio.FileAttributeAccessCanExecute) {
-			err = job.setDesktopName()
+			oldDisplayName, err = job.setDesktopName()
 			if err != nil {
 				job.setError(err)
 				return
 			}
-			job.newName = job.newName + ".desktop"
 		}
 
 	}
 
-	job.emitOldName(displayName)
+	job.emitOldName(oldDisplayName)
 	newFile, err := job.file.SetDisplayName(job.newName, job.cancellable)
 	if newFile != nil {
 		job.emitNewFile(newFile.GetUri())
