@@ -2,7 +2,7 @@ package operations
 
 import (
 	"container/list"
-	"pkg.deepin.io/lib/gio-2.0"
+	"gir/gio-2.0"
 	"pkg.deepin.io/lib/timer"
 	"sync"
 )

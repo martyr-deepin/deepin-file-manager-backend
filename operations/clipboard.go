@@ -11,7 +11,7 @@ package operations
 // void freeStrv(void*);
 import "C"
 import "unsafe"
-import "pkg.deepin.io/lib/gio-2.0"
+import "gir/gio-2.0"
 import "strings"
 
 var (

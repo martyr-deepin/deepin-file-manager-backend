@@ -2,7 +2,7 @@ package fileinfo_test
 
 import (
 	// . "pkg.deepin.io/service/file-manager-backend/fileinfo"
-	// "pkg.deepin.io/lib/gio-2.0"
+	// "gir/gio-2.0"
 	"testing"
 )
 

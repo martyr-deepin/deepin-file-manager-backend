@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"pkg.deepin.io/lib/gio-2.0"
+	"gir/gio-2.0"
 )
 
 // TODO: add flags?? like CreateFlagAutoRename

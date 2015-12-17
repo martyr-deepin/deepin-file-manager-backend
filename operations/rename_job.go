@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"pkg.deepin.io/lib/gio-2.0"
-	"pkg.deepin.io/lib/glib-2.0"
+	"gir/gio-2.0"
+	"gir/glib-2.0"
 )
 
 const (

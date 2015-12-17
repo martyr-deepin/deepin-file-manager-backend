@@ -13,9 +13,9 @@ import (
 	"unicode/utf8"
 	"unsafe"
 
+	"gir/gio-2.0"
+	"gir/gobject-2.0"
 	"pkg.deepin.io/lib/gettext"
-	"pkg.deepin.io/lib/gio-2.0"
-	"pkg.deepin.io/lib/gobject-2.0"
 )
 
 // Tr is a alias for gettext.Tr, which avoids to use dot import.

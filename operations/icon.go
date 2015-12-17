@@ -12,7 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"pkg.deepin.io/lib/gio-2.0"
+	"gir/gio-2.0"
 	. "pkg.deepin.io/service/file-manager-backend/log"
 )
 

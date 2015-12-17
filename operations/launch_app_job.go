@@ -2,7 +2,7 @@ package operations
 
 import (
 	"fmt"
-	"pkg.deepin.io/lib/gio-2.0"
+	"gir/gio-2.0"
 	"sort"
 )
 

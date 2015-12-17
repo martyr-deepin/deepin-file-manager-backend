@@ -3,7 +3,7 @@ package operations
 import (
 	"strings"
 
-	"pkg.deepin.io/lib/gio-2.0"
+	"gir/gio-2.0"
 )
 
 // DeleteJob delete or trash files/directories.

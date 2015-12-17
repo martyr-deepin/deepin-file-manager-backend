@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"path/filepath"
 	"pkg.deepin.io/lib/dbus"
-	"pkg.deepin.io/lib/glib-2.0"
+	"gir/glib-2.0"
 	d "pkg.deepin.io/service/file-manager-backend/delegator"
 	. "pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"

@@ -3,7 +3,7 @@ package operations
 import (
 	"errors"
 	"fmt"
-	"pkg.deepin.io/lib/gio-2.0"
+	"gir/gio-2.0"
 	"reflect"
 	"regexp"
 	"strings"
