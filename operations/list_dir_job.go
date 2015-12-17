@@ -108,11 +108,12 @@ func GetListProperty(file *gio.File, cancellable *gio.Cancellable) (ListProperty
 	}
 	defer info.Unref()
 
-	fsInfo, err := file.QueryFilesystemInfo(gio.FileAttributeFilesystemReadonly, cancellable)
-	if err != nil {
-		return property, err
+	isReadOnly := false
+	fsInfo, _ := file.QueryFilesystemInfo(gio.FileAttributeFilesystemReadonly, cancellable)
+	if fsInfo != nil {
+		isReadOnly = fsInfo.GetAttributeBoolean(gio.FileAttributeFilesystemReadonly)
+		fsInfo.Unref()
 	}
-	defer fsInfo.Unref()
 
 	uri := file.GetUri()
 	displayName := info.GetDisplayName()
@@ -140,7 +141,7 @@ func GetListProperty(file *gio.File, cancellable *gio.Cancellable) (ListProperty
 		Size:        size,
 		IsBackup:    info.GetIsBackup(),
 		IsHidden:    info.GetIsHidden(),
-		IsReadOnly:  info.GetAttributeBoolean(gio.FileAttributeFilesystemReadonly),
+		IsReadOnly:  isReadOnly,
 		CanDelete:   info.GetAttributeBoolean(gio.FileAttributeAccessCanDelete),
 		CanExecute:  canExecute,
 		CanRead:     info.GetAttributeBoolean(gio.FileAttributeAccessCanRead),
