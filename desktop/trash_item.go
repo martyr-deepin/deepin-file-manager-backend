@@ -3,8 +3,8 @@ package desktop
 import (
 	"fmt"
 
-	. "pkg.deepin.io/lib/gettext"
 	"gir/gio-2.0"
+	. "pkg.deepin.io/lib/gettext"
 )
 
 // TrashItem is TrashItem.

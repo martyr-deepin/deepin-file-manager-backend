@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	. "pkg.deepin.io/lib/gettext"
 	"gir/gio-2.0"
+	. "pkg.deepin.io/lib/gettext"
 	. "pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"
 )

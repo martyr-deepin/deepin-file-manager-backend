@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"sort"
 
-	. "pkg.deepin.io/lib/gettext"
 	"gir/glib-2.0"
+	. "pkg.deepin.io/lib/gettext"
 	"pkg.deepin.io/lib/utils"
 	"pkg.deepin.io/service/file-manager-backend/operations"
 )

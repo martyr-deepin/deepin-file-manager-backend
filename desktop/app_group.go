@@ -8,10 +8,10 @@ import (
 	"sort"
 	"strings"
 
-	_ "github.com/mattn/go-sqlite3"
-	. "pkg.deepin.io/lib/gettext"
 	"gir/gio-2.0"
 	"gir/glib-2.0"
+	_ "github.com/mattn/go-sqlite3"
+	. "pkg.deepin.io/lib/gettext"
 	. "pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"
 )

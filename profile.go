@@ -3,10 +3,12 @@ package main
 import (
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime/pprof"
 )
 
 func startCPUProfile(name string) error {
+	os.MkdirAll(filepath.Dir(name), 0777)
 	f, err := os.Create(name)
 	if err != nil {
 		return nil

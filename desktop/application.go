@@ -254,6 +254,9 @@ func (app *Application) getMenuable(uris []string) IMenuable {
 
 // GenMenuContent returns the menu content in json format used in DeepinMenu.
 func (app *Application) GenMenuContent(uris []string) string {
+	if app.menuable != nil {
+		app.menuable.destroy()
+	}
 	app.menuable = app.getMenuable(uris)
 	if app.menuable == nil {
 		Log.Error("get menuable item failed")
@@ -274,6 +277,8 @@ func (app *Application) HandleSelectedMenuItemWithTimestamp(id string, timestamp
 	if app.menu == nil {
 		return
 	}
+
+	defer func() { app.menu = nil }()
 	app.menu.HandleAction(id, timestamp)
 }
 
@@ -284,11 +289,6 @@ func (app *Application) HandleSelectedMenuItem(id string) {
 
 // DestroyMenu destroys the useless menu.
 func (app *Application) DestroyMenu() {
-	if app.menu == nil {
-		return
-	}
-	app.menuable.destroy()
-	app.menu = nil
 }
 
 func filterDesktop(files []string) []string {

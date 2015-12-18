@@ -118,8 +118,8 @@ func (m *Menu) handleAction(id string, timestamp uint32) bool {
 }
 
 // HandleAction will call the action corresponding to the id.
-func (m *Menu) HandleAction(id string, timestamp uint32) {
-	m.handleAction(id, timestamp)
+func (m *Menu) HandleAction(id string, timestamp uint32) bool {
+	return m.handleAction(id, timestamp)
 }
 
 // ToJSON generates json format menu content used in DeepinMenu.

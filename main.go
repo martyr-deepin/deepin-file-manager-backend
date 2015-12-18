@@ -9,9 +9,9 @@ import (
 	"os"
 	"time"
 
+	"gir/glib-2.0"
 	"pkg.deepin.io/lib"
 	"pkg.deepin.io/lib/dbus"
-	"gir/glib-2.0"
 	"pkg.deepin.io/service/file-manager-backend/clipboard"
 	"pkg.deepin.io/service/file-manager-backend/desktop"
 	"pkg.deepin.io/service/file-manager-backend/fileinfo"
@@ -50,9 +50,6 @@ func main() {
 	cpuprof := flag.String("cpuprof", "", "-cpuprof=profile_path")
 
 	flag.Parse()
-	if *cpuprof != "" {
-		startCPUProfile(*cpuprof)
-	}
 
 	startTime := time.Now()
 
@@ -69,6 +66,10 @@ func main() {
 	if !lib.UniqueOnSession(info.Dest) {
 		Log.Info("already exists a session bus named", info.Dest)
 		os.Exit(1)
+	}
+
+	if *cpuprof != "" {
+		startCPUProfile(*cpuprof)
 	}
 
 	initializer := new(Initializer)
