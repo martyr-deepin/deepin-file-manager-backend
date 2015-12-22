@@ -187,7 +187,6 @@ func (job *RenameJob) setDesktopName() (string, error) {
 
 	appInfo := gio.NewDesktopAppInfoFromKeyfile(keyFile)
 	if appInfo != nil {
-		job.newName = job.newName + ".desktop"
 		oldDisplayName = appInfo.GetDisplayName()
 		appInfo.Unref()
 	}
@@ -285,6 +284,7 @@ func (job *RenameJob) Execute() {
 				job.setError(err)
 				return
 			}
+			job.newName = job.newName + ".desktop"
 		}
 
 	}
