@@ -71,6 +71,7 @@ type Application struct {
 	RequestCreateFileFromTemplate func(string)
 	RequestCreateDirectory        func()
 	ItemCut                       func([]string)
+	ItemCopied                    func([]string)
 
 	RequestOpen func([]string, []int32)
 
@@ -159,6 +160,10 @@ func (app *Application) emitRequestCreateDirectory() error {
 
 func (app *Application) emitItemCut(uris []string) error {
 	return dbus.Emit(app, "ItemCut", uris)
+}
+
+func (app *Application) emitItemCopied(uris []string) error {
+	return dbus.Emit(app, "ItemCopied", uris)
 }
 
 func (app *Application) emitRequestOpen(uris []string, op []int32) {

@@ -383,6 +383,7 @@ func (item *Item) GenMenu() (*Menu, error) {
 		item.app.emitItemCut(item.uris)
 	}, true)).AppendItem(NewMenuItem(Tr("_Copy"), func(uint32) {
 		operations.CopyToClipboard(item.uris)
+		item.app.emitItemCopied(item.uris)
 	}, true))
 
 	// TODO: no design
