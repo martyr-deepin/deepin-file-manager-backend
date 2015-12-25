@@ -1,9 +1,9 @@
 package desktop
 
 import (
+	"gir/gio-2.0"
 	"pkg.deepin.io/lib/dbus"
 	. "pkg.deepin.io/lib/gettext"
-	"gir/gio-2.0"
 	"pkg.deepin.io/lib/initializer"
 	"pkg.deepin.io/lib/utils"
 )
@@ -73,6 +73,8 @@ const (
 
 	// ThumbnailSizeUnit schema key
 	ThumbnailSizeUnit = "thumbnail-size-unit"
+
+	DisplayExtraItems = "display-extra-items"
 )
 
 const (
@@ -229,6 +231,10 @@ func NewSettings() (*Settings, error) {
 		return nil, err
 	}
 	return s, nil
+}
+
+func (s *Settings) DisplayExtraItems() bool {
+	return s.filemanagerPreferences.GetBoolean(DisplayExtraItems)
 }
 
 func (s *Settings) updateThumbnailSizeLimitation() {

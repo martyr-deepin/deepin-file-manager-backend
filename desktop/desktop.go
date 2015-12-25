@@ -33,6 +33,8 @@ func (s byName) Len() int {
 type Desktop struct {
 	app  *Application
 	menu *Menu
+
+	displayExtraItems bool
 }
 
 // NewDesktop creates new desktop.
@@ -116,6 +118,17 @@ func (desktop *Desktop) GenMenu() (*Menu, error) {
 		}, true))
 	}
 
+	if desktop.displayExtraItems {
+		menu.AppendItem(NewMenuItem(Tr("Open in _terminal"), func(uint32) {
+			runInTerminal(GetDesktopDir(), "")
+		}, true))
+	}
+
 	return menu, nil
 
+}
+
+func (item *Desktop) enableExtraItems(enable bool) *Desktop {
+	item.displayExtraItems = enable
+	return item
 }

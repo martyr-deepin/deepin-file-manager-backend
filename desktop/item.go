@@ -167,6 +167,8 @@ type Item struct {
 	multiple bool
 	app      *Application
 	menu     *Menu
+
+	displayExtraItems bool
 }
 
 // NewItem creates new item.
@@ -387,16 +389,19 @@ func (item *Item) GenMenu() (*Menu, error) {
 	}, true))
 
 	// TODO: no design
-	// if !item.multiple {
-	// 	fileType := item.files[0].QueryFileType(gio.FileQueryInfoFlagsNone, nil)
-	// 	if fileType == gio.FileTypeDirectory {
-	// 		menu.AppendItem(NewMenuItem(Tr("Paste _Into"), func(uint32) {
-	// 			item.app.emitRequestPaste(item.uri)
-	// 		}, operations.CanPaste(item.uri))).AddSeparator().AppendItem(NewMenuItem(Tr("Open in _terminal"), func(uint32) {
-	// 			runInTerminal(item.uri, "")
-	// 		}, !item.multiple))
-	// 	}
-	// }
+	if !item.multiple {
+		fileType := item.files[0].QueryFileType(gio.FileQueryInfoFlagsNone, nil)
+		if fileType == gio.FileTypeDirectory {
+			// menu.AppendItem(NewMenuItem(Tr("Paste _Into"), func(uint32) {
+			// 	item.app.emitRequestPaste(item.uri)
+			// }, operations.CanPaste(item.uri))).AddSeparator()
+			if item.displayExtraItems {
+				menu.AppendItem(NewMenuItem(Tr("Open in _terminal"), func(uint32) {
+					runInTerminal(item.uri, "")
+				}, true))
+			}
+		}
+	}
 
 	menu.AddSeparator()
 
@@ -415,4 +420,9 @@ func (item *Item) GenMenu() (*Menu, error) {
 	return item.menu.AppendItem(NewMenuItem(Tr("_Properties"), func(uint32) {
 		item.showProperties()
 	}, true)), nil
+}
+
+func (item *Item) enableExtraItems(enable bool) *Item {
+	item.displayExtraItems = enable
+	return item
 }

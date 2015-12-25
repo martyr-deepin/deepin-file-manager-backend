@@ -61,6 +61,11 @@
     </schema>
 
     <schema path="/com/deepin/filemanager/preferences/" id="com.deepin.filemanager.preferences">
+        <key name="display-extra-items" type="b">
+            <default>false</default>
+            <summary>Whether display extra items terminal</summary>
+            <description>Whether display extra items in contextmenu.</description>
+        </key>
         <key name="activation-policy" enum="com.deepin.filemanager.ActivationPolicy">
             <default>'ask'</default>
             <summary>What to do with executable text files when activated</summary>
@@ -70,7 +75,7 @@
         <key name="open-dir-in-new-window" type="b">
             <default>false</default>
             <summary>Whether open directory in a new window.</summary>
-            <description>Wheather open directory in a new window. If not, open directory in a new tab.</description>
+            <description>Whether open directory in a new window. If not, open directory in a new tab.</description>
         </key>
 
         <key name="click-policy" enum="com.deepin.filemanager.ClickPolicy">

@@ -226,17 +226,17 @@ func isDesktopFile(uri string) bool {
 	return strings.HasSuffix(uri, ".desktop")
 }
 
-func (app *Application) getMenuable(uris []string) IMenuable {
+func (app *Application) getMenuableWithExtraItems(uris []string, withExtraItems bool) IMenuable {
 	if len(uris) == 0 {
-		return app.desktop
+		return app.desktop.enableExtraItems(withExtraItems)
 	}
 
 	if len(uris) == 1 {
 		uri := uris[0]
 		if isTrash(uri) {
-			return NewTrashItem(app, uri)
+			return NewTrashItem(app, uri).enableExtraItems(withExtraItems)
 		} else if isComputer(uri) {
-			return NewComputerItem(app, uri)
+			return NewComputerItem(app, uri).enableExtraItems(withExtraItems)
 		}
 	}
 
@@ -251,18 +251,22 @@ func (app *Application) getMenuable(uris []string) IMenuable {
 	// 6. if specific item exists, just 'open' menu item exists.
 
 	if isAllAppGroup(uris) {
-		return NewAppGroup(app, uris)
+		return NewAppGroup(app, uris).enableExtraItems(withExtraItems)
 	}
 
-	return NewItem(app, uris)
+	return NewItem(app, uris).enableExtraItems(withExtraItems)
 }
 
 // GenMenuContent returns the menu content in json format used in DeepinMenu.
 func (app *Application) GenMenuContent(uris []string) string {
+	return app.GenMenuContentWithExtraItems(uris, app.settings.DisplayExtraItems())
+}
+
+func (app *Application) GenMenuContentWithExtraItems(uris []string, withExtraItems bool) string {
 	if app.menuable != nil {
 		app.menuable.destroy()
 	}
-	app.menuable = app.getMenuable(uris)
+	app.menuable = app.getMenuableWithExtraItems(uris, withExtraItems)
 	if app.menuable == nil {
 		Log.Error("get menuable item failed")
 		return ""
