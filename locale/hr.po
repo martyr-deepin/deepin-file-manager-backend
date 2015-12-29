@@ -3,152 +3,153 @@
 # This file is distributed under the same license as the file-manager-backend package.
 # 
 # Translators:
-# Piotr Strębski <strebski@o2.pl>, 2015
+# e2f_hr_c2 <e2fhorse@outlook.com>, 2015
+# Ivica  Kolić <ikoli@yahoo.com>, 2015
 msgid ""
 msgstr ""
 "Project-Id-Version: Deepin Desktop Environment 2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-12-04 16:35+0800\n"
-"PO-Revision-Date: 2015-12-16 10:29+0000\n"
-"Last-Translator: Piotr Strębski <strebski@o2.pl>\n"
-"Language-Team: Polish (http://www.transifex.com/linuxdeepin/deepin-desktop-environment/language/pl/)\n"
+"PO-Revision-Date: 2015-12-24 09:28+0000\n"
+"Last-Translator: e2f_hr_c2 <e2fhorse@outlook.com>\n"
+"Language-Team: Croatian (http://www.transifex.com/linuxdeepin/deepin-desktop-environment/language/hr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Language: pl\n"
-"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Language: hr\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 
 #: ../desktop/computer_item.go:20 ../desktop/item.go:270
 #: ../desktop/app_group.go:39 ../desktop/trash_item.go:37
 msgid "_Open"
-msgstr "_Otwórz"
+msgstr "_Otvori"
 
 #: ../desktop/computer_item.go:22 ../desktop/item.go:414
 msgid "_Properties"
-msgstr "_Właściwości"
+msgstr "_Svojstva"
 
 #: ../desktop/item.go:217
 msgid "Open with(_A)"
-msgstr "Otwórz przez (_A)"
+msgstr "Otvori pomoću(_A)"
 
 #: ../desktop/item.go:245
 msgid "_Others"
-msgstr "_Inne"
+msgstr "_Ostalo"
 
 #: ../desktop/item.go:356
 msgid "Co_mpress"
-msgstr "Ko_mpresuj"
+msgstr "Kom_primiraj"
 
 #: ../desktop/item.go:372
 msgid "_Extract Here"
-msgstr "_Rozpakuj tutaj"
+msgstr "_Raspakiraj ovdje"
 
 #: ../desktop/item.go:381
 msgid "Cu_t"
-msgstr "_Wytnij"
+msgstr "Izrež_i"
 
 #: ../desktop/item.go:384
 msgid "_Copy"
-msgstr "_Kopiuj"
+msgstr "_Kopiraj"
 
 #: ../desktop/item.go:403 ../desktop/app_group.go:45
 msgid "_Rename"
-msgstr "_Zmień nazwę"
+msgstr "_Preimenuj"
 
 #: ../desktop/item.go:408 ../desktop/app_group.go:67
 msgid "_Delete"
-msgstr "_Usuń"
+msgstr "_Obriši"
 
 #: ../desktop/app_group.go:47
 msgid "_Ungroup"
-msgstr "Rozgrupuj"
+msgstr "_Razgrupiraj"
 
 #: ../desktop/app_group.go:245
 msgid "App Group"
-msgstr "Grupa programów"
+msgstr "Grupa programa"
 
 #: ../desktop/settings.go:91
 msgid "_Name"
-msgstr "_Nazwy"
+msgstr "_Ime"
 
 #: ../desktop/settings.go:92
 msgid "_Size"
-msgstr "Ro_zmiaru"
+msgstr "_Veličina"
 
 #: ../desktop/settings.go:93
 msgid "_Type"
-msgstr "_Rodzaju"
+msgstr "_Vrsta"
 
 #: ../desktop/settings.go:94
 msgid "_Date modified"
-msgstr "_Daty modyfikacji"
+msgstr "_Datum izmjene"
 
 #: ../desktop/trash_item.go:23
 msgid "_Clear"
-msgstr "Wy_czyść"
+msgstr "_Očisti"
 
 #: ../desktop/trash_item.go:34
 #, c-format
 msgid "_Clear %d Item"
 msgid_plural "_Clear %d Items"
-msgstr[0] "Wy_czyść %d element"
-msgstr[1] "Wy_czyść %d elementy"
-msgstr[2] "Wy_czyść %d elementów"
+msgstr[0] "_Očisti %d stavku"
+msgstr[1] "_Očisti %d stavke"
+msgstr[2] "_Očisti %d stavki"
 
 #: ../desktop/desktop.go:53
 msgid "New _folder"
-msgstr "Nowy _katalog"
+msgstr "Nova _mapa"
 
 #: ../desktop/desktop.go:58
 msgid "_Text document"
-msgstr "Dokument _tekstowy"
+msgstr "_Tekstovna datoteka"
 
 #: ../desktop/desktop.go:76
 msgid "New _document"
-msgstr "Nowy _dokument"
+msgstr "Novi _dokument"
 
 #: ../desktop/desktop.go:99
 msgid "_Sort by"
-msgstr "_Sortuj według"
+msgstr "_Poredaj prema"
 
 #: ../desktop/desktop.go:102
 msgid "_Paste"
-msgstr "_Wklej"
+msgstr "_Zalijepi"
 
 #: ../desktop/desktop.go:108
 msgid "Display settings(_M)"
-msgstr "Wyświetl ustawienia (_U)"
+msgstr "Prikaži postavke(_M)"
 
 #: ../desktop/desktop.go:110
 msgid "_Corner navigation"
-msgstr "_Nawigacja narożnikowa"
+msgstr "_Upravljanje kutevima"
 
 #: ../desktop/desktop.go:112
 msgid "_Personalize"
-msgstr "D_ostosuj"
+msgstr "_Personaliziraj"
 
 #: ../operations/create_job.go:62
 msgid "New folder"
-msgstr "Nowy katalog"
+msgstr "Nova mapa"
 
 #: ../operations/create_job.go:71
 msgid "New document"
-msgstr "Nowy dokument"
+msgstr "Novi dokument"
 
 #: ../operations/utils.go:258
 msgid " (Copy)"
-msgstr "(Kopia)"
+msgstr "(Kopiraj)"
 
 #: ../operations/utils.go:262
 #, c-format
 msgid " (Copy %d)"
-msgstr " (Kopia %d)"
+msgstr "(Kopiraj %d)"
 
 #: ../operations/utils.go:282
 msgid " (Copy "
-msgstr " (Kopia "
+msgstr "(Kopiraj"
 
 #: ../operations/utils.go:289
 #, c-format
 msgid " (Copy %d"
-msgstr " (Kopia %d"
+msgstr "(Kopiraj %d"

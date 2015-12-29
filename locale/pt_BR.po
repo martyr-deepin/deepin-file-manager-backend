@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: Deepin Desktop Environment 2.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-12-04 16:35+0800\n"
-"PO-Revision-Date: 2015-12-08 07:22+0000\n"
+"PO-Revision-Date: 2015-12-22 07:07+0000\n"
 "Last-Translator: szd_liufei <liufei@linuxdeepin.com>\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/linuxdeepin/deepin-desktop-environment/language/pt_BR/)\n"
 "MIME-Version: 1.0\n"
@@ -78,7 +78,7 @@ msgstr "Tamanho(_S)"
 
 #: ../desktop/settings.go:93
 msgid "_Type"
-msgstr ""
+msgstr "_Tipo"
 
 #: ../desktop/settings.go:94
 msgid "_Date modified"
@@ -137,18 +137,18 @@ msgstr "Novo documento"
 
 #: ../operations/utils.go:258
 msgid " (Copy)"
-msgstr ""
+msgstr "(Copiar)"
 
 #: ../operations/utils.go:262
 #, c-format
 msgid " (Copy %d)"
-msgstr ""
+msgstr "(Copiar %d)"
 
 #: ../operations/utils.go:282
 msgid " (Copy "
-msgstr ""
+msgstr "(Copiar"
 
 #: ../operations/utils.go:289
 #, c-format
 msgid " (Copy %d"
-msgstr ""
+msgstr "(Copiar %d"
