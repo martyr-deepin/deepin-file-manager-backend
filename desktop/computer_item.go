@@ -23,3 +23,8 @@ func (item *ComputerItem) GenMenu() (*Menu, error) {
 		showModule("system_info")
 	}, true)), nil
 }
+
+func (item *ComputerItem) enableExtraItems(enable bool) *ComputerItem {
+	item.Item.enableExtraItems(enable)
+	return item
+}

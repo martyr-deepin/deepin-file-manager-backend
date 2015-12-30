@@ -69,6 +69,11 @@ func (item *AppGroup) GenMenu() (*Menu, error) {
 	}, true)), nil
 }
 
+func (item *AppGroup) enableExtraItems(enable bool) *AppGroup {
+	item.Item.enableExtraItems(enable)
+	return item
+}
+
 func getCategoryFromSoftwareCenter(db *sql.DB, file string) (string, error) {
 	var category string
 	err := db.QueryRow(`select first_category_name from desktop where desktop_name = ?`, filepath.Base(file)).Scan(&category)

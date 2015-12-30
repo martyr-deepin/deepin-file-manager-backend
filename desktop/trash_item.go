@@ -40,3 +40,8 @@ func (item *TrashItem) GenMenu() (*Menu, error) {
 		item.emitRequestEmptyTrash()
 	}, trashedItemCount != 0)), nil
 }
+
+func (item *TrashItem) enableExtraItems(enable bool) *TrashItem {
+	item.Item.enableExtraItems(enable)
+	return item
+}
