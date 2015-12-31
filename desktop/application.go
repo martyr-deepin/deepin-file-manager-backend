@@ -572,7 +572,7 @@ func (app *Application) listDir(dir string, flag operations.ListJobFlag) (map[st
 
 func fixDisplayNameForAppGroup(info ItemInfo) ItemInfo {
 	if info.FileType == uint16(gio.FileTypeDirectory) && strings.HasPrefix(info.BaseName, AppGroupPrefix) {
-		info.DisplayName = strings.TrimLeft(info.DisplayName, AppGroupPrefix)
+		info.DisplayName = strings.TrimPrefix(info.DisplayName, AppGroupPrefix)
 	}
 	return info
 }
