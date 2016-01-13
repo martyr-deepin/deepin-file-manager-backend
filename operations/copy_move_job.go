@@ -77,6 +77,7 @@ type CopyMoveJob struct {
 	debutingFiles     map[string]bool
 	targetName        string
 	flags             gio.FileCopyFlags
+	autorenameAll     bool
 
 	lastReportTime uint64
 }
@@ -526,6 +527,21 @@ func (job *CopyMoveJob) needRetry(
 			return false
 		}
 
+		if job.autorenameAll {
+			for {
+				newDest := getUniqueTargetFile(src, destDir, *sameFs, *destFsType, *uniqueNameNr)
+				(*uniqueNameNr)++
+				if newDest.QueryExists(job.cancellable) {
+					newDest.Unref()
+					continue
+				}
+
+				destW.Reset(newDest)
+				Log.Info("new file is", destW.GetUri())
+				return true
+			}
+		}
+
 		// TODO:
 		response := job.uiDelegate.ConflictDialog()
 		Log.Info("response from ConflictDialog:", response)
@@ -547,6 +563,10 @@ func (job *CopyMoveJob) needRetry(
 			*overwrite = true
 			return true
 		case ResponseAutoRename:
+			if response.ApplyToAll() {
+				job.autorenameAll = true
+			}
+
 			for {
 				newDest := getUniqueTargetFile(src, destDir, *sameFs, *destFsType, *uniqueNameNr)
 				(*uniqueNameNr)++
@@ -992,6 +1012,18 @@ retry:
 			return
 		}
 
+		if job.autorenameAll {
+			for {
+				dest.Unref()
+				dest = (getUniqueTargetFile(src, destDir, sameFs, *destFsType, uniqueNameNr))
+				(uniqueNameNr)++
+
+				if !dest.QueryExists(job.cancellable) {
+					goto retry
+				}
+			}
+		}
+
 		response := job.uiDelegate.ConflictDialog()
 		switch response.Code() {
 		case ResponseCancel:
@@ -1011,6 +1043,9 @@ retry:
 			overwrite = true
 			goto retry
 		case ResponseAutoRename:
+			if response.ApplyToAll() {
+				job.autorenameAll = true
+			}
 			// TODO: get unique name
 			for {
 				dest.Unref()
