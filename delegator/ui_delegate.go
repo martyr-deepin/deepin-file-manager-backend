@@ -3,6 +3,7 @@ package delegator
 import (
 	"pkg.deepin.io/lib/dbus"
 	"pkg.deepin.io/service/file-manager-backend/dbusproxy"
+	. "pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"
 	"sync"
 )
@@ -92,5 +93,6 @@ func (delegate *UIDelegate) getResponseFor(name string, args ...interface{}) Res
 	})
 	go delegate.proxy.Call(name, args...)
 	wg.Wait()
+	Log.Debug("response for", name, response)
 	return response
 }

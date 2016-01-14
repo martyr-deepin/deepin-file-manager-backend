@@ -45,8 +45,7 @@ func (job *StatJob) finalize() {
 
 // Execute StatJob.
 func (job *StatJob) Execute() {
-	defer job.finalize()
-	defer job.emitDone()
+	defer finishJob(job)
 	info, err := job.file.QueryInfo(strings.Join(
 		[]string{
 			gio.FileAttributeStandardDisplayName,

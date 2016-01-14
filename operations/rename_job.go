@@ -244,8 +244,7 @@ func (job *RenameJob) isValidName(name string) bool {
 }
 
 func (job *RenameJob) Execute() {
-	defer job.finalize()
-	defer job.emitDone()
+	defer finishJob(job)
 
 	if job.isValidName(job.newName) {
 		job.setError(newRenameError(ErrorInvalidFileName, job.newName))

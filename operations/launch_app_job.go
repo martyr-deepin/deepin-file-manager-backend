@@ -66,8 +66,7 @@ func NewGetDefaultLaunchAppJob(uri string, mustSupportURI bool) *GetDefaultLaunc
 }
 
 func (job *GetDefaultLaunchAppJob) Execute() {
-	defer job.finalize()
-	defer job.emitDone()
+	defer finishJob(job)
 
 	if job.file == nil {
 		job.setError(fmt.Errorf("No such a file: %q", job.uri))

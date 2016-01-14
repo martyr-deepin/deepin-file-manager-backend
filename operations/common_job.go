@@ -10,6 +10,15 @@ import (
 	"time"
 )
 
+func finishJob(job interface {
+	emitDone() error
+	finalize()
+}) {
+	Log.Debug("finishJob")
+	Log.Debug("emitDone:", job.emitDone())
+	job.finalize()
+}
+
 const (
 	_DesktopMIMEType string = "application/x-desktop"
 )
@@ -233,13 +242,16 @@ func (job *CommonJob) finalize() {
 
 // Abort the job, Finalize will not be called.
 func (job *CommonJob) Abort() {
+	Log.Debug("abort job")
 	job.cancellable.PushCurrent()
 	job.cancellable.Cancel()
 	job.cancellable.PopCurrent()
 }
 
 func (job *CommonJob) isAborted() bool {
-	return job.cancellable.IsCancelled()
+	aborted := job.cancellable.IsCancelled()
+	Log.Debug("job is aborted:", aborted)
+	return aborted
 }
 
 func (job *CommonJob) shouldSkipFile(file *gio.File) bool {

@@ -544,7 +544,6 @@ func (job *CopyMoveJob) needRetry(
 
 		// TODO:
 		response := job.uiDelegate.ConflictDialog()
-		Log.Info("response from ConflictDialog:", response)
 		switch response.Code() {
 		case ResponseCancel:
 			job.Abort()
@@ -1166,8 +1165,7 @@ func (job *CopyMoveJob) moveJob() {
 
 // Execute a move job or a copy job.
 func (job *CopyMoveJob) Execute() {
-	defer job.finalize()
-	defer job.emitDone()
+	defer finishJob(job)
 
 	jobName := "copy"
 	if job.isMove {

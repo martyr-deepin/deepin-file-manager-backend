@@ -425,8 +425,7 @@ func (job *DeleteJob) finalize() {
 
 // Execute the delete job to delete files/directories.
 func (job *DeleteJob) Execute() {
-	defer job.finalize()
-	defer job.emitDone()
+	defer finishJob(job)
 
 	toTrashFiles := []*gio.File{}
 	toDeleteFiles := []*gio.File{}

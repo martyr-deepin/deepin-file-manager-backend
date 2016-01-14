@@ -2,8 +2,8 @@ package operations
 
 import (
 	"errors"
-	"os"
 	"gir/gio-2.0"
+	"os"
 )
 
 // ChmodJob change the mode of a file/directory.
@@ -24,8 +24,7 @@ func (job *ChmodJob) finalize() {
 
 // Execute the ChmodJob.
 func (job *ChmodJob) Execute() {
-	defer job.finalize()
-	defer job.emitDone()
+	defer finishJob(job)
 
 	if job.file != nil {
 		job.setError(os.Chmod(job.file.GetPath(), os.FileMode(job.permission)))

@@ -171,8 +171,7 @@ func (job *ListJob) appendChild(child *gio.File) {
 
 // Execute ListJob.
 func (job *ListJob) Execute() {
-	defer job.finalize()
-	defer job.emitDone()
+	defer finishJob(job)
 	enumerator, err := job.dir.EnumerateChildren(
 		gio.FileAttributeStandardName+","+gio.FileAttributeStandardIsHidden,
 		gio.FileQueryInfoFlagsNofollowSymlinks,
