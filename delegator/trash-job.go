@@ -46,10 +46,16 @@ func (job *TrashJob) Execute() {
 	job.op.ListenPercent(func(percent int64) {
 		dbus.Emit(job, "ProcessedPercent", percent)
 	})
+	job.op.ListenAborted(func() {
+		defer dbus.UnInstallObject(job)
+		dbus.Emit(job, "Aborted")
+	})
+	job.op.ListenDone(func(err error) {
+		dbus.Emit(job, "Done")
+	})
 	// TODO: fill signals.
 	defer dbus.UnInstallObject(job)
 	job.op.Execute()
-	dbus.Emit(job, "Done")
 }
 
 // Abort the job.

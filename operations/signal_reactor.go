@@ -2,7 +2,6 @@ package operations
 
 import (
 	"container/list"
-	"gir/gio-2.0"
 	"pkg.deepin.io/lib/timer"
 	"sync"
 )
@@ -50,18 +49,16 @@ func newReactorElement(id int64, fn interface{}) *ReactorElement {
 
 // SignalReactor is a reactor of one signal.
 type SignalReactor struct {
-	signalName  string
-	elements    *list.List // there is no priority, priority queue is not necessary.
-	lock        sync.Mutex
-	cancellable *gio.Cancellable
+	signalName string
+	elements   *list.List // there is no priority, priority queue is not necessary.
+	lock       sync.Mutex
 }
 
 // NewSignalReactor creates a new SignalReactor.
-func NewSignalReactor(signalName string, cancellable *gio.Cancellable) *SignalReactor {
+func NewSignalReactor(signalName string) *SignalReactor {
 	return &SignalReactor{
-		signalName:  signalName,
-		elements:    list.New(),
-		cancellable: cancellable,
+		signalName: signalName,
+		elements:   list.New(),
 	}
 }
 
@@ -97,10 +94,6 @@ func (l *SignalReactor) Enumerator() *Enumerator {
 	go func() {
 		iter := l.elements.Front()
 		for iter != nil {
-			cancellable := l.cancellable
-			if cancellable != nil && cancellable.IsCancelled() {
-				break
-			}
 			listener := iter.Value.(*ReactorElement)
 			if e.IsClosed() {
 				break

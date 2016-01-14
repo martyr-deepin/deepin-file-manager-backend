@@ -1,9 +1,7 @@
 package operations
 
 import (
-	"errors"
 	"fmt"
-	"gir/gio-2.0"
 	"reflect"
 	"regexp"
 	"strings"
@@ -41,14 +39,12 @@ var (
 )
 
 type SignalManager struct {
-	reactors    map[string]*SignalReactor
-	cancellable *gio.Cancellable
+	reactors map[string]*SignalReactor
 }
 
-func NewSignalManager(cancellable *gio.Cancellable) *SignalManager {
+func NewSignalManager() *SignalManager {
 	return &SignalManager{
-		reactors:    map[string]*SignalReactor{},
-		cancellable: cancellable,
+		reactors: map[string]*SignalReactor{},
 	}
 }
 
@@ -101,7 +97,7 @@ func (m *SignalManager) RegisterMonitor(signalName string) *SignalManager {
 
 func (m *SignalManager) createMonitor(signalName string) *SignalReactor {
 	signalName = normalizeSignalName(signalName)
-	m.reactors[signalName] = NewSignalReactor(signalName, m.cancellable)
+	m.reactors[signalName] = NewSignalReactor(signalName)
 	return m.reactors[signalName]
 }
 
@@ -158,10 +154,6 @@ func (m *SignalManager) emitReactor(reactor *SignalReactor, args ...interface{})
 	enumerator := reactor.Enumerator()
 	defer enumerator.Close()
 	for f := range enumerator.Next() {
-		if m.cancellable != nil && m.cancellable.IsCancelled() {
-			return errors.New("emit operations is cancelled.")
-		}
-
 		fn := reflect.ValueOf(f)
 		if fn.Kind() != reflect.Func {
 			panic("function is required for emitting signal.")

@@ -11,11 +11,17 @@ import (
 )
 
 func finishJob(job interface {
+	isAborted() bool
+	emitAborted() error
 	emitDone() error
 	finalize()
 }) {
 	Log.Debug("finishJob")
-	Log.Debug("emitDone:", job.emitDone())
+	if job.isAborted() {
+		Log.Debug("emitAborted", job.emitAborted())
+	} else {
+		Log.Debug("emitDone:", job.emitDone())
+	}
 	job.finalize()
 }
 
@@ -103,6 +109,7 @@ const (
 	_JobSignalPercent         = "percent"
 	_JobSignalTotalAmount     = "total-amount"
 	_JobSignalDone            = "job-done"
+	_JobSignalAborted         = "job-aborted"
 )
 
 func (job *CommonJob) setError(err error) {
@@ -117,8 +124,16 @@ func (job *CommonJob) HasError() bool {
 	return job.err != nil
 }
 
+func (job *CommonJob) emitAborted() error {
+	return job.Emit(_JobSignalAborted)
+}
+
 func (job *CommonJob) emitDone() error {
 	return job.Emit(_JobSignalDone, job.err)
+}
+
+func (job *CommonJob) ListenAborted(fn func()) (func(), error) {
+	return job.ListenSignal(_JobSignalAborted, fn)
 }
 
 func (job *CommonJob) ListenDone(fn func(error)) (func(), error) {
@@ -609,7 +624,7 @@ func newCommon(uiDelegate IUIDelegate) *CommonJob {
 
 	cancellable := gio.NewCancellable()
 	commonJob := &CommonJob{
-		SignalManager:         NewSignalManager(cancellable),
+		SignalManager:         NewSignalManager(),
 		cancellable:           cancellable,
 		uiDelegate:            uiDelegate,
 		skippedDirs:           map[string]*gio.File{},
@@ -636,6 +651,7 @@ func newCommon(uiDelegate IUIDelegate) *CommonJob {
 		},
 	}
 
+	commonJob.RegisterMonitor(_JobSignalAborted)
 	commonJob.RegisterMonitor(_JobSignalDone)
 	commonJob.RegisterMonitor(_JobSignalSpeed)
 	commonJob.RegisterMonitor(_JobSignalPercent)

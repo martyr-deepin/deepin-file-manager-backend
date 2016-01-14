@@ -52,6 +52,10 @@ func (job *DeleteJob) listenSignals() {
 	job.op.ListenDeleting(func(deletingURL string) {
 		dbus.Emit(job, "Deleting", deletingURL)
 	})
+	job.op.ListenAborted(func() {
+		defer dbus.UnInstallObject(job)
+		dbus.Emit(job, "Aborted")
+	})
 }
 
 func (job *DeleteJob) executeJob() {

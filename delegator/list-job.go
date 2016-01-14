@@ -70,6 +70,10 @@ func (job *ListJob) Execute() []operations.ListProperty {
 		// time.Sleep(time.Microsecond * 200)
 		dbus.Emit(job, "Done", errMsg)
 	})
+	job.op.ListenAborted(func() {
+		defer dbus.UnInstallObject(job)
+		dbus.Emit(job, "Aborted")
+	})
 	job.op.Execute()
 
 	return files
