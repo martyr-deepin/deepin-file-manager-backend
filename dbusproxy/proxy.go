@@ -117,12 +117,11 @@ func (proxy *DBusProxy) removeSignalChan(removingSig Signal) {
 }
 
 func (proxy *DBusProxy) deleteSignalChan(sigName string) {
-	proxy.lock.Lock()
-	defer proxy.lock.Unlock()
-
 	for _, sig := range proxy.sigChanMap[sigName] {
 		proxy.conn.DetachSignal(sig.Chan)
 	}
+	rule := proxy.buildRule(sigName)
+	proxy.conn.BusObject().Call("org.freedesktop.DBus.RemoveMatch", 0, rule)
 	delete(proxy.sigChanMap, sigName)
 }
 
@@ -132,11 +131,17 @@ func (proxy *DBusProxy) finalize() {
 	for sigName := range proxy.sigChanMap {
 		proxy.deleteSignalChan(sigName)
 	}
+	runtime.SetFinalizer(proxy, nil)
+}
+
+func (proxy *DBusProxy) buildRule(sigName string) string {
+	rule := fmt.Sprintf("type='signal',sender='%s',path='%s',interface='%s',member='%s'", proxy.dest, proxy.objPath, proxy.iface, sigName)
+	return rule
 }
 
 func (proxy *DBusProxy) Subscribe(sigName string, f interface{}) func() {
 	sig := proxy.createSignalChan(sigName)
-	rule := fmt.Sprintf("type='signal',sender='%s',path='%s',interface='%s',member='%s'", proxy.dest, proxy.objPath, proxy.iface, sigName)
+	rule := proxy.buildRule(sigName)
 	proxy.conn.BusObject().Call("org.freedesktop.DBus.AddMatch", 0, rule)
 	go func() {
 		fn := reflect.ValueOf(f)
@@ -158,6 +163,8 @@ func (proxy *DBusProxy) Subscribe(sigName string, f interface{}) func() {
 }
 
 func (proxy *DBusProxy) Unsubscribe(sigName string) {
+	proxy.lock.Lock()
+	defer proxy.lock.Unlock()
 	proxy.deleteSignalChan(sigName)
 }
 
