@@ -9,10 +9,10 @@ package operations
 import "C"
 import "unsafe"
 import (
+	"gir/gio-2.0"
 	"net/url"
 	"os"
 	"path/filepath"
-	"gir/gio-2.0"
 	. "pkg.deepin.io/service/file-manager-backend/log"
 )
 

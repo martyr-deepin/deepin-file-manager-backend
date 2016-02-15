@@ -15,7 +15,7 @@ type ListJob struct {
 	dbusInfo dbus.DBusInfo
 	op       *operations.ListJob
 
-	EntryInfo       func(string, string, string, string, int64, uint16, bool, bool, bool, bool, bool, bool, bool, bool, bool, bool)
+	EntryInfo       func(operations.ListProperty)
 	Done            func(string)
 	ProcessedAmount func(int64, uint16)
 	Aborted         func()
@@ -43,23 +43,7 @@ func (job *ListJob) Execute() []operations.ListProperty {
 		dbus.Emit(job, "ProcessedAmount", size, uint16(unit))
 	})
 	job.op.ListenProperty(func(property operations.ListProperty) {
-		dbus.Emit(job, "EntryInfo",
-			property.DisplayName,
-			property.BaseName,
-			property.URI,
-			property.MIME,
-			property.Size,
-			property.FileType,
-			property.IsBackup,
-			property.IsHidden,
-			property.IsReadOnly,
-			property.IsSymlink,
-			property.CanDelete,
-			property.CanExecute,
-			property.CanRead,
-			property.CanRename,
-			property.CanTrash,
-			property.CanWrite)
+		dbus.Emit(job, "EntryInfo", property)
 		files = append(files, property)
 	})
 	job.op.ListenDone(func(err error) {
