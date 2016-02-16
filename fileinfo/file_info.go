@@ -305,8 +305,9 @@ func NewQueryFileInfoJob() *QueryFileInfoJob {
 	}
 }
 
-func (job *QueryFileInfoJob) QueryInfo(arg string, attributes string, flags uint32) string {
-	file := gio.FileNewForCommandlineArg(arg)
+// QueryInfo query file infos according to attributes and returns the result with json format.
+func (job *QueryFileInfoJob) QueryInfo(uriOrPath string, attributes string, flags uint32) string {
+	file := gio.FileNewForCommandlineArg(uriOrPath)
 	if file == nil {
 		return ""
 	}
@@ -351,29 +352,43 @@ func (job *QueryFileInfoJob) QueryInfo(arg string, attributes string, flags uint
 	return string(infoJsonByteStr)
 }
 
-func (job *QueryFileInfoJob) IsNativeFile(arg string) bool {
-	f := gio.FileNewForCommandlineArg(arg)
+// IsNativeFile returns
+func (job *QueryFileInfoJob) IsNativeFile(uriOrPath string) bool {
+	f := gio.FileNewForUri(uriOrPath)
 	if f == nil {
-		return true // FIXME: is true ok?
+		f = gio.FileNewForPath(uriOrPath)
+		if f == nil {
+			return true // FIXME: is true ok?
+		}
 	}
 	defer f.Unref()
 
 	return f.IsNative()
 }
 
+// GetThemeIcon gets theme icon from file or icon name with specific size.
+// If the file is a executable desktop file, the app icon will be returned,
+// otherwise, a coresponding file icon will be returned.
+//
+// NB: This function is not explicit enough, it might be deprecated in the future.
 func (job *QueryFileInfoJob) GetThemeIcon(file string, size int32) string {
 	return operations.GetThemeIcon(file, int(size))
 }
 
+// GetThumbnail creates thumbnail for file with specific size.
 func (job *QueryFileInfoJob) GetThumbnail(file string, size int32) (string, error) {
 	return thumbnails.GenThumbnail(file, int(size))
 }
 
+// GetThumbnail creates thumbnail from mime with specific size.
 func (job *QueryFileInfoJob) GetThumbnailWithMIME(file string, size int32, mime string) (string, error) {
 	// TODO: filter MIME type
 	return thumbnails.GenThumbnailWithMime(file, mime, int(size))
 }
 
+// GetIconName get icon name for file.
+// If the file is a executable desktop file, the app icon name will be returned,
+// otherwise, a coresponding file icon name will be returned.
 func (job *QueryFileInfoJob) GetIconName(file string) string {
 	return operations.GetIconName(file)
 }

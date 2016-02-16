@@ -14,10 +14,10 @@ package main
 import "C"
 import (
 	"errors"
+	"gir/glib-2.0"
 	"net/url"
 	"path/filepath"
 	"pkg.deepin.io/lib/dbus"
-	"gir/glib-2.0"
 	d "pkg.deepin.io/service/file-manager-backend/delegator"
 	. "pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"
@@ -297,6 +297,7 @@ func (backend *OperationBackend) NewMoveJob(paths []string, destDir string, targ
 	})
 }
 
+// NewRenameJob creates a new rename job for dbus.
 func (backend *OperationBackend) NewRenameJob(fileURL string, newName string) (string, dbus.ObjectPath, string, error) {
 	Log.Debug("NewRenameJob")
 	return newOperationJob([]string{fileURL}, func(uris []string, args ...interface{}) dbus.DBusObject {
@@ -305,6 +306,7 @@ func (backend *OperationBackend) NewRenameJob(fileURL string, newName string) (s
 	})
 }
 
+// NewGetTemplateJob creates a new get template job for dbus.
 func (backend *OperationBackend) NewGetTemplateJob() (string, dbus.ObjectPath, string, error) {
 	Log.Debug("NewGetTemplateJob")
 	C.g_reload_user_special_dirs_cache()

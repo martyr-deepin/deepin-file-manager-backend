@@ -14,13 +14,16 @@ package main
 // void GtkInit() { gtk_init(NULL, NULL); }
 import "C"
 import (
-	"flag"
 	"os"
-	"time"
 
 	"gir/glib-2.0"
+	"pkg.deepin.io/dde/api/session"
 	"pkg.deepin.io/lib"
+	dapp "pkg.deepin.io/lib/app"
 	"pkg.deepin.io/lib/dbus"
+	"pkg.deepin.io/lib/initializer/v2"
+	"pkg.deepin.io/lib/profile"
+
 	"pkg.deepin.io/service/file-manager-backend/clipboard"
 	"pkg.deepin.io/service/file-manager-backend/desktop"
 	"pkg.deepin.io/service/file-manager-backend/fileinfo"
@@ -28,47 +31,16 @@ import (
 	"pkg.deepin.io/service/file-manager-backend/monitor"
 )
 
-type Initializer struct {
-	err error
-}
-
-func (init *Initializer) Init(fn func() (dbus.DBusObject, error)) *Initializer {
-	if init.err != nil {
-		return init
-	}
-
-	v, err := fn()
-	if err != nil {
-		init.err = err
-		return init
-	}
-
-	err = dbus.InstallOnSession(v)
-	if err != nil {
-		init.err = err
-	}
-
-	return init
-}
-
-func (init *Initializer) GetError() error {
-	return init.err
-}
-
 func main() {
-	cpuprof := flag.String("cpuprof", "", "-cpuprof=profile_path")
+	timer := profile.NewTimer()
 
-	flag.Parse()
+	app := dapp.New("deepin-file-manager-backend", "the backend of deepin file manager", "version "+__VERSION__)
+	app.ParseCommandLine(os.Args[1:])
+	Log.SetLogLevel(app.LogLevel())
+	app.StartProfile()
 
-	startTime := time.Now()
+	Log.Debug("Parse command line...ok, cost", timer.Elapsed())
 
-	C.GtkInit()
-
-	Log.Info("initialize i18n...")
-	InitI18n()
-	Log.Info("initialize i18n done, cost", time.Now().Sub(startTime))
-
-	moduleStartTime := time.Now()
 	Log.Info("initialize operation backend...")
 	operationBackend := NewOperationBackend()
 	info := operationBackend.GetDBusInfo()
@@ -77,68 +49,63 @@ func main() {
 		os.Exit(1)
 	}
 
-	if *cpuprof != "" {
-		startCPUProfile(*cpuprof)
-	}
+	err := initializer.DoWithSessionBus(func() (dbus.DBusObject, error) {
+		Log.Info("ok, cost", timer.Elapsed())
 
-	initializer := new(Initializer)
-
-	var moduleEndTime time.Time
-	initializer.Init(func() (dbus.DBusObject, error) {
-		moduleStartTime = time.Now()
 		return operationBackend, nil
-	}).Init(func() (dbus.DBusObject, error) {
-		moduleEndTime = time.Now()
-		Log.Info("ok, cost", moduleEndTime.Sub(moduleStartTime))
+	}).Do(func() error {
+		Log.Info("initialize gtk...")
+		C.GtkInit()
+		Log.Info("ok, cost", timer.Elapsed())
+
+		Log.Info("initialize i18n...")
+		InitI18n()
+		Log.Info("ok, cost", timer.Elapsed())
+
+		return nil
+	}).DoWithSessionBus(func() (dbus.DBusObject, error) {
 		Log.Info("initialize operation flags dbus interface...")
-		moduleStartTime = moduleEndTime
 		return NewOperationFlags(), nil
-	}).Init(func() (dbus.DBusObject, error) {
-		moduleEndTime = time.Now()
-		Log.Info("ok, cost", moduleEndTime.Sub(moduleStartTime))
+	}).DoWithSessionBus(func() (dbus.DBusObject, error) {
+		Log.Info("ok, cost", timer.Elapsed())
+
 		Log.Info("initialize monitor manager...")
-		moduleStartTime = moduleEndTime
 		return monitor.NewMonitorManager(), nil
-	}).Init(func() (dbus.DBusObject, error) {
-		moduleEndTime = time.Now()
-		Log.Info("ok, cost", moduleEndTime.Sub(moduleStartTime))
+	}).DoWithSessionBus(func() (dbus.DBusObject, error) {
+		Log.Info("ok, cost", timer.Elapsed())
+
 		Log.Info("initialize trash monitor...")
-		moduleStartTime = moduleEndTime
 		return monitor.NewTrashMonitor()
-	}).Init(func() (dbus.DBusObject, error) {
-		moduleEndTime = time.Now()
-		Log.Info("ok, cost", moduleEndTime.Sub(moduleStartTime))
+	}).DoWithSessionBus(func() (dbus.DBusObject, error) {
+		Log.Info("ok, cost", timer.Elapsed())
+
 		Log.Info("initialize file info...")
-		moduleStartTime = moduleEndTime
 		return fileinfo.NewQueryFileInfoJob(), nil
-	}).Init(func() (dbus.DBusObject, error) {
-		moduleEndTime = time.Now()
-		Log.Info("ok, cost", moduleEndTime.Sub(moduleStartTime))
+	}).DoWithSessionBus(func() (dbus.DBusObject, error) {
+		Log.Info("ok, cost", timer.Elapsed())
+
 		Log.Info("initialize Clipboard...")
-		moduleStartTime = moduleEndTime
 		return clipboard.NewClipboard(), nil
-	}).Init(func() (dbus.DBusObject, error) {
-		moduleEndTime = time.Now()
-		Log.Info("ok, cost", moduleEndTime.Sub(moduleStartTime))
+	}).DoWithSessionBus(func() (dbus.DBusObject, error) {
+		Log.Info("ok, cost", timer.Elapsed())
+
 		Log.Info("initialize desktop daemon...")
-		moduleStartTime = moduleEndTime
 		return desktop.NewDesktopDaemon()
-	})
+	}).GetError()
 
-	ddeSessionRegister()
+	Log.Debug("register session...")
+	session.Register()
+	Log.Info("ok, cost", timer.Elapsed())
 
-	if err := initializer.GetError(); err != nil {
+	if err != nil {
 		Log.Info("Failed:", err)
 		os.Exit(1)
 	}
 
-	moduleEndTime = time.Now()
-	Log.Info("ok, cost", moduleEndTime.Sub(moduleStartTime))
-
 	go glib.StartLoop()
 	dbus.DealWithUnhandledMessage()
 
-	Log.Info("Total cost", time.Now().Sub(startTime))
+	Log.Info("Total cost", timer.TotalCost())
 
 	if err := dbus.Wait(); err != nil {
 		Log.Info(err)

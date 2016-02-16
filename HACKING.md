@@ -44,7 +44,8 @@ job, and then dbus name, dbus path and dbus interface will be return to caller.
 ## TODO
 
 [ ] undo manager
-[ ] mount/unmount job
+[x] mount/unmount job. Use daemon/mounts
 [ ] add version to dbus interface or path of operation job, API user should decide which version to use
 [ ] writing much more tests
 [ ] finish TODOs listed in codes
+[x] command line

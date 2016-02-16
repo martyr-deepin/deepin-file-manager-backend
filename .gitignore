@@ -9,3 +9,5 @@ core
 #*#
 
 *.mo
+
+version.go

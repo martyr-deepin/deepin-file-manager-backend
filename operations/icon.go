@@ -25,7 +25,7 @@ import (
 	. "pkg.deepin.io/service/file-manager-backend/log"
 )
 
-func getIcon(icon *gio.Icon, size int, fn func(*C.char, C.int) *C.char) string {
+func getIconFromGIcon(icon *gio.Icon, size int, fn func(*C.char, C.int) *C.char) string {
 	iconStr := icon.ToString()
 	if iconStr == "" {
 		return ""
@@ -40,16 +40,16 @@ func getIcon(icon *gio.Icon, size int, fn func(*C.char, C.int) *C.char) string {
 	return C.GoString(cIcon)
 }
 
-// GetThemeIconForApp returns the icon for application.
-func GetThemeIconForApp(icon *gio.Icon, size int) string {
-	return getIcon(icon, size, func(icon *C.char, size C.int) *C.char {
+// GIconGetThemeIconForApp returns the icon for application.
+func GIconGetThemeIconForApp(icon *gio.Icon, size int) string {
+	return getIconFromGIcon(icon, size, func(icon *C.char, size C.int) *C.char {
 		return C.get_icon_for_app(icon, size)
 	})
 }
 
-// GetThemeIconForFile returns the icon for normal files.
-func GetThemeIconForFile(icon *gio.Icon, size int) string {
-	return getIcon(icon, size, func(icon *C.char, size C.int) *C.char {
+// GIconGetThemeIconForFile returns the icon for normal files.
+func GIconGetThemeIconForFile(icon *gio.Icon, size int) string {
+	return getIconFromGIcon(icon, size, func(icon *C.char, size C.int) *C.char {
 		return C.get_icon_for_file(icon, size)
 	})
 }
@@ -69,9 +69,17 @@ func GetThemeIconFromIconName(iconName string, size int) string {
 	return C.GoString(cIcon)
 }
 
-// GetIconForApp get gio.Icon for application.
+const (
+	_UserExecutable os.FileMode = 0500
+)
+
+func isUserExecutable(perm os.FileMode) bool {
+	return perm&_UserExecutable != 0
+}
+
+// GetGIconForApp get gio.Icon for application.
 // @param filePath app's filepath.
-func GetIconForApp(filePath string) *gio.Icon {
+func GetGIconForApp(filePath string) *gio.Icon {
 	u, _ := url.Parse(filePath)
 	stat, err := os.Stat(u.Path)
 	if err != nil {
@@ -91,9 +99,9 @@ func GetIconForApp(filePath string) *gio.Icon {
 	return nil
 }
 
-// GetIconForFile gets gio.Icon for file.
+// GetGIconForFile gets gio.Icon for file.
 // @param filePath is file's path
-func GetIconForFile(filePath string) *gio.Icon {
+func GetGIconForFile(filePath string) *gio.Icon {
 	// gio.FileNewForCommandlineArg never failed, even if the arg is malformed path.
 	file := gio.FileNewForCommandlineArg(filePath)
 	defer file.Unref()
@@ -109,53 +117,54 @@ func GetIconForFile(filePath string) *gio.Icon {
 	return gicon
 }
 
+func getThemeIconHelper(filePath string, handlerForApp func(*gio.Icon) string, handlerForFile func(*gio.Icon) string) string {
+	if filepath.Ext(filePath) == ".desktop" {
+		gicon := GetGIconForApp(filePath)
+		if gicon != nil {
+			return handlerForApp(gicon)
+		}
+	}
+
+	gicon := GetGIconForFile(filePath)
+	if gicon != nil {
+		return handlerForFile(gicon)
+	}
+
+	return ""
+}
+
+func giconToString(gicon *gio.Icon) string {
+	return gicon.ToString()
+}
+
 // GetIconName gets icon for app or file.
 // @param filePath path for app or file.
 func GetIconName(filePath string) string {
-	icon := ""
-	if icon == "" && filepath.Ext(filePath) == ".desktop" {
-		gicon := GetIconForApp(filePath)
-		if gicon != nil {
-			return gicon.ToString()
-		}
-	}
-
-	if icon == "" {
-		gicon := GetIconForFile(filePath)
-		if gicon != nil {
-			return gicon.ToString()
-		}
-	}
-
-	return icon
+	return getThemeIconHelper(filePath, giconToString, giconToString)
 }
 
-const (
-	_UserExecutable os.FileMode = 0500
-)
-
-func isUserExecutable(perm os.FileMode) bool {
-	return perm&_UserExecutable != 0
+func GetThemeIconForFile(file string, size int) string {
+	return getThemeIconHelper(file, func(gicon *gio.Icon) string {
+		return GIconGetThemeIconForApp(gicon, size)
+	}, func(gicon *gio.Icon) string {
+		return GIconGetThemeIconForFile(gicon, size)
+	})
 }
 
 // GetThemeIcon returns full path for icon.
 // @param iconStr can be uri or path of files, or the icon name.
 // @param size is the expected size of icon.
 func GetThemeIcon(iconStr string, size int) string {
-	icon := GetThemeIconFromIconName(iconStr, size)
+	icon := ""
 
-	if icon == "" && filepath.Ext(iconStr) == ".desktop" {
-		gicon := GetIconForApp(iconStr)
-		if gicon != nil {
-			icon = GetThemeIconForApp(gicon, size)
-		}
+	// if iconStr is icon name, url.ParseRequestURI returns invalid uri error.
+	_, err := url.ParseRequestURI(iconStr)
+	if err != nil {
+		icon = GetThemeIconFromIconName(iconStr, size)
 	}
 
 	if icon == "" {
-		gicon := GetIconForFile(iconStr)
-		if gicon != nil {
-			icon = GetThemeIconForFile(gicon, size)
-		}
+		icon = GetThemeIconForFile(iconStr, size)
 	}
 
 	return icon

@@ -28,6 +28,7 @@ all: build
 
 
 prepare:
+	sed "s/#{unknown}/${PKG_VERSION}/" version.go.in > version.go
 	if [ ! -d $(SRC_DIR) ]; then \
 		mkdir -p $(SRC_DIR); \
 		ln -sf $(shell dirname `pwd`)/$(shell basename `pwd`) $(SRC_DIR)/$(PKG_NAME); \
@@ -52,7 +53,7 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 distclean: clean
-	rm -f $(binary)
+	rm -f $(binary) version.go
 
 pot:
 	make -C locale -f Makefile -e PACKAGE_NAME=$(PKG_NAME) -e PACKAGE_VERSION=$(PKG_VERSION)
