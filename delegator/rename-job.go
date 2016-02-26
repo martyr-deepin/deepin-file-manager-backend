@@ -1,13 +1,18 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package delegator
 
 import (
-	"deepin-file-manager/operations"
-	"net/url"
-	"pkg.linuxdeepin.com/lib/dbus"
-	"sync/atomic"
+	"pkg.deepin.io/lib/dbus"
+	"pkg.deepin.io/service/file-manager-backend/operations"
 )
-
-var _ = url.Parse
 
 var (
 	_RenameJobCount uint64 = 0
@@ -17,8 +22,10 @@ type RenameJob struct {
 	dbusInfo dbus.DBusInfo
 	op       *operations.RenameJob
 
-	Done    func(string)
+	Done func(string)
+	// TODO: it maybe be better that using 'Renamed func(newFile string, oldName string)' as signal.
 	OldName func(string)
+	NewFile func(string)
 }
 
 func (job *RenameJob) GetDBusInfo() dbus.DBusInfo {
@@ -43,9 +50,9 @@ func (job *RenameJob) Execute() {
 	job.op.Execute()
 }
 
-func NewRenameJob(fileURL *url.URL, newName string) *RenameJob {
+func NewRenameJob(fileURL string, newName string) *RenameJob {
 	job := &RenameJob{
-		dbusInfo: genDBusInfo("RenameJob", atomic.AddUint64(&_RenameJobCount, 1)),
+		dbusInfo: genDBusInfo("RenameJob", &_RenameJobCount),
 		op:       operations.NewRenameJob(fileURL, newName),
 	}
 	return job

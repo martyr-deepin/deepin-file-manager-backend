@@ -1,13 +1,24 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations
 
 import (
 	"fmt"
-	"math"
-	"net/url"
 	"path/filepath"
-	"pkg.linuxdeepin.com/lib/gio-2.0"
+	"strings"
 	"unicode/utf8"
+
+	"gir/gio-2.0"
 )
+
+// TODO: add flags?? like CreateFlagAutoRename
 
 type _TargetInfo struct {
 	filename               string
@@ -20,6 +31,7 @@ type _TargetInfo struct {
 }
 
 // CreateJob is used to create file, directory or symbol link.
+// The uri of created file will be returned.
 type CreateJob struct {
 	*CommonJob
 	destDir     *gio.File
@@ -56,17 +68,16 @@ func (job *CreateJob) getFilename(destFsType string) (string, bool) {
 		filenameIsUtf8 = utf8.ValidString(filename)
 	} else {
 		if job.makeDir {
-			// TODO
-			filename = Tr("Untitled Folder") // TODO: doc
+			filename = Tr("New folder")
 			filenameIsUtf8 = true
 		} else {
 			if job.src != nil {
 				basename := job.src.GetBasename()
-				filename = fmt.Sprintf(Tr("Untitled %s"), basename) // TODO: doc
+				filename = basename
 			}
 
 			if filename == "" {
-				filename = Tr("Untitled Document") // TODO: doc
+				filename = Tr("New document")
 				filenameIsUtf8 = true
 			}
 		}
@@ -114,6 +125,7 @@ func (job *CreateJob) createTarget(dest *gio.File) (bool, error) {
 
 	// create from template
 	if job.src != nil {
+		// TODO: use own copy job to make sure the name get the same format.
 		res, err = job.src.Copy(dest, gio.FileCopyFlagsNone, job.cancellable, nil)
 		// TODO:
 		// if res && job.undoInfo != nil {
@@ -202,13 +214,13 @@ func (job *CreateJob) needRetry(targetInfo *_TargetInfo, err gio.GError) bool {
 		retry = true
 	} else if errCode != gio.IOErrorEnumCancelled {
 		primaryText := ""
-		// TODO:
+		// TODO: doc
 		if job.makeDir {
-			primaryText = Tr("Error while creating directory %B") //, dest)
+			primaryText = /*Tr*/ ("Error while creating directory %B") //, dest)
 		} else {
-			primaryText = Tr("Error while creating file %B") //, dest)
+			primaryText = /* Tr */ ("Error while creating file %B") //, dest)
 		}
-		secondaryText := Tr("There was error creating the directory in %F.") //, job.destDir)
+		secondaryText := /* Tr */ ("There was error creating the directory in %F.") //, job.destDir)
 		detailText := err.Error()
 
 		response := job.uiDelegate.AskSkip(primaryText, secondaryText, detailText, UIFlagsNone)
@@ -226,9 +238,42 @@ func (job *CreateJob) needRetry(targetInfo *_TargetInfo, err gio.GError) bool {
 // Execute create job
 func (job *CreateJob) Execute() error {
 	defer job.finalize()
+	job.setResult("")
 	if job.makeLink {
 		job.linkJob()
 		return nil
+	}
+
+	// the minimum size of a file or directory is 4k(one block) usually.
+	requiredSize := uint64(4096)
+	if job.src != nil {
+		// this is a little trick for making defer work.
+		err := func() error {
+			info, err := job.src.QueryInfo(strings.Join(
+				[]string{
+					gio.FileAttributeStandardType,
+					gio.FileAttributeStandardSize,
+				}, ","),
+				gio.FileQueryInfoFlagsNone, job.cancellable)
+			if err != nil {
+				return err
+			}
+			defer info.Unref()
+
+			if info.GetFileType() != gio.FileTypeRegular {
+				info.Unref()
+				return fmt.Errorf("%v is not a file", job.src.GetUri())
+			}
+
+			size := info.GetSize()
+			if size > 0 {
+				requiredSize = uint64(size)
+			}
+			return nil
+		}()
+		if err != nil {
+			return err
+		}
 	}
 
 	// TODO:
@@ -242,7 +287,7 @@ func (job *CreateJob) Execute() error {
 		count:                  1,
 	}
 
-	job.verifyDestination(job.destDir, math.MaxUint64)
+	job.verifyDestination(job.destDir, requiredSize) //math.MaxUint64)
 
 	if job.isAborted() {
 		return fmt.Errorf("job is aborted")
@@ -253,9 +298,9 @@ func (job *CreateJob) Execute() error {
 	dest := job.getDest(targetInfo)
 
 retry:
-	res, err := job.createTarget(dest)
+	ok, err := job.createTarget(dest)
 
-	if res {
+	if ok {
 		job.createdFile = dest // Ref??
 		// TODO:
 		// nautilus_file_changes_queue_file_added(dest)
@@ -264,6 +309,7 @@ retry:
 		// } else {
 		// 	nautilus_file_changes_queue_schedule_position_remove(dest)
 		// }
+		job.setResult(dest.GetUri())
 		return nil
 	}
 
@@ -273,6 +319,7 @@ retry:
 		goto retry
 	}
 
+	job.setResult(dest.GetUri())
 	dest.Unref()
 	return nil
 }
@@ -291,24 +338,24 @@ func newCreateJob(destDir *gio.File, src *gio.File, makeDir bool, filename strin
 
 // NewCreateFileJob is used to create a new file.
 // @param destURL: parent dir which contains the new directory.
-func NewCreateFileJob(destDirURL *url.URL, filename string, initContent []byte, uiDelegate IUIDelegate) *CreateJob {
-	destDir := uriToGFile(destDirURL)
+func NewCreateFileJob(destDirURL string, filename string, initContent []byte, uiDelegate IUIDelegate) *CreateJob {
+	destDir := gio.FileNewForCommandlineArg(destDirURL)
 	return newCreateJob(destDir, nil, false, filename, initContent, uiDelegate)
 }
 
 // NewCreateFileFromTemplateJob creates new file from template.
 // @param destURL: parent dir which contains the new directory.
-func NewCreateFileFromTemplateJob(destDirURL *url.URL, templateURL *url.URL, uiDelegate IUIDelegate) *CreateJob {
-	destDir := uriToGFile(destDirURL)
-	src := uriToGFile(templateURL)
+func NewCreateFileFromTemplateJob(destDirURL string, templateURL string, uiDelegate IUIDelegate) *CreateJob {
+	src := gio.FileNewForCommandlineArg(templateURL)
+	destDir := gio.FileNewForCommandlineArg(destDirURL)
 	job := newCreateJob(destDir, src, false, "", []byte{}, uiDelegate)
 	return job
 }
 
 // NewCreateDirectoryJob creates directory
 // @param destURL: parent dir which contains the new directory.
-func NewCreateDirectoryJob(destDirURL *url.URL, dirname string, uiDelegate IUIDelegate) *CreateJob {
-	destDir := uriToGFile(destDirURL)
+func NewCreateDirectoryJob(destDirURL string, dirname string, uiDelegate IUIDelegate) *CreateJob {
+	destDir := gio.FileNewForCommandlineArg(destDirURL)
 	return newCreateJob(destDir, nil, true, dirname, []byte{}, uiDelegate)
 }
 
@@ -326,20 +373,20 @@ func getLinkName(name string, count int, maxLength int) string {
 		case 0:
 			format = "%s"
 		case 1:
-			format = Tr("Link to %s") // TODO: doc
+			format = /* Tr */ ("Link to %s") // TODO: doc
 		case 2:
-			format = Tr("Another link to %s") // TODO: doc
+			format = /* Tr */ ("Another link to %s") // TODO: doc
 		}
 	} else {
 		switch count % 10 {
 		case 1:
-			format = Tr("%'dst link to %s") // TODO: doc
+			format = /* Tr */ ("%'dst link to %s") // TODO: doc
 		case 2:
-			format = Tr("%'dnd link to %s") // TODO: doc
+			format = /* Tr */ ("%'dnd link to %s") // TODO: doc
 		case 3:
-			format = Tr("%'drd link to %s") // TODO: doc
+			format = /* Tr */ ("%'drd link to %s") // TODO: doc
 		default:
-			format = Tr("%'dth link to %s") // TODO: doc
+			format = /* Tr */ ("%'dth link to %s") // TODO: doc
 		}
 		useCount = true
 	}
@@ -447,6 +494,7 @@ retry:
 	} else if ok, err = dest.MakeSymbolicLink(path, job.cancellable); ok {
 		// TODO: undo
 		// nautilus_file_changes_queue_file_added (dest);
+		job.setResult(dest.GetUri())
 		dest.Unref()
 		return
 	}
@@ -508,7 +556,7 @@ retry:
 
 func (job *CreateJob) linkJob() {
 	destFsType := ""
-	job.verifyDestination(job.destDir, math.MaxUint64)
+	job.verifyDestination(job.destDir, 0) // link use 0 storage.
 
 	if job.isAborted() {
 		return
@@ -528,8 +576,8 @@ func newCreateLinkJob(src *gio.File, destDir *gio.File, uiDelegate IUIDelegate) 
 }
 
 // NewCreateLinkJob creates symbol link.
-func NewCreateLinkJob(srcURL *url.URL, destDirURL *url.URL, uiDelegate IUIDelegate) *CreateJob {
-	src := uriToGFile(srcURL)
-	destDir := uriToGFile(destDirURL)
+func NewCreateLinkJob(srcURL string, destDirURL string, uiDelegate IUIDelegate) *CreateJob {
+	src := gio.FileNewForCommandlineArg(srcURL)
+	destDir := gio.FileNewForCommandlineArg(destDirURL)
 	return newCreateLinkJob(src, destDir, uiDelegate)
 }

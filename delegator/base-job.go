@@ -1,9 +1,19 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package delegator
 
 import (
-	"deepin-file-manager/operations"
 	"fmt"
-	"pkg.linuxdeepin.com/lib/dbus"
+	"pkg.deepin.io/lib/dbus"
+	"pkg.deepin.io/service/file-manager-backend/operations"
+	"sync/atomic"
 )
 
 // IUIDelegate is the interface for UIDelegate, a alias for operations.IUIDelegate.
@@ -29,7 +39,7 @@ func (job *_BaseJob) GetDBusInfo() dbus.DBusInfo {
 	return job.dbusInfo
 }
 
-func newBaseJob(name string, count uint64) *_BaseJob {
+func newBaseJob(name string, count *uint64) *_BaseJob {
 	job := &_BaseJob{
 		name: name,
 	}
@@ -45,10 +55,10 @@ func genInterface(name string) string {
 	return JobDestination + "." + name
 }
 
-func genDBusInfo(name string, count uint64) dbus.DBusInfo {
+func genDBusInfo(name string, count *uint64) dbus.DBusInfo {
 	return dbus.DBusInfo{
 		Dest:       JobDestination,
-		ObjectPath: genObjectPath(name, count),
+		ObjectPath: genObjectPath(name, atomic.AddUint64(count, 1)),
 		Interface:  genInterface(name),
 	}
 }

@@ -1,17 +1,27 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations
 
 import (
-	"net/url"
-	"pkg.linuxdeepin.com/lib/gio-2.0"
+	"strings"
+
+	"gir/gio-2.0"
 )
 
 // DeleteJob delete or trash files/directories.
 type DeleteJob struct {
 	*CommonJob
-	files              []*gio.File
-	trash              bool
-	shouldConfirmTrash bool
-	userCancel         bool
+	files         []*gio.File
+	trash         bool
+	shouldConfirm bool
+	userCancel    bool
 }
 
 const (
@@ -21,18 +31,10 @@ const (
 
 func (job *DeleteJob) emitDeleting(deletedFileURL string) {
 	job.Emit(_DeleteJobSignalDeleting, deletedFileURL)
-	// func(f interface{}, args ...interface{}) {
-	// 	fn := f.(func(string))
-	// 	fn(deletedFileURL)
-	// })
 }
 
 func (job *DeleteJob) emitTrashing(trashingFile string) {
 	job.Emit(_DeleteJobSignalTrashing, trashingFile)
-	// func(f interface{}, args ...interface{}) {
-	// 	fn := f.(func(string))
-	// 	fn(trashingFile)
-	// })
 }
 
 func (job *DeleteJob) ListenDeleting(fn func(string)) (func(), error) {
@@ -54,9 +56,11 @@ func (job *DeleteJob) deleteDirectory(
 	skipError := job.shouldSkipDir(dir)
 
 retry:
-	enumerator, enumerateErr := dir.EnumerateChildren(
-		gio.FileAttributeStandardName+
-			","+gio.FileAttributeStandardSize,
+	enumerator, enumerateErr := dir.EnumerateChildren(strings.Join(
+		[]string{
+			gio.FileAttributeStandardName,
+			gio.FileAttributeStandardSize,
+		}, ","),
 		gio.FileQueryInfoFlagsNofollowSymlinks,
 		job.cancellable,
 	)
@@ -124,7 +128,7 @@ retry:
 					localSkippedFile = true
 				}
 			case ResponseRetry:
-				goto retry // avoid recusive
+				goto retry // avoid recursive
 			default: // not reached
 			}
 		}
@@ -162,11 +166,7 @@ retry:
 	}
 }
 
-func (job *DeleteJob) deleteFile(
-	file *gio.File,
-	skippedFile *bool,
-	topLevel bool,
-) {
+func (job *DeleteJob) deleteFile(file *gio.File, skippedFile *bool, topLevel bool) {
 	if job.shouldSkipFile(file) {
 		*skippedFile = true
 		return
@@ -216,8 +216,7 @@ func (job *DeleteJob) deleteFiles(files []*gio.File) int {
 
 	// all files that cannot be trashed sometimes will be deleted.
 	if !job.trash {
-		job.scanSources(files)
-		job.processedAmount[AmountUnitSumOfFilesAndDirs] = job.processedAmount[AmountUnitFiles] + job.processedAmount[AmountUnitDirectories]
+		job.scanSources(files, true)
 	}
 
 	if job.isAborted() {
@@ -367,7 +366,7 @@ func (job *DeleteJob) canDeleteWithoutConfirm(file *gio.File) bool {
 }
 
 func (job *DeleteJob) confirmDeleteFromTrash(files []*gio.File) bool {
-	if !job.shouldConfirmTrash {
+	if !job.shouldConfirm {
 		return true
 	}
 
@@ -376,7 +375,7 @@ func (job *DeleteJob) confirmDeleteFromTrash(files []*gio.File) bool {
 		panic("file should be greater than 0")
 	}
 
-	primaryText := NTr("permanently delete from trash??", "", fileNum)
+	primaryText := NTr("permanently delete from trash??", "", int(fileNum))
 	secondaryText := Tr("")
 	detailText := Tr("")
 	response := job.uiDelegate.AskDeleteConfirmation(
@@ -388,7 +387,7 @@ func (job *DeleteJob) confirmDeleteFromTrash(files []*gio.File) bool {
 }
 
 func (job *DeleteJob) confirmDeleteDirectly(files []*gio.File) bool {
-	if !job.shouldConfirmTrash {
+	if !job.shouldConfirm {
 		return true
 	}
 
@@ -397,7 +396,8 @@ func (job *DeleteJob) confirmDeleteDirectly(files []*gio.File) bool {
 	}
 
 	fileNum := uint64(len(files))
-	primaryText := NTr("delete???", "", fileNum)
+	// TODO: doc
+	primaryText := NTr("delete???", "", int(fileNum))
 	secondaryText := Tr("")
 	detailText := Tr("")
 	response := job.uiDelegate.AskDeleteConfirmation(
@@ -410,9 +410,12 @@ func (job *DeleteJob) confirmDeleteDirectly(files []*gio.File) bool {
 
 func (job *DeleteJob) init(files []*gio.File, uiDelegate IUIDelegate) {
 	job.CommonJob = newCommon(uiDelegate)
+	job.RegisterMonitor(_DeleteJobSignalTrashing)
+	job.RegisterMonitor(_DeleteJobSignalDeleting)
+
 	job.files = files
 	job.userCancel = false
-	job.progressUnit = AmountUnitSumOfFilesAndDirs
+	job.sumFileAndDir = true
 
 	// TODO:
 	// if job.trash {
@@ -431,8 +434,7 @@ func (job *DeleteJob) finalize() {
 
 // Execute the delete job to delete files/directories.
 func (job *DeleteJob) Execute() {
-	defer job.finalize()
-	defer job.emitDone()
+	defer finishJob(job)
 
 	toTrashFiles := []*gio.File{}
 	toDeleteFiles := []*gio.File{}
@@ -482,126 +484,32 @@ func (job *DeleteJob) Execute() {
 
 }
 
-// EmptyTrashJob is a job to empty trash.
-type EmptyTrashJob struct {
-	*CommonJob
-	trashDirs          []*gio.File
-	shouldConfirmTrash bool
-	// doneCallback OpCallback
-	// doneCallbackData interface{}
-}
-
-// delete files and directories on trash directory.
-//
-// @param delFile delete the file or directory, it always be true except for trashDir.
-// @param delChildren delete children of directories. If a file is deleted, false should be passed.
-func (job *EmptyTrashJob) deleteTrashFile(target *gio.File, delFile bool, delChildren bool) {
-	if job.isAborted() {
-		return
-	}
-
-	if delChildren {
-		enumerator, _ := target.EnumerateChildren(
-			gio.FileAttributeStandardName+","+gio.FileAttributeStandardType,
-			gio.FileQueryInfoFlagsNofollowSymlinks,
-			job.cancellable,
-		)
-		if enumerator != nil {
-			for !job.isAborted() {
-				info, err := enumerator.NextFile(job.cancellable)
-				if info == nil || err != nil {
-					break
-				}
-
-				child := target.GetChild(info.GetName())
-				job.deleteTrashFile(child, true, info.GetFileType() == gio.FileTypeDirectory)
-
-				info.Unref()
-				child.Unref()
-			}
-
-			enumerator.Close(job.cancellable)
-			enumerator.Unref()
-		}
-	}
-
-	if !job.isAborted() && delFile {
-		target.Delete(job.cancellable)
-	}
-}
-
-// NewEmptyTrashJob creates a new empty trash job.
-func NewEmptyTrashJob(shouldConfirmTrash bool, uiDelegate IUIDelegate) *EmptyTrashJob {
-	job := &EmptyTrashJob{
-		shouldConfirmTrash: shouldConfirmTrash,
-	}
-
-	job.init(uiDelegate)
-
-	return job
-}
-
-func (job *EmptyTrashJob) init(uiDelegate IUIDelegate) {
-	// TODO: inhibit power manager
-
-	job.CommonJob = newCommon(uiDelegate)
-	job.trashDirs = []*gio.File{gio.FileNewForUri("trash:")}
-	job.progressUnit = AmountUnitSumOfFilesAndDirs
-}
-
-// Execute EmptyTrashJob and finalize resources.
-func (job *EmptyTrashJob) Execute() {
-	defer job.finalize()
-	defer job.emitDone()
-
-	confirmed := true
-	if job.shouldConfirmTrash {
-		// TODO: docs
-		confirmed = job.uiDelegate.AskDeleteConfirmation(Tr("empty???"), Tr(""), Tr(""))
-	}
-
-	if confirmed {
-		for _, trashDir := range job.trashDirs {
-			job.deleteTrashFile(trashDir, false, true)
-		}
-	}
-
-}
-
-func (job *EmptyTrashJob) finalize() {
-	for _, trashDir := range job.trashDirs {
-		trashDir.Unref()
-	}
-
-	job.CommonJob.finalize()
-}
-
 // create DeleteJob for delete files or trash files, using internally.
-func newDeleteOrTrashJob(files []*gio.File, trash bool, shouldConfirmTrash bool, uiDelegate IUIDelegate) *DeleteJob {
+func newDeleteOrTrashJob(files []*gio.File, trash bool, shouldConfirm bool, uiDelegate IUIDelegate) *DeleteJob {
 	job := &DeleteJob{
-		trash:              trash,
-		shouldConfirmTrash: shouldConfirmTrash,
+		trash:         trash,
+		shouldConfirm: shouldConfirm,
 	}
 	job.init(files, uiDelegate)
 	return job
 }
 
 // convenient function for creating delete or trash job.
-func delOrTrash(urls []*url.URL, trash bool, shouldConfirmTrash bool, uiDelegate IUIDelegate) *DeleteJob {
-	files := []*gio.File{}
-	for _, fileURL := range urls {
-		files = append(files, uriToGFile(fileURL))
+func delOrTrash(urls []string, trash bool, shouldConfirm bool, uiDelegate IUIDelegate) *DeleteJob {
+	files := make([]*gio.File, len(urls))
+	for i, fileURL := range urls {
+		files[i] = gio.FileNewForCommandlineArg(fileURL)
 	}
 
-	return newDeleteOrTrashJob(files, trash, shouldConfirmTrash, uiDelegate)
+	return newDeleteOrTrashJob(files, trash, shouldConfirm, uiDelegate)
 }
 
 // NewDeleteJob creates a new delete job to delete files or directories.
-func NewDeleteJob(urls []*url.URL, shouldConfirmTrash bool, uiDelegate IUIDelegate) *DeleteJob {
-	return delOrTrash(urls, false, shouldConfirmTrash, uiDelegate)
+func NewDeleteJob(urls []string, shouldConfirm bool, uiDelegate IUIDelegate) *DeleteJob {
+	return delOrTrash(urls, false, shouldConfirm, uiDelegate)
 }
 
 // NewTrashJob creates a new trash job to trash files or directories.
-func NewTrashJob(urls []*url.URL, shouldConfirmTrash bool, uiDelegate IUIDelegate) *DeleteJob {
-	return delOrTrash(urls, true, shouldConfirmTrash, uiDelegate)
+func NewTrashJob(urls []string, shouldConfirm bool, uiDelegate IUIDelegate) *DeleteJob {
+	return delOrTrash(urls, true, shouldConfirm, uiDelegate)
 }

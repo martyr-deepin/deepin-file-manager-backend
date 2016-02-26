@@ -1,11 +1,23 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations
 
 import (
-	"deepin-file-manager/timer"
+	"errors"
 	"fmt"
 	"math"
-	"net/url"
-	"pkg.linuxdeepin.com/lib/gio-2.0"
+	"strings"
+
+	"gir/gio-2.0"
+	"pkg.deepin.io/lib/timer"
+	. "pkg.deepin.io/service/file-manager-backend/log"
 )
 
 const (
@@ -24,8 +36,11 @@ func getTargetFileWithCustomName(src *gio.File, destDir *gio.File, destFsType st
 	}
 
 	if dest == nil && !sameFs {
-		info, _ := src.QueryInfo(gio.FileAttributeStandardCopyName+
-			","+gio.FileAttributeTrashOrigPath,
+		info, _ := src.QueryInfo(strings.Join(
+			[]string{
+				gio.FileAttributeStandardCopyName,
+				gio.FileAttributeTrashOrigPath,
+			}, ","),
 			gio.FileQueryInfoFlagsNone,
 			nil)
 		if info != nil {
@@ -70,6 +85,8 @@ type CopyMoveJob struct {
 	fakeDisplaySource *gio.File
 	debutingFiles     map[string]bool
 	targetName        string
+	flags             gio.FileCopyFlags
+	autorenameAll     bool
 
 	lastReportTime uint64
 }
@@ -81,35 +98,22 @@ const (
 	_CopyMoveSignalCreatingDir       string = "creating-dir"
 )
 
-func (job *CopyMoveJob) slotMovingCopying(f interface{}, args ...interface{}) {
-	fn := f.(func(string))
-	srcURL := args[0].(string)
-	fn(srcURL)
-}
-
-func (job *CopyMoveJob) slotMovingCopyingDone(f interface{}, args ...interface{}) {
-	fn := f.(func(string, string))
-	srcURL := args[0].(string)
-	destURL := args[1].(string)
-	fn(srcURL, destURL)
-}
-
 // TODO: emitting moving/copying signal every 200ms,
 // not emitting every file or directory (this would be too slow according to kio).
 func (job *CopyMoveJob) emitMoving(srcURL string) {
-	job.Emit(_CopyMoveSignalMoving /* job.slotMovingCopying, */, srcURL)
+	job.Emit(_CopyMoveSignalMoving, srcURL)
 }
 
 func (job *CopyMoveJob) emitCopying(srcURL string) {
-	job.Emit(_CopyMoveSignalCopying /* job.slotMovingCopying, */, srcURL)
+	job.Emit(_CopyMoveSignalCopying, srcURL)
 }
 
 func (job *CopyMoveJob) emitCopyingMovingDone(srcURL string, destURL string) {
-	job.Emit(_CopyMoveSignalCopyingMovingDone /* job.slotMovingCopyingDone, */, srcURL, destURL)
+	job.Emit(_CopyMoveSignalCopyingMovingDone, srcURL, destURL)
 }
 
 func (job *CopyMoveJob) emitCreatingDir(srcURL string) {
-	job.Emit(_CopyMoveSignalCreatingDir /* job.slotMovingCopying, */, srcURL)
+	job.Emit(_CopyMoveSignalCreatingDir, srcURL)
 }
 
 func (job *CopyMoveJob) ListenMoving(fn func(string)) (func(), error) {
@@ -117,7 +121,7 @@ func (job *CopyMoveJob) ListenMoving(fn func(string)) (func(), error) {
 }
 
 func (job *CopyMoveJob) ListenCopying(fn func(string)) (func(), error) {
-	return job.ListenSignal(_CopyMoveSignalMoving, fn)
+	return job.ListenSignal(_CopyMoveSignalCopying, fn)
 }
 
 func (job *CopyMoveJob) ListenCopyingMovingDone(fn func(string, string)) (func(), error) {
@@ -138,7 +142,6 @@ func (job *CopyMoveJob) finalize() {
 	if job.desktopLocation != nil {
 		job.desktopLocation.Unref()
 	}
-	// TODO: g_clear_object???
 	if job.fakeDisplaySource != nil {
 		job.fakeDisplaySource.Unref()
 	}
@@ -511,6 +514,7 @@ func (job *CopyMoveJob) needRetry(
 
 	// conflict
 	if !*overwrite && errCode == gio.IOErrorEnumExists {
+		Log.Info("file", destW.GetUri(), "is existed, get unique name?", uniqueName)
 		if uniqueName {
 			destW.Reset(getUniqueTargetFile(src, destDir, *sameFs, *destFsType, *uniqueNameNr))
 			(*uniqueNameNr)++
@@ -527,8 +531,24 @@ func (job *CopyMoveJob) needRetry(
 			return true
 		}
 
+		Log.Info("skip all conflict?", job.skipAllConflict)
 		if job.skipAllConflict {
 			return false
+		}
+
+		if job.autorenameAll {
+			for {
+				newDest := getUniqueTargetFile(src, destDir, *sameFs, *destFsType, *uniqueNameNr)
+				(*uniqueNameNr)++
+				if newDest.QueryExists(job.cancellable) {
+					newDest.Unref()
+					continue
+				}
+
+				destW.Reset(newDest)
+				Log.Info("new file is", destW.GetUri())
+				return true
+			}
 		}
 
 		// TODO:
@@ -551,9 +571,22 @@ func (job *CopyMoveJob) needRetry(
 			*overwrite = true
 			return true
 		case ResponseAutoRename:
-			newDest := getUniqueTargetFile(src, destDir, *sameFs, *destFsType, *uniqueNameNr)
-			(*uniqueNameNr)++
-			destW.Reset(newDest)
+			if response.ApplyToAll() {
+				job.autorenameAll = true
+			}
+
+			for {
+				newDest := getUniqueTargetFile(src, destDir, *sameFs, *destFsType, *uniqueNameNr)
+				(*uniqueNameNr)++
+				if newDest.QueryExists(job.cancellable) {
+					newDest.Unref()
+					continue
+				}
+
+				destW.Reset(newDest)
+				Log.Info("new file is", destW.GetUri())
+				break
+			}
 			return true
 		}
 	} else if *overwrite && errCode == gio.IOErrorEnumIsDirectory {
@@ -660,7 +693,7 @@ func newCopyFileProgressCallback(job *CopyMoveJob) gio.FileProgressCallback {
 		newSize := currentNumBytes - lastSize
 		if newSize > 0 {
 			job.setProcessedAmount(job.processedAmount[AmountUnitBytes]+newSize, AmountUnitBytes)
-			lastSize = newSize
+			lastSize = currentNumBytes
 			job.reportCopyProgress()
 		}
 	}
@@ -677,6 +710,7 @@ func (job *CopyMoveJob) copyMoveFile(
 	skippedFile *bool,
 	readonlySourceFs bool) {
 	if job.shouldSkipFile(src) {
+		Log.Debug("file should skip", src.GetUri())
 		*skippedFile = true
 		return
 	}
@@ -684,7 +718,7 @@ func (job *CopyMoveJob) copyMoveFile(
 	/* Don't allow recursive move/copy into itself.
 	 * (We would get a file system error if we proceeded but it is nicer to
 	 * detect and report it at this level) */
-	if DirIsParentOf(destDir, src) {
+	if DirIsParentOf(src, destDir) {
 		if job.skipAllError {
 			*skippedFile = true
 			return
@@ -736,7 +770,6 @@ func (job *CopyMoveJob) copyMoveFile(
 
 		// TODO:
 		response := job.uiDelegate.AskSkip(primaryText, secondaryText, "", UIFlagsMulti) /*source_info.num_files, source_info.num_files-transfer_info.num_files*/
-
 		switch response.Code() {
 		case ResponseCancel:
 			job.Abort()
@@ -753,6 +786,9 @@ func (job *CopyMoveJob) copyMoveFile(
 	handledInvalidName := *destFsType != ""
 retry:
 	flags := gio.FileCopyFlagsNofollowSymlinks
+	if job.flags&gio.FileCopyFlagsNofollowSymlinks == 0 {
+		flags = flags & ^gio.FileCopyFlagsNofollowSymlinks
+	}
 	if overwrite {
 		flags |= gio.FileCopyFlagsOverwrite
 	}
@@ -760,6 +796,7 @@ retry:
 		flags |= gio.FileCopyFlagsTargetDefaultPerms
 	}
 
+	Log.Debug("job flags overwrite?", flags&gio.FileCopyFlagsOverwrite != 0)
 	var err error
 	var ok bool
 	progressCb := newCopyFileProgressCallback(job)
@@ -830,9 +867,10 @@ func (job *CopyMoveJob) copyFiles(destFsID string) {
 
 func (job *CopyMoveJob) copyJob() {
 	job.op = OpKindCopy
-	job.scanSources(job.files)
+	job.scanSources(job.files, true)
 
 	if job.isAborted() {
+		Log.Debug("aborted copy job")
 		return
 	}
 
@@ -895,16 +933,11 @@ func (job *CopyMoveJob) moveFilePrepare(
 	destFsType *string,
 	fallbacks *[]_MoveFileCopyFallback,
 	left int) {
-	overwrite := false
-	handledInvalidName := *destFsType != ""
-	dest := getTargetFile(src, destDir, *destFsType, sameFs)
-
 	/* Don't allow recursive move/copy into itself.
 	 * (We would get a file system error if we proceeded but it is nicer to
 	 * detect and report it at this level) */
-	if DirIsParentOf(destDir, src) {
+	if DirIsParentOf(src, destDir) {
 		if job.skipAllError {
-			dest.Unref()
 			return
 		}
 
@@ -933,9 +966,12 @@ func (job *CopyMoveJob) moveFilePrepare(
 			}
 		}
 
-		dest.Unref()
 		return
 	}
+
+	overwrite := false
+	handledInvalidName := *destFsType != ""
+	dest := getTargetFile(src, destDir, *destFsType, sameFs)
 
 	uniqueNameNr := 0
 retry:
@@ -984,6 +1020,18 @@ retry:
 			return
 		}
 
+		if job.autorenameAll {
+			for {
+				dest.Unref()
+				dest = (getUniqueTargetFile(src, destDir, sameFs, *destFsType, uniqueNameNr))
+				(uniqueNameNr)++
+
+				if !dest.QueryExists(job.cancellable) {
+					goto retry
+				}
+			}
+		}
+
 		response := job.uiDelegate.ConflictDialog()
 		switch response.Code() {
 		case ResponseCancel:
@@ -1003,10 +1051,19 @@ retry:
 			overwrite = true
 			goto retry
 		case ResponseAutoRename:
-			dest.Unref()
-			dest = (getUniqueTargetFile(src, destDir, sameFs, *destFsType, uniqueNameNr))
-			(uniqueNameNr)++
-			goto retry
+			if response.ApplyToAll() {
+				job.autorenameAll = true
+			}
+			// TODO: get unique name
+			for {
+				dest.Unref()
+				dest = (getUniqueTargetFile(src, destDir, sameFs, *destFsType, uniqueNameNr))
+				(uniqueNameNr)++
+
+				if !dest.QueryExists(job.cancellable) {
+					goto retry
+				}
+			}
 		}
 	} else if errCode == gio.IOErrorEnumWouldRecurse ||
 		errCode == gio.IOErrorEnumWouldMerge ||
@@ -1084,9 +1141,11 @@ func (job *CopyMoveJob) moveFiles(
 func (job *CopyMoveJob) moveJob() {
 	destFsType := ""
 
-	destFsID := job.verifyDestination(job.destination, math.MaxUint64)
+	job.op = OpKindMove
+	destFsID := job.verifyDestination(job.destination, uint64(job.totalAmount[AmountUnitBytes]))
 
 	if job.isAborted() {
+		Log.Info("aborted move job")
 		return
 	}
 
@@ -1098,7 +1157,7 @@ func (job *CopyMoveJob) moveJob() {
 
 	fallbackFiles := getFilesFromFallbacks(fallbacks)
 	job.op = OpKindMove
-	job.scanSources(fallbackFiles)
+	job.scanSources(fallbackFiles, true)
 
 	if job.isAborted() {
 		return
@@ -1115,9 +1174,14 @@ func (job *CopyMoveJob) moveJob() {
 
 // Execute a move job or a copy job.
 func (job *CopyMoveJob) Execute() {
-	defer job.finalize()
-	defer job.emitDone()
+	defer finishJob(job)
 
+	jobName := "copy"
+	if job.isMove {
+		jobName = "move"
+	}
+
+	Log.Debugf("execute %s job\n", jobName)
 	if job.isMove {
 		job.moveJob()
 	} else {
@@ -1125,53 +1189,79 @@ func (job *CopyMoveJob) Execute() {
 	}
 }
 
-func newCopyMoveJob(srcs []*gio.File, destDir *gio.File, move bool, targetName string, uiDelegate IUIDelegate) *CopyMoveJob {
+func newCopyMoveJob(srcs []*gio.File, destDir *gio.File, targetName string, isMove bool, flags gio.FileCopyFlags, uiDelegate IUIDelegate) *CopyMoveJob {
+	job := &CopyMoveJob{
+		CommonJob:     newCommon(uiDelegate),
+		files:         srcs,
+		destination:   destDir,
+		isMove:        isMove,
+		targetName:    targetName,
+		debutingFiles: map[string]bool{},
+		flags:         flags,
+	}
+
+	job.RegisterMonitor(_CopyMoveSignalCreatingDir)
+	job.RegisterMonitor(_CopyMoveSignalMoving)
+	job.RegisterMonitor(_CopyMoveSignalCopying)
+	job.RegisterMonitor(_CopyMoveSignalCopyingMovingDone)
+
+	return job
+}
+
+func newCopyMoveJobFromURL(srcURLs []string, destDirURL string, targetName string, isMove bool, flags gio.FileCopyFlags, uiDelegate IUIDelegate) *CopyMoveJob {
+	srcs := locationListFromUriList(srcURLs)
+	var destDir *gio.File
+	if destDirURL != "" {
+		destDir = gio.FileNewForCommandlineArg(destDirURL)
+		// force duplicate when destDir is parent dir.
+		if !isMove && srcs[0].GetParent().GetUri() == destDir.GetUri() {
+			destDir.Unref()
+			destDir = nil
+		}
+	}
+
+	// when destDir is nil, duplicate files.
+	return newCopyMoveJob(srcs, destDir, targetName, isMove, flags, uiDelegate)
+}
+
+// NewCopyJob creates a copy job.
+func NewCopyJob(srcURLs []string, destDirURL string, targetName string, flags gio.FileCopyFlags, uiDelegate IUIDelegate) *CopyMoveJob {
+	return newCopyMoveJobFromURL(srcURLs, destDirURL, targetName, false, flags, uiDelegate)
+}
+
+func markAsMoveJob(job *CopyMoveJob) *CopyMoveJob {
+	if job.destination == nil {
+		job.setError(errors.New("unknown destination"))
+		return job
+	}
+
+	isMove := true
 	targetIsMapping := false
 	haveNonmappingSource := false
 
-	if destDir.HasUriScheme("burn") {
+	if job.destination.HasUriScheme("burn") {
 		targetIsMapping = true
 	}
 
-	for _, src := range srcs {
+	for _, src := range job.files {
 		if !src.HasUriScheme("burn") {
 			haveNonmappingSource = true
 			break
 		}
 	}
 
-	if targetIsMapping && haveNonmappingSource && move {
+	if targetIsMapping && haveNonmappingSource {
 		/* never move to "burn:///", but fall back to copy.
 		 * This is a workaround, because otherwise the source files would be removed.
 		 */
-		move = false
+		isMove = false
 	}
 
-	job := &CopyMoveJob{
-		CommonJob:     newCommon(uiDelegate),
-		files:         srcs,
-		destination:   destDir,
-		isMove:        move,
-		targetName:    targetName,
-		debutingFiles: map[string]bool{},
-	}
-
+	job.isMove = isMove
 	return job
 }
 
-func newCopyMoveJobFromURL(srcURLs []*url.URL, destDirURL *url.URL, move bool, targetName string, uiDelegate IUIDelegate) *CopyMoveJob {
-	srcs := locationListFromUrkList(srcURLs)
-	destDir := uriToGFile(destDirURL)
-
-	return newCopyMoveJob(srcs, destDir, move, targetName, uiDelegate)
-}
-
-// NewCopyJob creates a copy job.
-func NewCopyJob(srcURLs []*url.URL, destDirURL *url.URL, targetName string, uiDelegate IUIDelegate) *CopyMoveJob {
-	return newCopyMoveJobFromURL(srcURLs, destDirURL, false, targetName, uiDelegate)
-}
-
 // NewMoveJob creates a move job.
-func NewMoveJob(srcURLs []*url.URL, destDirURL *url.URL, targetName string, uiDelegate IUIDelegate) *CopyMoveJob {
-	return newCopyMoveJobFromURL(srcURLs, destDirURL, true, targetName, uiDelegate)
+func NewMoveJob(srcURLs []string, destDirURL string, targetName string, flags gio.FileCopyFlags, uiDelegate IUIDelegate) *CopyMoveJob {
+	return markAsMoveJob(newCopyMoveJobFromURL(srcURLs, destDirURL, targetName, true, flags, uiDelegate))
 }

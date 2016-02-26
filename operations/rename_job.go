@@ -1,42 +1,48 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations
 
 import (
 	"bufio"
 	"bytes"
-	"fmt"
+	"encoding/json"
 	"io/ioutil"
-	"net/url"
 	"os"
 	"path/filepath"
-	"pkg.linuxdeepin.com/lib/gio-2.0"
-	"pkg.linuxdeepin.com/lib/glib-2.0"
-	"pkg.linuxdeepin.com/lib/utils"
 	"strings"
+
+	"gir/gio-2.0"
+	"gir/glib-2.0"
 )
 
 const (
-	ErrorInvalidFileName = iota
+	ErrorInvalidFileName = -1 - iota
 	ErrorSameFileName
+	ErrorStatFileFailed
+	ErrorSaveFileFailed
+	ErrorReadFileFailed
 )
+const _FullNameKey = "X-GNOME-FullName"
 
 type RenameError struct {
 	Code int
-	Name string
+	Msg  string
 }
 
 func (e *RenameError) Error() string {
-	switch e.Code {
-	case ErrorInvalidFileName:
-		return fmt.Sprintf("invalid name %q", e.Name)
-	case ErrorSameFileName:
-		return fmt.Sprintf("the new name(%q) is the same as the old", e.Name)
-	default:
-		return "Unknown error"
-	}
+	j, _ := json.Marshal(e)
+	return string(j)
 }
 
-func newRenameError(code int, name string) error {
-	return &RenameError{Code: code, Name: name}
+func newRenameError(code int, msg string) error {
+	return &RenameError{Code: code, Msg: msg}
 }
 
 const (
@@ -136,7 +142,7 @@ func (job *RenameJob) changeUserDir() error {
 	userDirs := getUserDirsPath()
 	fileContent, err := ioutil.ReadFile(userDirs)
 	if err != nil {
-		return err
+		return newRenameError(ErrorReadFileFailed, err.Error())
 	}
 
 	fileReader := bytes.NewReader(fileContent)
@@ -166,24 +172,33 @@ func (job *RenameJob) changeUserDir() error {
 	writer.Flush()
 	stat, err := os.Stat(userDirs)
 	if err != nil {
-		return err
+		return newRenameError(ErrorStatFileFailed, err.Error())
 	}
 
-	return ioutil.WriteFile(userDirs, buffer.Bytes(), stat.Mode())
+	e := ioutil.WriteFile(userDirs, buffer.Bytes(), stat.Mode())
+	if e != nil {
+		return newRenameError(ErrorSaveFileFailed, e.Error())
+	}
+	return nil
 }
 
-func (job *RenameJob) setDesktopName() error {
+func (job *RenameJob) setDesktopName() (string, error) {
+	var oldDisplayName string
+
 	keyFile := glib.NewKeyFile()
 	defer keyFile.Free()
 	filePath := job.file.GetPath()
-	_, err := keyFile.LoadFromFile(filePath, glib.KeyFileFlagsNone)
+	_, err := keyFile.LoadFromFile(filePath, glib.KeyFileFlagsKeepComments|glib.KeyFileFlagsKeepTranslations)
 	if err != nil {
-		return err
+		e := err.(gio.GError)
+		return oldDisplayName, newRenameError(int(e.Code), e.Message)
 	}
 
 	appInfo := gio.NewDesktopAppInfoFromKeyfile(keyFile)
-	job.emitOldName(appInfo.GetDisplayName())
-	appInfo.Unref()
+	if appInfo != nil {
+		oldDisplayName = appInfo.GetDisplayName()
+		appInfo.Unref()
+	}
 
 	locale := job.checkLocale(keyFile)
 	if locale != "" {
@@ -192,16 +207,39 @@ func (job *RenameJob) setDesktopName() error {
 		keyFile.SetString(glib.KeyFileDesktopGroup, glib.KeyFileDesktopKeyName, job.newName)
 	}
 
-	_, content, err := keyFile.ToData()
-	if err != nil {
-		return err
+	_, keys, _ := keyFile.GetKeys(glib.KeyFileDesktopGroup)
+	for _, key := range keys {
+		if key == _FullNameKey {
+			if locale != "" {
+				keyFile.SetLocaleString(glib.KeyFileDesktopGroup, _FullNameKey, locale, job.newName)
+			} else {
+				keyFile.SetString(glib.KeyFileDesktopGroup, _FullNameKey, job.newName)
+			}
+			break
+		}
 	}
 
-	utils.WriteStringToKeyFile(filePath, content)
-	return nil
+	_, content, err := keyFile.ToData()
+	if err != nil {
+		e := err.(gio.GError)
+		return oldDisplayName, newRenameError(int(e.Code), e.Message)
+	}
+
+	stat, err := os.Stat(filePath)
+	if err != nil {
+		return oldDisplayName, newRenameError(ErrorStatFileFailed, err.Error())
+	}
+	e := ioutil.WriteFile(filePath, []byte(content), stat.Mode().Perm())
+	if e != nil {
+		return oldDisplayName, newRenameError(ErrorSaveFileFailed, e.Error())
+	}
+	return oldDisplayName, nil
 }
 
 func (job *RenameJob) init() {
+	job.RegisterMonitor(_RenameJobSignalNewFile)
+	job.RegisterMonitor(_RenameJobSignalOldName)
+
 	job.checkUserDirs()
 }
 
@@ -215,58 +253,66 @@ func (job *RenameJob) isValidName(name string) bool {
 }
 
 func (job *RenameJob) Execute() {
-	defer job.finalize()
-	defer job.emitDone()
+	defer finishJob(job)
 
 	if job.isValidName(job.newName) {
 		job.setError(newRenameError(ErrorInvalidFileName, job.newName))
 		return
 	}
 
-	info, err := job.file.QueryInfo(gio.FileAttributeStandardContentType+
-		","+gio.FileAttributeStandardDisplayName+
-		","+gio.FileAttributeAccessCanExecute,
+	info, err := job.file.QueryInfo(strings.Join(
+		[]string{
+			gio.FileAttributeStandardContentType,
+			gio.FileAttributeStandardDisplayName,
+			gio.FileAttributeAccessCanExecute,
+		}, ","),
 		gio.FileQueryInfoFlagsNofollowSymlinks, nil)
 	if err != nil {
-		job.setError(err)
+		e := err.(gio.GError)
+		job.setError(newRenameError(int(e.Code), e.Message))
 		return
 	}
 	defer info.Unref()
 
-	displayName := info.GetDisplayName()
-	if displayName == "" {
-		displayName = job.file.GetBasename()
+	oldDisplayName := info.GetDisplayName()
+	if oldDisplayName == "" {
+		oldDisplayName = job.file.GetBasename()
 	}
 
-	if displayName == job.newName {
+	if oldDisplayName == job.newName {
 		job.setError(newRenameError(ErrorSameFileName, job.newName))
 		return
 	}
 
 	mimeType := info.GetContentType()
-	if mimeType == _DesktopMIMEType &&
-		info.GetAttributeBoolean(gio.FileAttributeAccessCanExecute) {
-		err = job.setDesktopName()
-		if err != nil {
-			job.setError(err)
-		}
-	} else {
-		job.emitOldName(displayName)
-		newFile, err := job.file.SetDisplayName(job.newName, job.cancellable)
-		if newFile != nil {
-			job.emitNewFile(newFile.GetUri())
-			newFile.Unref()
-		}
-		if err != nil {
-			job.setError(err)
-			return
-		}
-
-		if job.userDir != "" {
-			err = job.changeUserDir()
+	if mimeType == _DesktopMIMEType {
+		if info.GetAttributeBoolean(gio.FileAttributeAccessCanExecute) {
+			oldDisplayName, err = job.setDesktopName()
 			if err != nil {
 				job.setError(err)
+				return
 			}
+			job.newName = job.newName + ".desktop"
+		}
+
+	}
+
+	job.emitOldName(oldDisplayName)
+	newFile, err := job.file.SetDisplayName(job.newName, job.cancellable)
+	if newFile != nil {
+		job.emitNewFile(newFile.GetUri())
+		newFile.Unref()
+	}
+	if err != nil {
+		e := err.(gio.GError)
+		job.setError(newRenameError(int(e.Code), e.Message))
+		return
+	}
+
+	if job.userDir != "" {
+		err = job.changeUserDir()
+		if err != nil {
+			job.setError(err)
 		}
 	}
 }
@@ -281,7 +327,7 @@ func newRenameJob(file *gio.File, newName string) *RenameJob {
 	return job
 }
 
-func NewRenameJob(file *url.URL, newName string) *RenameJob {
-	gfile := uriToGFile(file)
+func NewRenameJob(file string, newName string) *RenameJob {
+	gfile := gio.FileNewForCommandlineArg(file)
 	return newRenameJob(gfile, newName)
 }

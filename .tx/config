@@ -1,0 +1,11 @@
+[main]
+host = https://www.transifex.com
+minimum_perc = 75
+mode = developer
+
+[deepin-desktop-environment.file-manager-backendpot]
+file_filter = locale/<lang>.po
+source_file = locale/file-manager-backend.pot
+source_lang = en
+type = PO
+

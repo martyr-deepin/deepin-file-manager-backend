@@ -1,12 +1,38 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations
 
 import (
 	"container/list"
-	"deepin-file-manager/timer"
 	"fmt"
-	"pkg.linuxdeepin.com/lib/gio-2.0"
+	"gir/gio-2.0"
+	"pkg.deepin.io/lib/timer"
+	. "pkg.deepin.io/service/file-manager-backend/log"
+	"strings"
 	"time"
 )
+
+func finishJob(job interface {
+	isAborted() bool
+	emitAborted() error
+	emitDone() error
+	finalize()
+}) {
+	Log.Debug("finishJob")
+	if job.isAborted() {
+		Log.Debug("emitAborted", job.emitAborted())
+	} else {
+		Log.Debug("emitDone:", job.emitDone())
+	}
+	job.finalize()
+}
 
 const (
 	_DesktopMIMEType string = "application/x-desktop"
@@ -25,7 +51,7 @@ const (
 )
 
 // OpKind is the flag for which kind of operations is.
-type OpKind int
+type OpKind int32
 
 // the value of OpKind
 const (
@@ -33,6 +59,7 @@ const (
 	OpKindMove
 	OpKindDelete
 	OpKindTrash
+	OpKindList
 )
 
 const (
@@ -60,7 +87,8 @@ type CommonJob struct {
 	closeSpeedTimer chan struct{}
 	percentage      int64
 
-	progressUnit AmountUnit
+	progressUnit  AmountUnit
+	sumFileAndDir bool
 
 	skippedFiles    map[string]*gio.File
 	skippedDirs     map[string]*gio.File
@@ -90,6 +118,7 @@ const (
 	_JobSignalPercent         = "percent"
 	_JobSignalTotalAmount     = "total-amount"
 	_JobSignalDone            = "job-done"
+	_JobSignalAborted         = "job-aborted"
 )
 
 func (job *CommonJob) setError(err error) {
@@ -104,8 +133,16 @@ func (job *CommonJob) HasError() bool {
 	return job.err != nil
 }
 
+func (job *CommonJob) emitAborted() error {
+	return job.Emit(_JobSignalAborted)
+}
+
 func (job *CommonJob) emitDone() error {
 	return job.Emit(_JobSignalDone, job.err)
+}
+
+func (job *CommonJob) ListenAborted(fn func()) (func(), error) {
+	return job.ListenSignal(_JobSignalAborted, fn)
 }
 
 func (job *CommonJob) ListenDone(fn func(error)) (func(), error) {
@@ -126,10 +163,10 @@ func (job *CommonJob) ListenProcessedAmount(fn func(amount int64, unit AmountUni
 }
 
 func (job *CommonJob) emitProcessedAmount(amount int64, unit AmountUnit) {
-	job.Emit(_JobSignalProcessedAmount, func(f interface{}, args ...interface{}) {
-		fn := f.(func(int64, AmountUnit))
-		fn(amount, unit)
-	})
+	err := job.Emit(_JobSignalProcessedAmount, amount, unit)
+	if err != nil {
+		Log.Error("emit ProcessedAmount signal failed:", err)
+	}
 }
 
 func (job *CommonJob) setProcessedAmount(size int64, unit AmountUnit) {
@@ -146,10 +183,10 @@ func (job *CommonJob) setProcessedAmount(size int64, unit AmountUnit) {
 }
 
 func (job *CommonJob) doEmitSpeed(speed uint64) {
-	job.Emit(_JobSignalSpeed, func(f interface{}, args ...interface{}) {
-		fn := f.(func(uint64))
-		fn(speed)
-	})
+	err := job.Emit(_JobSignalSpeed, speed)
+	if err != nil {
+		Log.Error("emit Speed signal failed:", err)
+	}
 }
 
 func (job *CommonJob) emitSpeed(speed uint64) {
@@ -178,10 +215,10 @@ func (job *CommonJob) ListenSpeed(fn func(uint64)) (func(), error) {
 }
 
 func (job *CommonJob) doEmitPercent(percent int64) {
-	job.Emit(_JobSignalPercent, func(f interface{}, args ...interface{}) {
-		fn := f.(func(int64))
-		fn(percent)
-	})
+	err := job.Emit(_JobSignalPercent, percent)
+	if err != nil {
+		Log.Error("emit Percent signal failed", err)
+	}
 }
 
 func (job *CommonJob) emitPercent(processedAmount int64, totalAmount int64) {
@@ -199,10 +236,10 @@ func (job *CommonJob) ListenPercent(fn func(int64)) (func(), error) {
 }
 
 func (job *CommonJob) emitTotalAmount(totalAmount int64, unit AmountUnit) {
-	job.Emit(_JobSignalTotalAmount, func(f interface{}, args ...interface{}) {
-		fn := f.(func(int64, AmountUnit))
-		fn(totalAmount, unit)
-	})
+	err := job.Emit(_JobSignalTotalAmount, totalAmount, unit)
+	if err != nil {
+		Log.Error("emit TotalAmount signal failed:", err)
+	}
 }
 
 func (job *CommonJob) ListenTotalAmount(fn func(int64, AmountUnit)) (func(), error) {
@@ -229,13 +266,16 @@ func (job *CommonJob) finalize() {
 
 // Abort the job, Finalize will not be called.
 func (job *CommonJob) Abort() {
+	Log.Debug("abort job")
 	job.cancellable.PushCurrent()
 	job.cancellable.Cancel()
 	job.cancellable.PopCurrent()
 }
 
 func (job *CommonJob) isAborted() bool {
-	return job.cancellable.IsCancelled()
+	aborted := job.cancellable.IsCancelled()
+	Log.Debug("job is aborted:", aborted)
+	return aborted
 }
 
 func (job *CommonJob) shouldSkipFile(file *gio.File) bool {
@@ -256,7 +296,12 @@ retry:
 	if !destIsSymlink {
 		queryFlags = gio.FileQueryInfoFlagsNofollowSymlinks
 	}
-	fInfo, err := dst.QueryInfo(gio.FileAttributeStandardType+","+gio.FileAttributeIdFilesystem, queryFlags, job.cancellable)
+	fInfo, err := dst.QueryInfo(strings.Join(
+		[]string{
+			gio.FileAttributeStandardType,
+			gio.FileAttributeIdFilesystem,
+		}, ","),
+		queryFlags, job.cancellable)
 
 	if fInfo == nil {
 		gerr := err.(gio.GError)
@@ -318,6 +363,7 @@ retry:
 		freeSize := fsInfo.GetAttributeUint64(gio.FileAttributeFilesystemFree)
 
 		if freeSize < requiredSize {
+			Log.Debug("freeSize:", freeSize, "requiredSize:", requiredSize)
 			sizeDifference := requiredSize - freeSize
 			//TODO
 			primaryText := Tr("Error while copying to “%B”.") //, dest
@@ -351,7 +397,7 @@ func (job *CommonJob) reportCountProgress() {
 	// job.emitCounting(job.processedAmount[AmountUnitFiles] + job.processedAmount[AmountUnitDirectories])
 }
 
-func (job *CommonJob) scanSources(files []*gio.File) {
+func (job *CommonJob) scanSources(files []*gio.File, recursive bool) {
 	// TODO:
 	// job.reportCountProgress()
 
@@ -360,7 +406,7 @@ func (job *CommonJob) scanSources(files []*gio.File) {
 			break
 		}
 
-		job.scanFile(file)
+		job.scanFile(file, recursive)
 	}
 
 	// job.reportCountProgress()
@@ -371,7 +417,7 @@ func (job *CommonJob) scanSources(files []*gio.File) {
 	job.emitTotalAmount(job.totalAmount[AmountUnitDirectories], AmountUnitDirectories)
 }
 
-func (job *CommonJob) scanFile(file *gio.File) {
+func (job *CommonJob) scanFile(file *gio.File, recursive bool) {
 	dirs := list.New()
 
 retry:
@@ -383,7 +429,7 @@ retry:
 	if err == nil {
 		job.countFile(info)
 
-		if info.GetFileType() == gio.FileTypeDirectory {
+		if info.GetFileType() == gio.FileTypeDirectory && recursive {
 			dirs.PushBack(file)
 		}
 		info.Unref()
@@ -393,7 +439,7 @@ retry:
 		errCode := gio.IOErrorEnum(err.(gio.GError).Code)
 		if errCode != gio.IOErrorEnumCancelled {
 			primaryText := job.getScanPrimary()
-			secondaryText := Tr("")
+			secondaryText := ""
 			detailText := ""
 
 			if errCode == gio.IOErrorEnumPermissionDenied {
@@ -537,7 +583,12 @@ func (job *CommonJob) countFile(fileInfo *gio.FileInfo) {
 	} else {
 		job.totalAmount[AmountUnitFiles]++
 	}
-	job.totalAmount[AmountUnitBytes] += fileInfo.GetSize()
+
+	if job.sumFileAndDir {
+		job.totalAmount[AmountUnitSumOfFilesAndDirs]++
+	} else {
+		job.totalAmount[AmountUnitBytes] += fileInfo.GetSize()
+	}
 
 	// if job.numFilesSineProgress > 100 {
 	// 	// TODO: is count signal needed?
@@ -560,6 +611,8 @@ func (job *CommonJob) getScanPrimary() string {
 		return Tr("Error while deleting.")
 	case OpKindTrash:
 		return Tr("Error while moving files to trash.")
+	case OpKindList:
+		return Tr("Error while listing files.")
 	}
 }
 
@@ -579,8 +632,8 @@ func newCommon(uiDelegate IUIDelegate) *CommonJob {
 	}
 
 	cancellable := gio.NewCancellable()
-	return &CommonJob{
-		SignalManager:         NewSignalManager(cancellable),
+	commonJob := &CommonJob{
+		SignalManager:         NewSignalManager(),
 		cancellable:           cancellable,
 		uiDelegate:            uiDelegate,
 		skippedDirs:           map[string]*gio.File{},
@@ -606,4 +659,13 @@ func newCommon(uiDelegate IUIDelegate) *CommonJob {
 			// AmountUnitSumOfFilesAndDirs: 0,
 		},
 	}
+
+	commonJob.RegisterMonitor(_JobSignalAborted)
+	commonJob.RegisterMonitor(_JobSignalDone)
+	commonJob.RegisterMonitor(_JobSignalSpeed)
+	commonJob.RegisterMonitor(_JobSignalPercent)
+	commonJob.RegisterMonitor(_JobSignalTotalAmount)
+	commonJob.RegisterMonitor(_JobSignalProcessedAmount)
+
+	return commonJob
 }

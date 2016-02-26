@@ -1,9 +1,16 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations
 
 import (
-	"errors"
 	"fmt"
-	"pkg.linuxdeepin.com/lib/gio-2.0"
 	"reflect"
 	"regexp"
 	"strings"
@@ -26,6 +33,9 @@ func (e SignalError) Error() string {
 		return fmt.Sprintf("Invalid signal name %q", e.SignalName)
 	case ErrorSignalNotFound:
 		return fmt.Sprintf("No such a signal %q", e.SignalName)
+	case ErrorNoMonitor:
+		return fmt.Sprintf("No such a monitor %q", e.SignalName)
+
 	}
 
 	panic("wrong SignalError Code")
@@ -38,14 +48,12 @@ var (
 )
 
 type SignalManager struct {
-	reactors    map[string]*SignalReactor
-	cancellable *gio.Cancellable
+	reactors map[string]*SignalReactor
 }
 
-func NewSignalManager(cancellable *gio.Cancellable) *SignalManager {
+func NewSignalManager() *SignalManager {
 	return &SignalManager{
-		reactors:    map[string]*SignalReactor{},
-		cancellable: cancellable,
+		reactors: map[string]*SignalReactor{},
 	}
 }
 
@@ -87,25 +95,29 @@ func (m *SignalManager) getSignalReactor(signalName string) (*SignalReactor, err
 	return reactor, nil
 }
 
+func (m *SignalManager) RegisterMonitor(signalName string) *SignalManager {
+	reactor, _ := m.getSignalReactor(signalName)
+	if reactor == nil {
+		m.createMonitor(signalName)
+	}
+
+	return m
+}
+
 func (m *SignalManager) createMonitor(signalName string) *SignalReactor {
 	signalName = normalizeSignalName(signalName)
-	m.reactors[signalName] = NewSignalReactor(m.cancellable)
+	m.reactors[signalName] = NewSignalReactor(signalName)
 	return m.reactors[signalName]
 }
 
 func (m *SignalManager) ListenSignal(signalName string, fn interface{}) (func(), error) {
 	reactor, err := m.getSignalReactor(signalName)
 	if err != nil {
-		switch err.(SignalError).Code {
-		case ErrorNoMonitor:
-			reactor = m.createMonitor(signalName)
-		default:
-			return func() {}, err
-		}
+		return func() {}, err
 	}
 
 	if reflect.TypeOf(fn).Kind() != reflect.Func {
-		return func() {}, errors.New("not a function")
+		panic("function is required for listening signal.")
 	}
 
 	return reactor.Add(fn), nil
@@ -120,57 +132,43 @@ func (m *SignalManager) Emit(signalName string, args ...interface{}) error {
 	return m.emitReactor(reactor, args...)
 }
 
-func nilArg(argType reflect.Type) reflect.Value {
-	return reflect.New(argType).Elem()
-}
-
-func genArgs(fnType reflect.Type, args []interface{}) ([]reflect.Value, error) {
+func genArgs(fnType reflect.Type, args []interface{}) []reflect.Value {
 	expectNArgs := fnType.NumIn()
 	actualNArgs := len(args)
 	if expectNArgs != actualNArgs {
-		return nil, fmt.Errorf("the function %s expect %d arguments, acctually get %d arguments", fnType, expectNArgs, actualNArgs)
+		panic(fmt.Sprintf("the function %s expect %d arguments, acctually get %d arguments", fnType, expectNArgs, actualNArgs))
 	}
 
 	argsValues := make([]reflect.Value, expectNArgs)
 	for i, arg := range args {
 		argType := fnType.In(i)
 
-		var argValue reflect.Value
-		if arg == nil {
-			argValue = nilArg(argType)
-		} else {
-			argValue = reflect.ValueOf(arg)
+		argValue := reflect.ValueOf(arg)
+		if !argValue.IsValid() {
+			argValue = reflect.Zero(argType)
 		}
 
 		actualType := argValue.Type()
 		if argType != actualType && !actualType.Implements(argType) {
 			// TODO: change %dth to %dst, %dnd, %drd, %dth.
-			return nil, fmt.Errorf("the %dth argument on function %s gets wrong type: expect %v, actually get %v", i, fnType, argType, actualType)
+			panic(fmt.Sprintf("the %dth argument on function %s gets wrong type: expect %v, actually get %v", i, fnType, argType, actualType))
 		}
 		argsValues[i] = argValue
 	}
 
-	return argsValues, nil
+	return argsValues
 }
 
 func (m *SignalManager) emitReactor(reactor *SignalReactor, args ...interface{}) error {
 	enumerator := reactor.Enumerator()
 	defer enumerator.Close()
 	for f := range enumerator.Next() {
-		if m.cancellable != nil && m.cancellable.IsCancelled() {
-			return nil
-		}
-
 		fn := reflect.ValueOf(f)
 		if fn.Kind() != reflect.Func {
-			return errors.New("not a function")
+			panic("function is required for emitting signal.")
 		}
 
-		argsValues, err := genArgs(fn.Type(), args)
-		if err != nil {
-			return err
-		}
-
+		argsValues := genArgs(fn.Type(), args)
 		fn.Call(argsValues)
 	}
 

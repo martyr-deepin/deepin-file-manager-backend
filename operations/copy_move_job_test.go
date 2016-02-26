@@ -1,12 +1,20 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations_test
 
 import (
-	. "deepin-file-manager/operations"
 	. "github.com/smartystreets/goconvey/convey"
-	"net/url"
 	"os"
 	"path/filepath"
-	"pkg.linuxdeepin.com/lib/gio-2.0"
+	"gir/gio-2.0"
+	. "pkg.deepin.io/service/file-manager-backend/operations"
 	"testing"
 )
 
@@ -16,10 +24,8 @@ func TestCopyJob(t *testing.T) {
 		os.Setenv("LANGUAGE", "en_US")
 		srcFilePath, _ := filepath.Abs("./testdata/copy/src/afile")
 		destPath, _ := filepath.Abs("./testdata/copy/dest")
-		srcFileURL, _ := url.Parse(srcFilePath)
-		destURL, _ := url.Parse(destPath)
 
-		job := NewCopyJob([]*url.URL{srcFileURL}, destURL, "", nil)
+		job := NewCopyJob([]string{srcFilePath}, destPath, "", gio.FileCopyFlagsNone, nil)
 		job.Execute()
 
 		copyedFileURL, _ := filepath.Abs("./testdata/copy/dest/afile")
@@ -31,10 +37,8 @@ func TestCopyJob(t *testing.T) {
 		os.Setenv("LANGUAGE", "en_US")
 		srcFilePath, _ := filepath.Abs("./testdata/copy/src/exsitfile")
 		destPath, _ := filepath.Abs("./testdata/copy/dest")
-		srcFileURL, _ := url.Parse(srcFilePath)
-		destURL, _ := url.Parse(destPath)
 
-		job := NewCopyJob([]*url.URL{srcFileURL}, destURL, "", renameMock)
+		job := NewCopyJob([]string{srcFilePath}, destPath, "", gio.FileCopyFlagsNone, renameMock)
 		job.Execute()
 
 		copyedFileURL, _ := filepath.Abs("./testdata/copy/dest/exsitfile")
@@ -46,10 +50,8 @@ func TestCopyJob(t *testing.T) {
 		os.Setenv("LANGUAGE", "en_US")
 		srcFilePath, _ := filepath.Abs("./testdata/copy/src/adir")
 		destPath, _ := filepath.Abs("./testdata/copy/dest")
-		srcFileURL, _ := url.Parse(srcFilePath)
-		destURL, _ := url.Parse(destPath)
 
-		job := NewCopyJob([]*url.URL{srcFileURL}, destURL, "", nil)
+		job := NewCopyJob([]string{srcFilePath}, destPath, "", gio.FileCopyFlagsNone, nil)
 		job.Execute()
 
 		copyedFileURL, _ := filepath.Abs("./testdata/copy/dest/adir")
@@ -61,15 +63,22 @@ func TestCopyJob(t *testing.T) {
 		os.Setenv("LANGUAGE", "en_US")
 		srcFilePath, _ := filepath.Abs("./testdata/copy/src/exsitdir")
 		destPath, _ := filepath.Abs("./testdata/copy/dest")
-		srcFileURL, _ := url.Parse(srcFilePath)
-		destURL, _ := url.Parse(destPath)
 
-		job := NewCopyJob([]*url.URL{srcFileURL}, destURL, "", renameMock)
+		job := NewCopyJob([]string{srcFilePath}, destPath, "", gio.FileCopyFlagsNone, renameMock)
 		job.Execute()
 
 		copyedFileURL, _ := filepath.Abs("./testdata/copy/dest/adir")
 		copyedFile := gio.FileNewForCommandlineArg(copyedFileURL)
 		So(copyedFile.QueryExists(nil), ShouldBeTrue)
+	})
+
+	SkipConvey("dup a file", t, func() {
+		os.Setenv("LANGUAGE", "en_US")
+		srcFilePath, _ := filepath.Abs("./testdata/copy/dest/exsitfile")
+		// destPath, _ := filepath.Abs("./testdata/copy/dest")
+
+		job := NewCopyJob([]string{srcFilePath}, "", "", gio.FileCopyFlagsNone, skipMock)
+		job.Execute()
 	})
 }
 

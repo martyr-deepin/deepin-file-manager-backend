@@ -1,7 +1,15 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations
 
 import (
-	"net/url"
 	"sync"
 )
 
@@ -88,7 +96,7 @@ func (m *FileUndoManager) ListenJobRecordingFinished(fn func(CommandType)) (func
 	return m.ListenSignal(_UndoManagerSignalJobRecordingFinished, fn)
 }
 
-func (*FileUndoManager) RecordJob(op CommandType, srcURLs []*url.URL, destURL *url.URL, job interface{}) {
+func (*FileUndoManager) RecordJob(op CommandType, srcURLs []string, destURL string, job interface{}) {
 	switch op {
 	case CommandMove, CommandCopy:
 		copyMoveJob := job.(*CopyMoveJob)

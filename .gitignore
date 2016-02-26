@@ -1,1 +1,13 @@
+deepin-file-manager-backend
 deepin-file-manager
+build/
+
+core
+
+*.swp
+*~
+#*#
+
+*.mo
+
+version.go

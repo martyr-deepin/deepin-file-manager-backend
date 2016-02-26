@@ -1,9 +1,26 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations
 
 import (
-	"net/url"
-	"pkg.linuxdeepin.com/lib/gio-2.0"
+	"gir/gio-2.0"
+	"strings"
 	"sync"
+)
+
+type ListJobFlag int32
+
+const (
+	ListJobFlagNone ListJobFlag = iota
+	ListJobFlagRecusive
+	ListJobFlagIncludeHidden
 )
 
 // ListProperty represents the properties of files when ListJob is executed.
@@ -12,9 +29,9 @@ type ListProperty struct {
 	BaseName    string
 	URI         string
 	MIME        string
-	Icon        string
 	Size        int64
 	FileType    uint16
+	IsBackup    bool
 	IsHidden    bool
 	IsReadOnly  bool
 	IsSymlink   bool
@@ -27,7 +44,7 @@ type ListProperty struct {
 }
 
 const (
-	// TODO: is progress is needed.
+	// TODO: is progress is needed?
 	_ListJobSignalProperty = "property"
 )
 
@@ -36,7 +53,8 @@ type ListJob struct {
 	*CommonJob
 
 	dir           *gio.File
-	recusive      bool
+	flags         ListJobFlag
+	recursive     bool
 	includeHidden bool
 	waiter        sync.WaitGroup // make sure the channel data is all handled.
 }
@@ -46,97 +64,93 @@ func (job *ListJob) ListenProperty(fn func(ListProperty)) (func(), error) {
 	return job.SignalManager.ListenSignal(_ListJobSignalProperty, fn)
 }
 
-func (job *ListJob) emitProperty(property ListProperty) {
-	job.Emit(_ListJobSignalProperty, property)
-	// func(f interface{}, args ...interface{}) {
-	// 	fn := f.(func(ListProperty))
-	// 	fn(property)
-	// })
+func (job *ListJob) emitProperty(property ListProperty) error {
+	return job.Emit(_ListJobSignalProperty, property)
 }
 
 func (job *ListJob) init() {
+	job.RegisterMonitor(_ListJobSignalProperty)
+
+	job.op = OpKindList
 	job.progressUnit = AmountUnitSumOfFilesAndDirs
 }
 
 func (job *ListJob) finalize() {
 	// don't job.dir.Unref() here, because gobject has no Ref method,
 	// if the job.dir is used somewhere else, like list directory
-	// recusively, then program will be broken.
+	// recursively, then program will be broken.
 	job.waiter.Wait()
 	job.CommonJob.finalize()
 }
 
-func (job *ListJob) appendChild(child *gio.File) {
-	info, err := child.QueryInfo(
-		gio.FileAttributeStandardName+
-			","+gio.FileAttributeStandardType+
-			","+gio.FileAttributeStandardDisplayName+
-			","+gio.FileAttributeStandardSize+
-			","+gio.FileAttributeStandardAllocatedSize+
-			","+gio.FileAttributeTimeModified+
-			","+gio.FileAttributeTimeAccess+
-			","+gio.FileAttributeUnixMode+
-			","+gio.FileAttributeUnixUid+
-			","+gio.FileAttributeStandardIsHidden+
-			","+gio.FileAttributeStandardIsSymlink+
-			","+gio.FileAttributeAccessCanExecute+
-			","+gio.FileAttributeAccessCanRead+
-			","+gio.FileAttributeAccessCanTrash+
-			","+gio.FileAttributeAccessCanWrite+
-			","+gio.FileAttributeAccessCanDelete+
-			","+gio.FileAttributeAccessCanRename+
-			","+gio.FileAttributeStandardContentType,
+func GetListProperty(file *gio.File, cancellable *gio.Cancellable) (ListProperty, error) {
+	property := ListProperty{}
+
+	info, err := file.QueryInfo(strings.Join(
+		[]string{
+			gio.FileAttributeStandardName,
+			gio.FileAttributeStandardType,
+			gio.FileAttributeStandardDisplayName,
+			gio.FileAttributeStandardSize,
+			gio.FileAttributeStandardAllocatedSize,
+			gio.FileAttributeTimeModified,
+			gio.FileAttributeTimeAccess,
+			gio.FileAttributeUnixMode,
+			gio.FileAttributeUnixUid,
+			gio.FileAttributeStandardIsBackup,
+			gio.FileAttributeStandardIsHidden,
+			gio.FileAttributeStandardIsSymlink,
+			gio.FileAttributeAccessCanExecute,
+			gio.FileAttributeAccessCanRead,
+			gio.FileAttributeAccessCanTrash,
+			gio.FileAttributeAccessCanWrite,
+			gio.FileAttributeAccessCanDelete,
+			gio.FileAttributeAccessCanRename,
+			gio.FileAttributeStandardContentType,
+		}, ","),
 		gio.FileQueryInfoFlagsNofollowSymlinks,
-		nil,
+		cancellable,
 	)
 
 	if err != nil {
-		return
-	}
-
-	if info == nil {
-		return
+		return property, err
 	}
 	defer info.Unref()
 
-	fsInfo, _ := child.QueryFilesystemInfo(gio.FileAttributeFilesystemReadonly, job.cancellable)
-	if fsInfo == nil {
-		return
+	isReadOnly := false
+	fsInfo, _ := file.QueryFilesystemInfo(gio.FileAttributeFilesystemReadonly, cancellable)
+	if fsInfo != nil {
+		isReadOnly = fsInfo.GetAttributeBoolean(gio.FileAttributeFilesystemReadonly)
+		fsInfo.Unref()
 	}
-	defer fsInfo.Unref()
 
-	uri := child.GetUri()
+	uri := file.GetUri()
 	displayName := info.GetDisplayName()
 	if displayName == "" {
-		displayName = child.GetBasename()
+		displayName = file.GetBasename()
 	}
-	basename := child.GetBasename()
+	basename := file.GetBasename()
 	contentType := info.GetContentType()
 	canExecute := info.GetAttributeBoolean(gio.FileAttributeAccessCanExecute)
 	if contentType == _DesktopMIMEType && canExecute {
-		desktopApp := gio.NewDesktopAppInfoFromFilename(child.GetPath())
+		desktopApp := gio.NewDesktopAppInfoFromFilename(file.GetPath())
 		if desktopApp != nil {
 			displayName = desktopApp.GetDisplayName()
 			desktopApp.Unref()
 		}
 	}
-	gIcon := info.GetIcon()
-	icon := ""
-	if gIcon != nil {
-		icon = gIcon.ToString()
-	}
 
 	size := info.GetSize()
-	property := ListProperty{
+	property = ListProperty{
 		DisplayName: displayName,
 		BaseName:    basename,
 		URI:         uri,
 		MIME:        contentType,
 		FileType:    uint16(info.GetFileType()),
-		Icon:        icon,
 		Size:        size,
+		IsBackup:    info.GetIsBackup(),
 		IsHidden:    info.GetIsHidden(),
-		IsReadOnly:  info.GetAttributeBoolean(gio.FileAttributeFilesystemReadonly),
+		IsReadOnly:  isReadOnly,
 		CanDelete:   info.GetAttributeBoolean(gio.FileAttributeAccessCanDelete),
 		CanExecute:  canExecute,
 		CanRead:     info.GetAttributeBoolean(gio.FileAttributeAccessCanRead),
@@ -144,11 +158,18 @@ func (job *ListJob) appendChild(child *gio.File) {
 		CanTrash:    info.GetAttributeBoolean(gio.FileAttributeAccessCanTrash),
 		CanWrite:    info.GetAttributeBoolean(gio.FileAttributeAccessCanWrite),
 	}
+	return property, nil
+}
+
+func (job *ListJob) appendChild(child *gio.File) {
+	property, err := GetListProperty(child, job.cancellable)
+	if err != nil {
+		return
+	}
 
 	job.emitProperty(property)
-	fileType := child.QueryFileType(gio.FileQueryInfoFlagsNofollowSymlinks, job.cancellable)
 	unit := AmountUnitFiles
-	switch gio.FileType(fileType) {
+	switch gio.FileType(property.FileType) {
 	case gio.FileTypeDirectory:
 		unit = AmountUnitDirectories
 	}
@@ -159,8 +180,7 @@ func (job *ListJob) appendChild(child *gio.File) {
 
 // Execute ListJob.
 func (job *ListJob) Execute() {
-	defer job.finalize()
-	defer job.emitDone()
+	defer finishJob(job)
 	enumerator, err := job.dir.EnumerateChildren(
 		gio.FileAttributeStandardName+","+gio.FileAttributeStandardIsHidden,
 		gio.FileQueryInfoFlagsNofollowSymlinks,
@@ -171,12 +191,13 @@ func (job *ListJob) Execute() {
 	}
 
 	// walk through the dir for progress.
-	job.scanSources([]*gio.File{job.dir})
+	job.scanSources([]*gio.File{job.dir}, false)
 
 	var info *gio.FileInfo
 	for !job.isAborted() {
 		info, err = enumerator.NextFile(job.cancellable)
 		if info == nil || err != nil {
+			job.setError(err)
 			break
 		}
 
@@ -190,9 +211,9 @@ func (job *ListJob) Execute() {
 
 		// 1. if hidden files are included, check file type.
 		// 2. if hidden files are not included and file is not hidden, check file type.
-		if job.recusive && (job.includeHidden || name[0] != '.') &&
+		if job.recursive && (job.includeHidden || name[0] != '.') &&
 			child.QueryFileType(gio.FileQueryInfoFlagsNofollowSymlinks, job.cancellable) == gio.FileTypeDirectory {
-			newJob := newListDir(child, true, job.includeHidden)
+			newJob := newListDir(child, job.flags) // job.flags always has ListJobFlagRecusive here.
 			subDirProcessedAmount := map[AmountUnit]int64{
 				AmountUnitBytes:       0,
 				AmountUnitFiles:       0,
@@ -228,11 +249,14 @@ func (job *ListJob) Execute() {
 	return
 }
 
-func newListDir(dir *gio.File, recusive bool, includeHidden bool) *ListJob {
+func newListDir(dir *gio.File, flags ListJobFlag) *ListJob {
+	recursive := flags&ListJobFlagRecusive != 0
+	includeHidden := flags&ListJobFlagIncludeHidden != 0
 	job := &ListJob{
 		CommonJob:     newCommon(nil),
 		dir:           dir,
-		recusive:      recusive,
+		flags:         flags,
+		recursive:     recursive,
 		includeHidden: includeHidden,
 	}
 	job.init()
@@ -241,9 +265,9 @@ func newListDir(dir *gio.File, recusive bool, includeHidden bool) *ListJob {
 }
 
 // NewListDirJob creates a new list job to list the contents of a directory.
-// if recusive, recusively list the contents of a directory.
+// if recursive, recursively list the contents of a directory.
 // if includeHidden, list hidden files and direcories as well.
-func NewListDirJob(dir *url.URL, recusive bool, includeHidden bool) *ListJob {
-	dest := uriToGFile(dir)
-	return newListDir(dest, recusive, includeHidden)
+func NewListDirJob(dir string, flags ListJobFlag) *ListJob {
+	dest := gio.FileNewForCommandlineArg(dir)
+	return newListDir(dest, flags)
 }

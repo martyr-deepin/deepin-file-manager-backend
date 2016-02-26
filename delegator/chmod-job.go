@@ -1,10 +1,17 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package delegator
 
 import (
-	"deepin-file-manager/operations"
-	"net/url"
-	"pkg.linuxdeepin.com/lib/dbus"
-	"sync/atomic"
+	"pkg.deepin.io/lib/dbus"
+	"pkg.deepin.io/service/file-manager-backend/operations"
 )
 
 var (
@@ -37,9 +44,9 @@ func (job *ChmodJob) Execute() {
 }
 
 // NewChmodJob creates a new ChmodJob for dbus.
-func NewChmodJob(uri *url.URL, permission uint32) *ChmodJob {
+func NewChmodJob(uri string, permission uint32) *ChmodJob {
 	job := &ChmodJob{
-		dbusInfo: genDBusInfo("ChmodJob", atomic.AddUint64(&_ChmodJobCount, 1)),
+		dbusInfo: genDBusInfo("ChmodJob", &_ChmodJobCount),
 		op:       operations.NewChmodJob(uri, permission),
 	}
 	return job

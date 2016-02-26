@@ -1,0 +1,153 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the file-manager-backend package.
+# 
+# Translators:
+# lexross <its4moi@gmail.com>, 2015
+msgid ""
+msgstr ""
+"Project-Id-Version: Deepin Desktop Environment 2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2015-12-04 16:35+0800\n"
+"PO-Revision-Date: 2015-12-21 19:37+0000\n"
+"Last-Translator: lexross <its4moi@gmail.com>\n"
+"Language-Team: French (http://www.transifex.com/linuxdeepin/deepin-desktop-environment/language/fr/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fr\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: ../desktop/computer_item.go:20 ../desktop/item.go:270
+#: ../desktop/app_group.go:39 ../desktop/trash_item.go:37
+msgid "_Open"
+msgstr "_Ouvrir"
+
+#: ../desktop/computer_item.go:22 ../desktop/item.go:414
+msgid "_Properties"
+msgstr "_Propriétés"
+
+#: ../desktop/item.go:217
+msgid "Open with(_A)"
+msgstr "Ouvrir avec(_A)"
+
+#: ../desktop/item.go:245
+msgid "_Others"
+msgstr "_Autres"
+
+#: ../desktop/item.go:356
+msgid "Co_mpress"
+msgstr "Co_mpresser"
+
+#: ../desktop/item.go:372
+msgid "_Extract Here"
+msgstr "_Extraire ici"
+
+#: ../desktop/item.go:381
+msgid "Cu_t"
+msgstr "Cou_per"
+
+#: ../desktop/item.go:384
+msgid "_Copy"
+msgstr "_Copier"
+
+#: ../desktop/item.go:403 ../desktop/app_group.go:45
+msgid "_Rename"
+msgstr "_Renommer"
+
+#: ../desktop/item.go:408 ../desktop/app_group.go:67
+msgid "_Delete"
+msgstr "_Supprimer"
+
+#: ../desktop/app_group.go:47
+msgid "_Ungroup"
+msgstr "_Dégrouper"
+
+#: ../desktop/app_group.go:245
+msgid "App Group"
+msgstr "Groupe d'Applications"
+
+#: ../desktop/settings.go:91
+msgid "_Name"
+msgstr "_Nom"
+
+#: ../desktop/settings.go:92
+msgid "_Size"
+msgstr "_Taille"
+
+#: ../desktop/settings.go:93
+msgid "_Type"
+msgstr "_Genre"
+
+#: ../desktop/settings.go:94
+msgid "_Date modified"
+msgstr "_Date de modification"
+
+#: ../desktop/trash_item.go:23
+msgid "_Clear"
+msgstr "_Effacer"
+
+#: ../desktop/trash_item.go:34
+#, c-format
+msgid "_Clear %d Item"
+msgid_plural "_Clear %d Items"
+msgstr[0] "_Effacer %d éléments"
+msgstr[1] "_Effacer %d éléments"
+
+#: ../desktop/desktop.go:53
+msgid "New _folder"
+msgstr "Nouveau _dossier"
+
+#: ../desktop/desktop.go:58
+msgid "_Text document"
+msgstr "Document _texte"
+
+#: ../desktop/desktop.go:76
+msgid "New _document"
+msgstr "Nouveau _document"
+
+#: ../desktop/desktop.go:99
+msgid "_Sort by"
+msgstr "_Classer par"
+
+#: ../desktop/desktop.go:102
+msgid "_Paste"
+msgstr "_Coller"
+
+#: ../desktop/desktop.go:108
+msgid "Display settings(_M)"
+msgstr "Mode d'affichages(_M)"
+
+#: ../desktop/desktop.go:110
+msgid "_Corner navigation"
+msgstr "_Actions des Coins"
+
+#: ../desktop/desktop.go:112
+msgid "_Personalize"
+msgstr "_Personnaliser"
+
+#: ../operations/create_job.go:62
+msgid "New folder"
+msgstr "Nouveau dossier"
+
+#: ../operations/create_job.go:71
+msgid "New document"
+msgstr "Nouveau document"
+
+#: ../operations/utils.go:258
+msgid " (Copy)"
+msgstr "(Copier)"
+
+#: ../operations/utils.go:262
+#, c-format
+msgid " (Copy %d)"
+msgstr "(Copier %d)"
+
+#: ../operations/utils.go:282
+msgid " (Copy "
+msgstr "(Copier "
+
+#: ../operations/utils.go:289
+#, c-format
+msgid " (Copy %d"
+msgstr "(Copier %d"

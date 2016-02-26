@@ -1,10 +1,18 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations
 
 import (
 	"errors"
-	"net/url"
+	"gir/gio-2.0"
 	"os"
-	"pkg.linuxdeepin.com/lib/gio-2.0"
 )
 
 // ChmodJob change the mode of a file/directory.
@@ -25,8 +33,7 @@ func (job *ChmodJob) finalize() {
 
 // Execute the ChmodJob.
 func (job *ChmodJob) Execute() {
-	defer job.finalize()
-	defer job.emitDone()
+	defer finishJob(job)
 
 	if job.file != nil {
 		job.setError(os.Chmod(job.file.GetPath(), os.FileMode(job.permission)))
@@ -45,7 +52,7 @@ func newChmodJob(file *gio.File, permission uint32) *ChmodJob {
 }
 
 // NewChmodJob creates a new ChmodJob.
-func NewChmodJob(uri *url.URL, permission uint32) *ChmodJob {
-	file := uriToGFile(uri)
+func NewChmodJob(uri string, permission uint32) *ChmodJob {
+	file := gio.FileNewForCommandlineArg(uri)
 	return newChmodJob(file, permission)
 }

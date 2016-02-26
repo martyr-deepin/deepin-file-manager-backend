@@ -1,8 +1,17 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations
 
 import (
-	"net/url"
-	"pkg.linuxdeepin.com/lib/gio-2.0"
+	"gir/gio-2.0"
+	"strings"
 )
 
 // StatJob list some useful properties for properties window.
@@ -45,18 +54,19 @@ func (job *StatJob) finalize() {
 
 // Execute StatJob.
 func (job *StatJob) Execute() {
-	defer job.finalize()
-	defer job.emitDone()
-	info, err := job.file.QueryInfo(
-		gio.FileAttributeStandardDisplayName+
-			","+gio.FileAttributeUnixMode+
-			","+gio.FileAttributeStandardSize+
-			","+gio.FileAttributeTimeModified+
-			","+gio.FileAttributeTimeAccess+
-			","+gio.FileAttributeStandardContentType+
-			","+gio.FileAttributeOwnerUser+
-			","+gio.FileAttributeOwnerUserReal+
-			","+gio.FileAttributeOwnerGroup,
+	defer finishJob(job)
+	info, err := job.file.QueryInfo(strings.Join(
+		[]string{
+			gio.FileAttributeStandardDisplayName,
+			gio.FileAttributeUnixMode,
+			gio.FileAttributeStandardSize,
+			gio.FileAttributeTimeModified,
+			gio.FileAttributeTimeAccess,
+			gio.FileAttributeStandardContentType,
+			gio.FileAttributeOwnerUser,
+			gio.FileAttributeOwnerUserReal,
+			gio.FileAttributeOwnerGroup,
+		}, ","),
 		gio.FileQueryInfoFlagsNofollowSymlinks,
 		nil)
 	if err != nil {
@@ -90,7 +100,7 @@ func (job *StatJob) Execute() {
 }
 
 // NewStatJob creates a new StatJob.
-func NewStatJob(uri *url.URL) *StatJob {
-	dest := uriToGFile(uri)
+func NewStatJob(uri string) *StatJob {
+	dest := gio.FileNewForCommandlineArg(uri)
 	return newStatJob(dest)
 }

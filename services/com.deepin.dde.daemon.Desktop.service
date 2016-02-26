@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=com.deepin.dde.daemon.Desktop
+Exec=/usr/lib/deepin-daemon/deepin-file-manager-backend
+

@@ -1,7 +1,16 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations_test
 
 import (
-	. "deepin-file-manager/operations"
+	. "pkg.deepin.io/service/file-manager-backend/operations"
 	"net/url"
 	"path/filepath"
 )
@@ -19,7 +28,7 @@ func (*UIMock) AskDeleteConfirmation(primaryText string, secondaryText string, d
 	return true
 }
 
-func (*UIMock) AskDelete(primaryText string, secondaryText string, detailText string, flags int32) Response {
+func (*UIMock) AskDelete(primaryText string, secondaryText string, detailText string, flags UIFlags) Response {
 	return NewResponse(ResponseSkip, true)
 }
 
@@ -31,7 +40,7 @@ func (mock *UIMock) ConflictDialog() Response {
 	return NewResponse(code, true)
 }
 
-func (*UIMock) AskSkip(primaryText string, secondaryText string, detailText string, flags int32) Response {
+func (*UIMock) AskSkip(primaryText string, secondaryText string, detailText string, flags UIFlags) Response {
 	// TODO:
 	return NewResponse(ResponseSkip, true)
 }

@@ -1,16 +1,25 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations
 
 import (
 	"container/list"
-	"deepin-file-manager/timer"
-	"pkg.linuxdeepin.com/lib/gio-2.0"
+	"pkg.deepin.io/lib/timer"
 	"sync"
 )
 
 // TODO: make a real Enumerator.
 type Enumerator struct {
-	ch     chan interface{}
-	closed bool
+	ch        chan interface{}
+	closed    bool
+	closeOnce sync.Once
 }
 
 func NewEnumerator(ch chan interface{}) *Enumerator {
@@ -28,10 +37,10 @@ func (e *Enumerator) IsClosed() bool {
 }
 
 func (e *Enumerator) Close() {
-	if !e.closed {
+	e.closeOnce.Do(func() {
 		close(e.ch)
 		e.closed = true
-	}
+	})
 }
 
 // ReactorElement holds signal handler and a id for that.
@@ -49,16 +58,16 @@ func newReactorElement(id int64, fn interface{}) *ReactorElement {
 
 // SignalReactor is a reactor of one signal.
 type SignalReactor struct {
-	elements    *list.List // there is no priority, priority queue is not necessary.
-	lock        sync.Mutex
-	cancellable *gio.Cancellable
+	signalName string
+	elements   *list.List // there is no priority, priority queue is not necessary.
+	lock       sync.Mutex
 }
 
 // NewSignalReactor creates a new SignalReactor.
-func NewSignalReactor(cancellable *gio.Cancellable) *SignalReactor {
+func NewSignalReactor(signalName string) *SignalReactor {
 	return &SignalReactor{
-		elements:    list.New(),
-		cancellable: cancellable,
+		signalName: signalName,
+		elements:   list.New(),
 	}
 }
 
@@ -94,14 +103,10 @@ func (l *SignalReactor) Enumerator() *Enumerator {
 	go func() {
 		iter := l.elements.Front()
 		for iter != nil {
-			cancellable := l.cancellable
-			if cancellable != nil && cancellable.IsCancelled() {
-				break
-			}
+			listener := iter.Value.(*ReactorElement)
 			if e.IsClosed() {
 				break
 			}
-			listener := iter.Value.(*ReactorElement)
 			e.ch <- listener.fn
 			iter = iter.Next()
 		}

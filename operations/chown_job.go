@@ -1,3 +1,12 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations
 
 // #include <stdlib.h>
@@ -7,10 +16,9 @@ import "C"
 import "unsafe"
 import (
 	"errors"
-	"net/url"
 	"os"
 	"os/user"
-	"pkg.linuxdeepin.com/lib/gio-2.0"
+	"gir/gio-2.0"
 	"strconv"
 )
 
@@ -68,7 +76,7 @@ func newChownJob(file *gio.File, newOwner string, newGroup string) *ChownJob {
 }
 
 // NewChownJob creates a new ChownJob.
-func NewChownJob(uri *url.URL, newOwner string, newGroup string) *ChownJob {
-	file := uriToGFile(uri)
+func NewChownJob(uri string, newOwner string, newGroup string) *ChownJob {
+	file := gio.FileNewForCommandlineArg(uri)
 	return newChownJob(file, newOwner, newGroup)
 }

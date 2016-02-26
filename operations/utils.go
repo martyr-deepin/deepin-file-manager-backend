@@ -1,3 +1,12 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations
 
 // #cgo CFLAGS: -std=c99
@@ -6,24 +15,21 @@ package operations
 import "C"
 
 import (
+	"fmt"
 	"net/url"
-	"pkg.linuxdeepin.com/lib/gettext"
-	"pkg.linuxdeepin.com/lib/gio-2.0"
-	"pkg.linuxdeepin.com/lib/gobject-2.0"
+	"strconv"
+	"strings"
 	"unicode/utf8"
 	"unsafe"
+
+	"gir/gio-2.0"
+	"gir/gobject-2.0"
+	"pkg.deepin.io/lib/gettext"
 )
 
 // Tr is a alias for gettext.Tr, which avoids to use dot import.
 var Tr = gettext.Tr
-
-// NTr is used for translating with words which has plural.
-func NTr(singular, plural string, num uint64) string {
-	if num&1 != 0 {
-		return Tr(singular)
-	}
-	return Tr(plural)
-}
+var NTr = gettext.NTr
 
 func dummy(...interface{}) {
 }
@@ -36,7 +42,15 @@ func uriToGFile(uri *url.URL) *gio.File {
 	return gio.FileNewForUri(uri.String())
 }
 
-func locationListFromUrkList(uris []*url.URL) []*gio.File {
+func locationListFromUriList(uris []string) []*gio.File {
+	files := make([]*gio.File, len(uris))
+	for i, uri := range uris {
+		files[i] = gio.FileNewForCommandlineArg(uri)
+	}
+	return files
+}
+
+func locationListFromUrlList(uris []*url.URL) []*gio.File {
 	files := []*gio.File{}
 	for _, uri := range uris {
 		files = append(files, uriToGFile(uri))
@@ -193,7 +207,7 @@ func isDir(file *gio.File) bool {
 	return false
 }
 
-func getUniqueTargetFile(src *gio.File, destDir *gio.File, sameFs bool, destFsType string, count int) *gio.File {
+func cGetUniqueTargetFile(src *gio.File, destDir *gio.File, sameFs bool, destFsType string, count int) *gio.File {
 	cDestType := C.CString(destFsType)
 	defer C.free(unsafe.Pointer(cDestType))
 	cSameFs := 0
@@ -203,4 +217,127 @@ func getUniqueTargetFile(src *gio.File, destDir *gio.File, sameFs bool, destFsTy
 	gfile := C.get_unique_target_file((*C.struct__GFile)(src.ImplementsGFile()), (*C.struct__GFile)(destDir.ImplementsGFile()), C.gboolean(cSameFs), cDestType, C.int(count))
 	file := (*gio.File)(gobject.ObjectWrap(unsafe.Pointer(gfile), false))
 	return file
+}
+
+func getUniqueTargetFile(src *gio.File, destDir *gio.File, sameFs bool, destFsType string, count int) (dest *gio.File) {
+	maxLength := getMaxNameLength(destDir)
+	info, _ := src.QueryInfo(gio.FileAttributeStandardEditName, 0, nil)
+	if info != nil {
+		defer info.Unref()
+
+		editname := info.GetEditName()
+		if editname != "" {
+			newName := getDuplicateName(editname, count, maxLength)
+			makeFileNameValidForDestFs(newName, destFsType)
+			dest, _ = destDir.GetChildForDisplayName(newName)
+			if dest != nil {
+				return dest
+			}
+		}
+	}
+
+	basename := src.GetBasename()
+	if utf8.ValidString(basename) {
+		newName := getDuplicateName(basename, count, maxLength)
+		makeFileNameValidForDestFs(newName, destFsType)
+		dest, _ = destDir.GetChildForDisplayName(newName)
+		if dest != nil {
+			return dest
+		}
+	}
+
+	idx := strings.LastIndex(basename, ".")
+	if idx != -1 {
+		num, _ := strconv.Atoi(basename[idx+1:])
+		count += num
+		newName := fmt.Sprintf("%s.%d", basename, count)
+		makeFileNameValidForDestFs(newName, destFsType)
+		dest = destDir.GetChild(newName)
+	}
+
+	return dest
+}
+
+func getDuplicateName(name string, countInc int, maxLength int) string {
+	namebase, suffix, count := ParsePreviousDuplicateName(name)
+	duplicatedName := MakeNextDuplicateName(namebase, suffix, count+countInc, maxLength)
+	return duplicatedName
+}
+
+func CopyTag() string {
+	return Tr(" (Copy)")
+}
+
+func CopyTagFmt() string {
+	return Tr(" (Copy %d)")
+}
+
+func ParsePreviousDuplicateName(name string) (namebase string, suffix string, count int) {
+	suffixIdx := FilenameGetExtensionOffset(name)
+	if suffixIdx == -1 || suffixIdx+1 == len(name) {
+		// no suffix
+		suffix = ""
+	} else {
+		suffix = name[suffixIdx:]
+	}
+
+	// case1: xxx (Copy), count = 1
+	if idx := strings.Index(name, CopyTag()); idx != -1 {
+		namebase = name[:idx]
+		count = 1
+		return
+	}
+
+	// case2: xxx (Copy n), count = n
+	idx := strings.Index(name, Tr(" (Copy "))
+	if idx != -1 {
+		if idx > suffixIdx {
+			suffix = ""
+		}
+		namebase = name[:idx]
+
+		if n, _ := fmt.Sscanf(name[idx:], Tr(" (Copy %d"), &count); n == 1 {
+			if count < 1 || count > 1000000 {
+				// keep the count within a reasonable range
+				count = 0
+			}
+		}
+		return
+	}
+
+	if suffix == "" {
+		namebase = name[:]
+	} else {
+		namebase = name[:suffixIdx]
+	}
+	return
+}
+
+func makeDuplicateName(namebase string, suffix string, count int) string {
+	switch count {
+	case 1:
+		return namebase + CopyTag() + suffix
+	default:
+		return namebase + fmt.Sprintf(CopyTagFmt(), count) + suffix
+	}
+}
+
+func MakeNextDuplicateName(namebase string, suffix string, count int, maxLength int) (newName string) {
+	if count < 1 {
+		count = 1
+	}
+
+	newName = makeDuplicateName(namebase, suffix, count)
+
+	if maxLength > 0 {
+		unshortenLength := len(newName)
+		if unshortenLength > maxLength {
+			newBase := ShortenUtf8String(newName, unshortenLength-maxLength)
+			if newBase != "" {
+				newName = makeDuplicateName(newBase, suffix, count)
+			}
+		}
+	}
+
+	return
 }

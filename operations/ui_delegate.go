@@ -1,9 +1,17 @@
+/**
+ * Copyright (C) 2015 Deepin Technology Co., Ltd.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ **/
+
 package operations
 
 import (
-	"deepin-file-manager/dbusproxy"
 	"fmt"
-	"pkg.linuxdeepin.com/lib/dbus"
+	. "pkg.deepin.io/service/file-manager-backend/log"
 )
 
 // type DeletionType int
@@ -54,7 +62,7 @@ func (code ResponseCode) String() string {
 		return "AutoRename"
 	}
 
-	return fmt.Sprintf("Unknow code: %d", int32(code))
+	return fmt.Sprintf("Unknown code: %d", int32(code))
 }
 
 // Response stores the response relavant information like ResponseCode.
@@ -69,6 +77,15 @@ func NewResponse(code ResponseCode, applyToAll bool) Response {
 	return Response{
 		code:       int32(code),
 		applyToAll: applyToAll,
+	}
+}
+
+// NewResponseWithUserData creates a Response from response code code, apply to all and user data.
+func NewResponseWithUserData(code ResponseCode, applyToAll bool, userData string) Response {
+	return Response{
+		code:       int32(code),
+		applyToAll: applyToAll,
+		userData:   userData,
 	}
 }
 
@@ -97,12 +114,34 @@ func (response Response) UserData() string {
 	return response.userData
 }
 
+type UIFlags int32
+
 // UIFlags
 const (
-	UIFlagsNone int32 = iota << 0
+	UIFlagsNone UIFlags = iota << 0
 	UIFlagsRetry
 	UIFlagsMulti
 )
+
+func (flags UIFlags) String() string {
+	strFlags := "UIFlags("
+	if flags&UIFlagsRetry != 0 {
+		strFlags += "retry"
+	}
+
+	if flags&UIFlagsMulti != 0 {
+		if strFlags != "UIFlags(" {
+			strFlags += "|"
+		}
+		strFlags += "multi"
+	}
+
+	if strFlags == "UIFlags(" {
+		strFlags += "NONE"
+	}
+
+	return strFlags + ")"
+}
 
 // IUIDelegate is the interface for ui delegate.
 type IUIDelegate interface {
@@ -111,8 +150,8 @@ type IUIDelegate interface {
 	// if necessary, ask user to confirm whether to delete or trash files.
 	AskDeleteConfirmation(primaryText string, secondaryText string, detailText string) bool
 
-	AskDelete(string, string, string, int32) Response
-	AskSkip(primaryText string, secondaryText string, detailText string, uiFlags int32) Response
+	AskDelete(string, string, string, UIFlags) Response
+	AskSkip(primaryText string, secondaryText string, detailText string, uiFlags UIFlags) Response
 	AskRetry(primaryText string, secondaryText string, detailText string) Response
 
 	// TODO: decide arguments
@@ -129,13 +168,14 @@ func (*_DefaultUIDelegate) AskDeleteConfirmation(primaryText string, secondaryTe
 	return true
 }
 
-func (*_DefaultUIDelegate) AskDelete(primaryText string, secondaryText string, detailText string, flags int32) Response {
+func (*_DefaultUIDelegate) AskDelete(primaryText string, secondaryText string, detailText string, flags UIFlags) Response {
 	return NewResponse(ResponseSkip, true)
 }
 
-func (*_DefaultUIDelegate) AskSkip(primaryText string, secondaryText string, detailText string, flags int32) Response {
+func (*_DefaultUIDelegate) AskSkip(primaryText string, secondaryText string, detailText string, flags UIFlags) Response {
+	Log.Debugf("AskSkip:\n\tprimaryText: %s\n\tsecondaryText: %s\n\tdetailText: %s\n\tflags: %v\n", primaryText, secondaryText, detailText, flags)
 	// TODO:
-	return NewResponse(ResponseCancel, true)
+	return NewResponse(ResponseSkip, true)
 }
 
 func (*_DefaultUIDelegate) ConflictDialog() Response {
@@ -143,61 +183,3 @@ func (*_DefaultUIDelegate) ConflictDialog() Response {
 }
 
 var _deafultUIDelegate = &_DefaultUIDelegate{}
-
-// UIDelegate is a proxy for dbus UIDelegate.
-type UIDelegate struct {
-	proxy *dbusproxy.DBusProxy
-}
-
-// NewUIDelegate creates a new UIDelegate for dbus.
-func NewUIDelegate(conn *dbus.Conn, dest string, objPath string, iface string) (IUIDelegate, error) {
-	proxy, err := dbusproxy.NewDBusProxy(conn, dest, objPath, iface, 0)
-	if err != nil {
-		return nil, err
-	}
-	return &UIDelegate{
-		proxy: proxy,
-	}, nil
-}
-
-func (delegate *UIDelegate) call(name string, args ...interface{}) *dbus.Call {
-	return delegate.proxy.Call(name, args...)
-}
-
-// AskSkip asks user whether skip this error.
-func (delegate *UIDelegate) AskSkip(primaryText string, secondaryText string, detailText string, flags int32) Response {
-	var response Response
-	retry := flags&UIFlagsRetry != 0
-	multi := flags&UIFlagsMulti != 0
-	delegate.call("AskSkip", primaryText, secondaryText, detailText, retry, multi).Store(&response)
-	return response
-}
-
-// AskDelete asks user whether delete.
-func (delegate *UIDelegate) AskDelete(primaryText string, secondaryText string, detailText string, flags int32) Response {
-	var response Response
-	retry := flags&UIFlagsRetry != 0
-	multi := flags&UIFlagsMulti != 0
-	delegate.call("AskDelete", primaryText, secondaryText, detailText, retry, multi).Store(&response)
-	return response
-}
-
-// AskDeleteConfirmation asks for the confirm for delete.
-func (delegate *UIDelegate) AskDeleteConfirmation(primaryText string, secondaryText string, detailText string) bool {
-	confirm := false
-	delegate.call("AskDeleteConfirmation", primaryText, secondaryText, detailText).Store(&confirm)
-	return confirm
-}
-
-// ConflictDialog is used for the conflict situaction like copy.
-func (delegate *UIDelegate) ConflictDialog() Response {
-	// TODO: impl
-	return Response{}
-}
-
-// AskRetry asks user whether to retry this operation.
-func (delegate *UIDelegate) AskRetry(primaryText string, secondaryText string, detailText string) Response {
-	var response Response
-	delegate.call("AskRetry", primaryText, secondaryText, detailText).Store(&response)
-	return response
-}
