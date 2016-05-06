@@ -6,11 +6,11 @@
 # e2f_in_c3 <e2f_in_c3@outlook.com>, 2015
 msgid ""
 msgstr ""
-"Project-Id-Version: Deepin Desktop Environment\n"
+"Project-Id-Version: Deepin Desktop Environment 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-16 15:49+0800\n"
-"PO-Revision-Date: 2016-04-19 01:41+0000\n"
-"Last-Translator: deepin_transifex <xiabin@linuxdeepin.com>\n"
+"POT-Creation-Date: 2015-12-04 16:35+0800\n"
+"PO-Revision-Date: 2015-12-24 12:53+0000\n"
+"Last-Translator: e2f_in_c3 <e2f_in_c3@outlook.com>\n"
 "Language-Team: Hindi (India) (http://www.transifex.com/linuxdeepin/deepin-desktop-environment/language/hi_IN/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -18,136 +18,136 @@ msgstr ""
 "Language: hi_IN\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../desktop/trash_item.go:32
+#: ../desktop/computer_item.go:20 ../desktop/item.go:270
+#: ../desktop/app_group.go:39 ../desktop/trash_item.go:37
+msgid "_Open"
+msgstr "_खोलें"
+
+#: ../desktop/computer_item.go:22 ../desktop/item.go:414
+msgid "_Properties"
+msgstr "_गुण"
+
+#: ../desktop/item.go:217
+msgid "Open with(_A)"
+msgstr "(_A) के साथ खोलें "
+
+#: ../desktop/item.go:245
+msgid "_Others"
+msgstr "_अन्य"
+
+#: ../desktop/item.go:356
+msgid "Co_mpress"
+msgstr "दाब"
+
+#: ../desktop/item.go:372
+msgid "_Extract Here"
+msgstr "_यहां एक्सट्रैक्ट करें"
+
+#: ../desktop/item.go:381
+msgid "Cu_t"
+msgstr "Cu_t"
+
+#: ../desktop/item.go:384
+msgid "_Copy"
+msgstr "_प्रति"
+
+#: ../desktop/item.go:403 ../desktop/app_group.go:45
+msgid "_Rename"
+msgstr "_पुनःनाम"
+
+#: ../desktop/item.go:408 ../desktop/app_group.go:67
+msgid "_Delete"
+msgstr "_हटाएँ"
+
+#: ../desktop/app_group.go:47
+msgid "_Ungroup"
+msgstr "_अनग्रुप करें "
+
+#: ../desktop/app_group.go:245
+msgid "App Group"
+msgstr "ग्रुप शामिल करें "
+
+#: ../desktop/settings.go:91
+msgid "_Name"
+msgstr "_नाम"
+
+#: ../desktop/settings.go:92
+msgid "_Size"
+msgstr "_आकार "
+
+#: ../desktop/settings.go:93
+msgid "_Type"
+msgstr "_टाइप "
+
+#: ../desktop/settings.go:94
+msgid "_Date modified"
+msgstr "_रूपांतरित तिथि"
+
+#: ../desktop/trash_item.go:23
 msgid "_Clear"
 msgstr "_क्लीयर"
 
-#: ../desktop/trash_item.go:43
+#: ../desktop/trash_item.go:34
 #, c-format
 msgid "_Clear %d Item"
 msgid_plural "_Clear %d Items"
 msgstr[0] "_%d आयटम को साफ करें   "
 msgstr[1] "_%d आयटमों को साफ करें "
 
-#: ../desktop/trash_item.go:46 ../desktop/item.go:281
-#: ../desktop/computer_item.go:29 ../desktop/app_group.go:48
-msgid "_Open"
-msgstr "_खोलें"
-
-#: ../desktop/item.go:228
-msgid "Open with(_A)"
-msgstr "(_A) के साथ खोलें "
-
-#: ../desktop/item.go:256
-msgid "_Others"
-msgstr "_अन्य"
-
-#: ../desktop/item.go:367
-msgid "Co_mpress"
-msgstr "दाब"
-
-#: ../desktop/item.go:383
-msgid "_Extract Here"
-msgstr "_यहां एक्सट्रैक्ट करें"
-
-#: ../desktop/item.go:392
-msgid "Cu_t"
-msgstr "Cu_t"
-
-#: ../desktop/item.go:395
-msgid "_Copy"
-msgstr "_प्रति"
-
-#: ../desktop/item.go:408 ../desktop/desktop.go:131
-msgid "Open in _terminal"
-msgstr ""
-
-#: ../desktop/item.go:418 ../desktop/app_group.go:54
-msgid "_Rename"
-msgstr "_पुनःनाम"
-
-#: ../desktop/item.go:423 ../desktop/app_group.go:76
-msgid "_Delete"
-msgstr "_हटाएँ"
-
-#: ../desktop/item.go:429 ../desktop/computer_item.go:31
-msgid "_Properties"
-msgstr "_गुण"
-
-#: ../desktop/app_group.go:56
-msgid "_Ungroup"
-msgstr "_अनग्रुप करें "
-
-#: ../desktop/app_group.go:259
-msgid "App Group"
-msgstr "ग्रुप शामिल करें "
-
-#: ../desktop/settings.go:102
-msgid "_Name"
-msgstr "_नाम"
-
-#: ../desktop/settings.go:103
-msgid "_Size"
-msgstr "_आकार "
-
-#: ../desktop/settings.go:104
-msgid "_Type"
-msgstr "_टाइप "
-
-#: ../desktop/settings.go:105
-msgid "_Date modified"
-msgstr "_रूपांतरित तिथि"
-
-#: ../desktop/desktop.go:64
+#: ../desktop/desktop.go:53
 msgid "New _folder"
 msgstr "नया_फोल्डर"
 
-#: ../desktop/desktop.go:89
+#: ../desktop/desktop.go:58
+msgid "_Text document"
+msgstr "_लेख दस्तावेज़"
+
+#: ../desktop/desktop.go:76
 msgid "New _document"
 msgstr "नया_डॉक्युमेंट"
 
-#: ../desktop/desktop.go:112
+#: ../desktop/desktop.go:99
 msgid "_Sort by"
 msgstr "_द्वारा छांटें"
 
-#: ../desktop/desktop.go:115
+#: ../desktop/desktop.go:102
 msgid "_Paste"
 msgstr "_चिपकाएँ"
 
-#: ../desktop/desktop.go:121
+#: ../desktop/desktop.go:108
 msgid "Display settings(_M)"
 msgstr "डिस्प्ले सेटिंग्स(_M)"
 
-#: ../desktop/desktop.go:123
+#: ../desktop/desktop.go:110
 msgid "_Corner navigation"
 msgstr "_कॉर्नर नेविगेशन"
 
-#: ../desktop/desktop.go:125
-msgid "_Set wallpaper"
-msgstr ""
+#: ../desktop/desktop.go:112
+msgid "_Personalize"
+msgstr "_अनुकूलित "
 
-#: ../operations/create_job.go:71
+#: ../operations/create_job.go:62
 msgid "New folder"
 msgstr "नया फोल्डर "
 
-#: ../operations/create_job.go:80
+#: ../operations/create_job.go:71
 msgid "New document"
 msgstr "नया डॉक्युमेंट "
 
-#: ../operations/utils.go:268
+#: ../operations/utils.go:258
 msgid " (Copy)"
 msgstr " (कॉपी)"
 
-#: ../operations/utils.go:272
+#: ../operations/utils.go:262
 #, c-format
 msgid " (Copy %d)"
 msgstr " (कॉपी %d)"
 
-#: ../operations/utils.go:292
+#: ../operations/utils.go:282
 msgid " (Copy "
 msgstr " (कॉपी"
 
-#: ../operations/utils.go:299
+#: ../operations/utils.go:289
 #, c-format
 msgid " (Copy %d"
 msgstr " (कॉपी %d"
