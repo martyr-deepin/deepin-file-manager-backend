@@ -259,9 +259,10 @@ func (app *Application) getMenuableWithExtraItems(uris []string, withExtraItems 
 	// 5. if non-archived files exist, 'extract here' shouldn't be shown.
 	// 6. if specific item exists, just 'open' menu item exists.
 
-	if isAllAppGroup(uris) {
-		return NewAppGroup(app, uris).enableExtraItems(withExtraItems)
-	}
+	// disable app group right-button menu
+	// if isAllAppGroup(uris) {
+	// 	return NewAppGroup(app, uris).enableExtraItems(withExtraItems)
+	// }
 
 	return NewItem(app, uris).enableExtraItems(withExtraItems)
 }

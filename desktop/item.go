@@ -12,7 +12,6 @@ package desktop
 import (
 	"fmt"
 	"os/exec"
-	"path/filepath"
 	"sort"
 	"strings"
 
@@ -38,7 +37,9 @@ func (s byDisplayName) Len() int {
 
 func containsSpecificItem(uris []string) bool {
 	for _, uri := range uris {
-		if isTrash(uri) || isComputer(uri) || isAppGroup(uri) {
+		// disable app group right-button menu
+		// if isTrash(uri) || isComputer(uri) || isAppGroup(uri) {
+		if isTrash(uri) || isComputer(uri) {
 			return true
 		}
 	}
@@ -352,42 +353,43 @@ func (item *Item) GenMenu() (*Menu, error) {
 	menu.AddSeparator()
 
 	// TODO: use plugin, remove useless function.
-	isAppGroupItem := isAppGroup(filepath.Dir(item.uri))
-	if !isAppGroupItem {
-		runFileRoller := func(cmd string, files []*gio.File, timestamp uint32) error {
-			app, err := gio.AppInfoCreateFromCommandline(cmd, "", gio.AppInfoCreateFlagsSupportsStartupNotification)
-			if err != nil {
-				return err
-			}
-			defer app.Unref()
-			_, err = app.Launch(files, gio.GetGdkAppLaunchContext().SetTimestamp(timestamp))
+	// disable app group right-button menu
+	// isAppGroupItem := isAppGroup(filepath.Dir(item.uri))
+	// if !isAppGroupItem {
+	runFileRoller := func(cmd string, files []*gio.File, timestamp uint32) error {
+		app, err := gio.AppInfoCreateFromCommandline(cmd, "", gio.AppInfoCreateFlagsSupportsStartupNotification)
+		if err != nil {
 			return err
 		}
+		defer app.Unref()
+		_, err = app.Launch(files, gio.GetGdkAppLaunchContext().SetTimestamp(timestamp))
+		return err
+	}
 
-		menu.AppendItem(NewMenuItem(Tr("Co_mpress"), func(timestamp uint32) {
-			err := runFileRoller("file-roller -d %U", item.files, timestamp)
+	menu.AppendItem(NewMenuItem(Tr("Co_mpress"), func(timestamp uint32) {
+		err := runFileRoller("file-roller -d %U", item.files, timestamp)
+		if err != nil {
+			Log.Error("run file-roller failed:", err)
+		}
+	}, true))
+
+	allIsArchived := true
+	for _, file := range item.files {
+		if !isArchived(file) {
+			allIsArchived = false
+			break
+		}
+	}
+
+	if allIsArchived {
+		menu.AppendItem(NewMenuItem(Tr("_Extract Here"), func(timestamp uint32) {
+			err := runFileRoller("file-roller -h", item.files, timestamp)
 			if err != nil {
 				Log.Error("run file-roller failed:", err)
 			}
-		}, true))
-
-		allIsArchived := true
-		for _, file := range item.files {
-			if !isArchived(file) {
-				allIsArchived = false
-				break
-			}
-		}
-
-		if allIsArchived {
-			menu.AppendItem(NewMenuItem(Tr("_Extract Here"), func(timestamp uint32) {
-				err := runFileRoller("file-roller -h", item.files, timestamp)
-				if err != nil {
-					Log.Error("run file-roller failed:", err)
-				}
-			}, true)).AddSeparator()
-		}
+		}, true)).AddSeparator()
 	}
+	// }
 
 	menu.AppendItem(NewMenuItem(Tr("Cu_t"), func(uint32) {
 		operations.CutToClipboard(item.uris)
@@ -414,11 +416,11 @@ func (item *Item) GenMenu() (*Menu, error) {
 
 	menu.AddSeparator()
 
-	if !isAppGroupItem {
-		menu.AppendItem(NewMenuItem(Tr("_Rename"), func(uint32) {
-			item.emitRequestRename()
-		}, !item.multiple))
-	}
+	// if !isAppGroupItem {
+	menu.AppendItem(NewMenuItem(Tr("_Rename"), func(uint32) {
+		item.emitRequestRename()
+	}, !item.multiple))
+	// }
 
 	menu.AppendItem(NewMenuItem(Tr("_Delete"), func(uint32) {
 		item.emitRequestDelete()
