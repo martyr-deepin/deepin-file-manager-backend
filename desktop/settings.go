@@ -317,14 +317,14 @@ func (s *Settings) ConfirmTrashIsEnable() bool {
 	return s.filemanagerPreferences.GetBoolean(ConfirmTrash)
 }
 
+// ConfirmEmptyTrashIsEnable returns whether ConfirmEmptyTrash is enabled.
+func (s *Settings) ConfirmEmptyTrashIsEnable() bool {
+	return s.filemanagerPreferences.GetBoolean(ConfirmEmptyTrash)
+}
+
 // ShowTrashedItemCountIsEnable returns whether ShowTrashedItemCount is enabled.
 func (s *Settings) ShowTrashedItemCountIsEnable() bool {
 	return s.desktopPreferences.GetBoolean(ShowTrashedItemCount)
-}
-
-// ConfirmEmptyTrashIsEnable returns whether ConfirmEmptyTrash is enabled.
-func (s *Settings) ConfirmEmptyTrashIsEnable() bool {
-	return s.desktopPreferences.GetBoolean(ConfirmEmptyTrash)
 }
 
 func (s *Settings) getSortPolicies() []string {
