@@ -90,13 +90,15 @@ void run_in_terminal(char* dir, char* executable)
     GSettings* s = g_settings_new("com.deepin.desktop.default-applications.terminal");
     if (s != NULL) {
         char* terminal = g_settings_get_string(s, "exec");
+        char* terminal_arg = g_settings_get_string(s, "exec-arg");
         g_object_unref(s);
         if (terminal != NULL && terminal[0] != '\0') {
             char* quoted_dir = g_shell_quote(dir);
             char* exec = NULL;
-            exec = g_strdup_printf("sh -c 'cd %s && %s'", quoted_dir, terminal);
+            exec = g_strdup_printf("sh -c 'cd %s && %s %s %s'", quoted_dir, terminal, terminal_arg, executable);
             g_free(quoted_dir);
             g_free(terminal);
+            g_free(terminal_arg);
             is_ok = exec_app_info(dir, exec, G_APP_INFO_CREATE_NONE);
             g_free(exec);
             if (!is_ok) {
