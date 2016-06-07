@@ -23,6 +23,7 @@ import (
 	"pkg.deepin.io/lib/dbus"
 	"pkg.deepin.io/lib/initializer/v2"
 	"pkg.deepin.io/lib/profile"
+	"pkg.deepin.io/lib/proxy"
 
 	"pkg.deepin.io/service/file-manager-backend/clipboard"
 	"pkg.deepin.io/service/file-manager-backend/desktop"
@@ -40,6 +41,8 @@ func main() {
 	app.StartProfile()
 
 	Log.Debug("Parse command line...ok, cost", timer.Elapsed())
+
+	proxy.SetupProxy()
 
 	Log.Info("initialize operation backend...")
 	operationBackend := NewOperationBackend()

@@ -6,11 +6,11 @@
 # freddy4212 <freddy4212@gmail.com>, 2015
 msgid ""
 msgstr ""
-"Project-Id-Version: Deepin Desktop Environment 2.0\n"
+"Project-Id-Version: Deepin Desktop Environment\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-04 16:35+0800\n"
-"PO-Revision-Date: 2015-12-28 19:34+0000\n"
-"Last-Translator: freddy4212 <freddy4212@gmail.com>\n"
+"POT-Creation-Date: 2016-03-16 15:49+0800\n"
+"PO-Revision-Date: 2016-04-19 01:41+0000\n"
+"Last-Translator: deepin_transifex <xiabin@linuxdeepin.com>\n"
 "Language-Team: Chinese (Taiwan) (http://www.transifex.com/linuxdeepin/deepin-desktop-environment/language/zh_TW/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -18,135 +18,135 @@ msgstr ""
 "Language: zh_TW\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: ../desktop/computer_item.go:20 ../desktop/item.go:270
-#: ../desktop/app_group.go:39 ../desktop/trash_item.go:37
-msgid "_Open"
-msgstr "開啟 (_O)"
-
-#: ../desktop/computer_item.go:22 ../desktop/item.go:414
-msgid "_Properties"
-msgstr "內容 (_P)"
-
-#: ../desktop/item.go:217
-msgid "Open with(_A)"
-msgstr "使用其他程式開啟 (_A)"
-
-#: ../desktop/item.go:245
-msgid "_Others"
-msgstr "其他 (_O)"
-
-#: ../desktop/item.go:356
-msgid "Co_mpress"
-msgstr "壓縮檔案 (_M)"
-
-#: ../desktop/item.go:372
-msgid "_Extract Here"
-msgstr "在此解壓縮檔案 (_E)"
-
-#: ../desktop/item.go:381
-msgid "Cu_t"
-msgstr "剪下 (_T)"
-
-#: ../desktop/item.go:384
-msgid "_Copy"
-msgstr "複製 (_C)"
-
-#: ../desktop/item.go:403 ../desktop/app_group.go:45
-msgid "_Rename"
-msgstr "重新命名 (_R)"
-
-#: ../desktop/item.go:408 ../desktop/app_group.go:67
-msgid "_Delete"
-msgstr "刪除 (_D)"
-
-#: ../desktop/app_group.go:47
-msgid "_Ungroup"
-msgstr "取消群組 (_U)"
-
-#: ../desktop/app_group.go:245
-msgid "App Group"
-msgstr "應用程式群組"
-
-#: ../desktop/settings.go:91
-msgid "_Name"
-msgstr "名稱 (_N)"
-
-#: ../desktop/settings.go:92
-msgid "_Size"
-msgstr "大小 (_S)"
-
-#: ../desktop/settings.go:93
-msgid "_Type"
-msgstr "項目類型 (_T)"
-
-#: ../desktop/settings.go:94
-msgid "_Date modified"
-msgstr "修改日期 (_D)"
-
-#: ../desktop/trash_item.go:23
+#: ../desktop/trash_item.go:32
 msgid "_Clear"
 msgstr "清除 (_C)"
 
-#: ../desktop/trash_item.go:34
+#: ../desktop/trash_item.go:43
 #, c-format
 msgid "_Clear %d Item"
 msgid_plural "_Clear %d Items"
 msgstr[0] "清除 %d 個項目 (_C)"
 
-#: ../desktop/desktop.go:53
+#: ../desktop/trash_item.go:46 ../desktop/item.go:281
+#: ../desktop/computer_item.go:29 ../desktop/app_group.go:48
+msgid "_Open"
+msgstr "開啟 (_O)"
+
+#: ../desktop/item.go:228
+msgid "Open with(_A)"
+msgstr "使用其他程式開啟 (_A)"
+
+#: ../desktop/item.go:256
+msgid "_Others"
+msgstr "其他 (_O)"
+
+#: ../desktop/item.go:367
+msgid "Co_mpress"
+msgstr "壓縮檔案 (_M)"
+
+#: ../desktop/item.go:383
+msgid "_Extract Here"
+msgstr "在此解壓縮檔案 (_E)"
+
+#: ../desktop/item.go:392
+msgid "Cu_t"
+msgstr "剪下 (_T)"
+
+#: ../desktop/item.go:395
+msgid "_Copy"
+msgstr "複製 (_C)"
+
+#: ../desktop/item.go:408 ../desktop/desktop.go:131
+msgid "Open in _terminal"
+msgstr "在終端機中打開 (_T)"
+
+#: ../desktop/item.go:418 ../desktop/app_group.go:54
+msgid "_Rename"
+msgstr "重新命名 (_R)"
+
+#: ../desktop/item.go:423 ../desktop/app_group.go:76
+msgid "_Delete"
+msgstr "刪除 (_D)"
+
+#: ../desktop/item.go:429 ../desktop/computer_item.go:31
+msgid "_Properties"
+msgstr "內容 (_P)"
+
+#: ../desktop/app_group.go:56
+msgid "_Ungroup"
+msgstr "取消群組 (_U)"
+
+#: ../desktop/app_group.go:259
+msgid "App Group"
+msgstr "應用程式群組"
+
+#: ../desktop/settings.go:102
+msgid "_Name"
+msgstr "名稱 (_N)"
+
+#: ../desktop/settings.go:103
+msgid "_Size"
+msgstr "大小 (_S)"
+
+#: ../desktop/settings.go:104
+msgid "_Type"
+msgstr "項目類型 (_T)"
+
+#: ../desktop/settings.go:105
+msgid "_Date modified"
+msgstr "修改日期 (_D)"
+
+#: ../desktop/desktop.go:64
 msgid "New _folder"
 msgstr "新增資料夾 (_F)"
 
-#: ../desktop/desktop.go:58
-msgid "_Text document"
-msgstr "文字文件 (_T)"
-
-#: ../desktop/desktop.go:76
+#: ../desktop/desktop.go:89
 msgid "New _document"
 msgstr "新文件 (_D)"
 
-#: ../desktop/desktop.go:99
+#: ../desktop/desktop.go:112
 msgid "_Sort by"
 msgstr "排序方式 (_S)"
 
-#: ../desktop/desktop.go:102
+#: ../desktop/desktop.go:115
 msgid "_Paste"
 msgstr "貼上 (_P)"
 
-#: ../desktop/desktop.go:108
+#: ../desktop/desktop.go:121
 msgid "Display settings(_M)"
 msgstr "顯示設定 (_M)"
 
-#: ../desktop/desktop.go:110
+#: ../desktop/desktop.go:123
 msgid "_Corner navigation"
 msgstr "螢幕熱點設定 (_C)"
 
-#: ../desktop/desktop.go:112
-msgid "_Personalize"
-msgstr "個人化 (_P)"
+#: ../desktop/desktop.go:125
+msgid "_Set wallpaper"
+msgstr ""
 
-#: ../operations/create_job.go:62
+#: ../operations/create_job.go:71
 msgid "New folder"
 msgstr "新增資料夾"
 
-#: ../operations/create_job.go:71
+#: ../operations/create_job.go:80
 msgid "New document"
 msgstr "新文件"
 
-#: ../operations/utils.go:258
+#: ../operations/utils.go:268
 msgid " (Copy)"
 msgstr "( 複製 )"
 
-#: ../operations/utils.go:262
+#: ../operations/utils.go:272
 #, c-format
 msgid " (Copy %d)"
-msgstr "( 複製 %d)"
+msgstr "( 複製 %d )"
 
-#: ../operations/utils.go:282
+#: ../operations/utils.go:292
 msgid " (Copy "
 msgstr "( 複製"
 
-#: ../operations/utils.go:289
+#: ../operations/utils.go:299
 #, c-format
 msgid " (Copy %d"
 msgstr "( 複製 %d"

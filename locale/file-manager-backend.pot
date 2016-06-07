@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: file-manager-backend unknown\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-04 16:35+0800\n"
+"POT-Creation-Date: 2016-03-16 15:49+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,136 +18,136 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: ../desktop/computer_item.go:20 ../desktop/item.go:270
-#: ../desktop/app_group.go:39 ../desktop/trash_item.go:37
-msgid "_Open"
-msgstr ""
-
-#: ../desktop/computer_item.go:22 ../desktop/item.go:414
-msgid "_Properties"
-msgstr ""
-
-#: ../desktop/item.go:217
-msgid "Open with(_A)"
-msgstr ""
-
-#: ../desktop/item.go:245
-msgid "_Others"
-msgstr ""
-
-#: ../desktop/item.go:356
-msgid "Co_mpress"
-msgstr ""
-
-#: ../desktop/item.go:372
-msgid "_Extract Here"
-msgstr ""
-
-#: ../desktop/item.go:381
-msgid "Cu_t"
-msgstr ""
-
-#: ../desktop/item.go:384
-msgid "_Copy"
-msgstr ""
-
-#: ../desktop/item.go:403 ../desktop/app_group.go:45
-msgid "_Rename"
-msgstr ""
-
-#: ../desktop/item.go:408 ../desktop/app_group.go:67
-msgid "_Delete"
-msgstr ""
-
-#: ../desktop/app_group.go:47
-msgid "_Ungroup"
-msgstr ""
-
-#: ../desktop/app_group.go:245
-msgid "App Group"
-msgstr ""
-
-#: ../desktop/settings.go:91
-msgid "_Name"
-msgstr ""
-
-#: ../desktop/settings.go:92
-msgid "_Size"
-msgstr ""
-
-#: ../desktop/settings.go:93
-msgid "_Type"
-msgstr ""
-
-#: ../desktop/settings.go:94
-msgid "_Date modified"
-msgstr ""
-
-#: ../desktop/trash_item.go:23
+#: ../desktop/trash_item.go:32
 msgid "_Clear"
 msgstr ""
 
-#: ../desktop/trash_item.go:34
+#: ../desktop/trash_item.go:43
 #, c-format
 msgid "_Clear %d Item"
 msgid_plural "_Clear %d Items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../desktop/desktop.go:53
+#: ../desktop/trash_item.go:46 ../desktop/item.go:281
+#: ../desktop/computer_item.go:29 ../desktop/app_group.go:48
+msgid "_Open"
+msgstr ""
+
+#: ../desktop/item.go:228
+msgid "Open with(_A)"
+msgstr ""
+
+#: ../desktop/item.go:256
+msgid "_Others"
+msgstr ""
+
+#: ../desktop/item.go:367
+msgid "Co_mpress"
+msgstr ""
+
+#: ../desktop/item.go:383
+msgid "_Extract Here"
+msgstr ""
+
+#: ../desktop/item.go:392
+msgid "Cu_t"
+msgstr ""
+
+#: ../desktop/item.go:395
+msgid "_Copy"
+msgstr ""
+
+#: ../desktop/item.go:408 ../desktop/desktop.go:131
+msgid "Open in _terminal"
+msgstr ""
+
+#: ../desktop/item.go:418 ../desktop/app_group.go:54
+msgid "_Rename"
+msgstr ""
+
+#: ../desktop/item.go:423 ../desktop/app_group.go:76
+msgid "_Delete"
+msgstr ""
+
+#: ../desktop/item.go:429 ../desktop/computer_item.go:31
+msgid "_Properties"
+msgstr ""
+
+#: ../desktop/app_group.go:56
+msgid "_Ungroup"
+msgstr ""
+
+#: ../desktop/app_group.go:259
+msgid "App Group"
+msgstr ""
+
+#: ../desktop/settings.go:102
+msgid "_Name"
+msgstr ""
+
+#: ../desktop/settings.go:103
+msgid "_Size"
+msgstr ""
+
+#: ../desktop/settings.go:104
+msgid "_Type"
+msgstr ""
+
+#: ../desktop/settings.go:105
+msgid "_Date modified"
+msgstr ""
+
+#: ../desktop/desktop.go:64
 msgid "New _folder"
 msgstr ""
 
-#: ../desktop/desktop.go:58
-msgid "_Text document"
-msgstr ""
-
-#: ../desktop/desktop.go:76
+#: ../desktop/desktop.go:89
 msgid "New _document"
 msgstr ""
 
-#: ../desktop/desktop.go:99
+#: ../desktop/desktop.go:112
 msgid "_Sort by"
 msgstr ""
 
-#: ../desktop/desktop.go:102
+#: ../desktop/desktop.go:115
 msgid "_Paste"
 msgstr ""
 
-#: ../desktop/desktop.go:108
+#: ../desktop/desktop.go:121
 msgid "Display settings(_M)"
 msgstr ""
 
-#: ../desktop/desktop.go:110
+#: ../desktop/desktop.go:123
 msgid "_Corner navigation"
 msgstr ""
 
-#: ../desktop/desktop.go:112
-msgid "_Personalize"
-msgstr ""
-
-#: ../operations/create_job.go:62
-msgid "New folder"
+#: ../desktop/desktop.go:125
+msgid "_Set wallpaper"
 msgstr ""
 
 #: ../operations/create_job.go:71
+msgid "New folder"
+msgstr ""
+
+#: ../operations/create_job.go:80
 msgid "New document"
 msgstr ""
 
-#: ../operations/utils.go:258
+#: ../operations/utils.go:268
 msgid " (Copy)"
 msgstr ""
 
-#: ../operations/utils.go:262
+#: ../operations/utils.go:272
 #, c-format
 msgid " (Copy %d)"
 msgstr ""
 
-#: ../operations/utils.go:282
+#: ../operations/utils.go:292
 msgid " (Copy "
 msgstr ""
 
-#: ../operations/utils.go:289
+#: ../operations/utils.go:299
 #, c-format
 msgid " (Copy %d"
 msgstr ""
