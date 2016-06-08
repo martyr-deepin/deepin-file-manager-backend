@@ -28,6 +28,7 @@ import (
 	"gir/glib-2.0"
 	"pkg.deepin.io/dde/api/thumbnails"
 	"pkg.deepin.io/lib/dbus"
+	"pkg.deepin.io/lib/utils"
 	. "pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"
 )
@@ -452,7 +453,7 @@ func isExecutableScript() bool {
 
 func (app *Application) doActivateFile(f *gio.File, args []string, isExecutable bool, contentType string, timestamp uint32, flag int32) error {
 	plainType := "text/plain"
-	file := f.GetUri()
+	file := utils.DecodeURI(f.GetUri())
 
 	if isExecutable && (contentTypeCanBeExecutable(contentType) || strings.HasSuffix(file, ".bin")) {
 		if contentTypeIs(contentType, plainType) { // runable file
