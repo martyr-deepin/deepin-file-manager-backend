@@ -203,7 +203,7 @@ func (app *Application) emitRequestPaste(dest string) error {
 }
 
 func (app *Application) showProperties(uris []string) {
-	exec.Command("deepin-nautilus-properties", uris...).Start()
+	go exec.Command("deepin-nautilus-properties", uris...).Run()
 }
 
 func isAppGroup(uri string) bool {
@@ -462,13 +462,19 @@ func (app *Application) doActivateFile(f *gio.File, args []string, isExecutable 
 				runInTerminal("", file)
 				return nil
 			case app.ActivateFlagRun:
-				return exec.Command(file).Start()
+				handler := exec.Command(file)
+				err := handler.Start()
+				go handler.Wait()
+				return err
 			case app.ActivateFlagDisplay:
 				return app.doDisplayFile(f, contentType, timestamp)
 			}
 		} else { // binary file
 			// FIXME: strange logic from dde-workspace, why args is not used on the other places.
-			return exec.Command(file, args...).Start()
+			handler := exec.Command(file, args...)
+			err := handler.Start()
+			go handler.Wait()
+			return err
 		}
 	}
 

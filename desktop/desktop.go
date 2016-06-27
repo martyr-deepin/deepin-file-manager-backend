@@ -121,9 +121,9 @@ func (desktop *Desktop) GenMenu() (*Menu, error) {
 		menu.AddSeparator().AppendItem(NewMenuItem(Tr("Display settings(_M)"), func(uint32) {
 			showModule("display")
 		}, true)).AppendItem(NewMenuItem(Tr("_Corner navigation"), func(uint32) {
-			exec.Command("/usr/lib/deepin-daemon/dde-zone").Start()
+			go exec.Command("/usr/lib/deepin-daemon/dde-zone").Run()
 		}, true)).AppendItem(NewMenuItem(Tr("_Set wallpaper"), func(uint32) {
-			exec.Command("/usr/lib/deepin-daemon/dde-wallpaper-chooser").Start()
+			go exec.Command("/usr/lib/deepin-daemon/dde-wallpaper-chooser").Run()
 		}, true))
 	}
 
