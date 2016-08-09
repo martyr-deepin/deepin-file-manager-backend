@@ -31,6 +31,7 @@ import (
 	"pkg.deepin.io/lib/utils"
 	. "pkg.deepin.io/service/file-manager-backend/log"
 	"pkg.deepin.io/service/file-manager-backend/operations"
+	"unicode/utf8"
 )
 
 // GetUserSpecialDir returns user special dir, like music directory.
@@ -591,6 +592,15 @@ func fixDisplayNameForAppGroup(info ItemInfo) ItemInfo {
 	if info.FileType == uint16(gio.FileTypeDirectory) && strings.HasPrefix(info.BaseName, AppGroupPrefix) {
 		info.DisplayName = strings.TrimPrefix(info.DisplayName, AppGroupPrefix)
 	}
+
+	// fix bug: name contains invalid coding
+	if !utf8.ValidString(info.DisplayName) {
+		info.DisplayName = fmt.Sprintf("%q", info.DisplayName)
+	}
+	if !utf8.ValidString(info.BaseName) {
+		info.BaseName = fmt.Sprintf("%q", info.BaseName)
+	}
+
 	return info
 }
 
