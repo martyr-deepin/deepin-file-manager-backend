@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Deepin Desktop Environment\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-16 15:49+0800\n"
-"PO-Revision-Date: 2016-04-19 01:41+0000\n"
+"POT-Creation-Date: 2016-08-08 15:39+0800\n"
+"PO-Revision-Date: 2016-08-09 01:04+0000\n"
 "Last-Translator: deepin_transifex <xiabin@linuxdeepin.com>\n"
 "Language-Team: Romanian (http://www.transifex.com/linuxdeepin/deepin-desktop-environment/language/ro/)\n"
 "MIME-Version: 1.0\n"
@@ -29,48 +29,48 @@ msgstr[0] "_Șterge %d obiect"
 msgstr[1] "_Ştergere %d elemente"
 msgstr[2] "_Șterge %d obiecte"
 
-#: ../desktop/trash_item.go:46 ../desktop/item.go:281
+#: ../desktop/trash_item.go:46 ../desktop/item.go:282
 #: ../desktop/computer_item.go:29 ../desktop/app_group.go:48
 msgid "_Open"
 msgstr "_Deschide"
 
-#: ../desktop/item.go:228
+#: ../desktop/item.go:229
 msgid "Open with(_A)"
 msgstr "Deschidere cu(_A)"
 
-#: ../desktop/item.go:256
+#: ../desktop/item.go:257
 msgid "_Others"
 msgstr "_Altele"
 
-#: ../desktop/item.go:367
+#: ../desktop/item.go:369
 msgid "Co_mpress"
 msgstr "Co_mprimă"
 
-#: ../desktop/item.go:383
+#: ../desktop/item.go:385
 msgid "_Extract Here"
 msgstr "_Extragere aici"
 
-#: ../desktop/item.go:392
+#: ../desktop/item.go:394
 msgid "Cu_t"
 msgstr "Ta_ie"
 
-#: ../desktop/item.go:395
+#: ../desktop/item.go:397
 msgid "_Copy"
 msgstr "_Copie"
 
-#: ../desktop/item.go:408 ../desktop/desktop.go:131
+#: ../desktop/item.go:410 ../desktop/desktop.go:131
 msgid "Open in _terminal"
 msgstr "Deschide in _terminal"
 
-#: ../desktop/item.go:418 ../desktop/app_group.go:54
+#: ../desktop/item.go:420 ../desktop/app_group.go:54
 msgid "_Rename"
 msgstr "_Redenumește"
 
-#: ../desktop/item.go:423 ../desktop/app_group.go:76
+#: ../desktop/item.go:425 ../desktop/app_group.go:76
 msgid "_Delete"
 msgstr "_Șterge"
 
-#: ../desktop/item.go:429 ../desktop/computer_item.go:31
+#: ../desktop/item.go:431 ../desktop/computer_item.go:31
 msgid "_Properties"
 msgstr "_Proprietăți"
 
@@ -123,7 +123,7 @@ msgid "_Corner navigation"
 msgstr "_Navigare colț"
 
 #: ../desktop/desktop.go:125
-msgid "_Set wallpaper"
+msgid "Set _wallpaper"
 msgstr ""
 
 #: ../operations/create_job.go:71
