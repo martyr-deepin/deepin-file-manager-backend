@@ -1,7 +1,7 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the file-manager-backend package.
-# 
+#
 # Translators:
 # szd_liufei <liufei@deepin.com>, 2016
 # szd_liufei <liufei@deepin.com>, 2015-2016
@@ -125,6 +125,10 @@ msgstr "热区设置(_C)"
 #: ../desktop/desktop.go:125
 msgid "Set _wallpaper"
 msgstr "设置壁纸(_W)"
+
+#: ../desktop/desktop.go:127
+msgid "_Personalize"
+msgstr "个性化(_P)"
 
 #: ../operations/create_job.go:71
 msgid "New folder"

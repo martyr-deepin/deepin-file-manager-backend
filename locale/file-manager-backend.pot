@@ -126,6 +126,10 @@ msgstr ""
 msgid "Set _wallpaper"
 msgstr ""
 
+#: ../desktop/desktop.go:127
+msgid "_Personalize"
+msgstr ""
+
 #: ../operations/create_job.go:71
 msgid "New folder"
 msgstr ""

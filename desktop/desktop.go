@@ -12,6 +12,7 @@ package desktop
 import (
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sort"
 
 	"gir/glib-2.0"
@@ -122,9 +123,17 @@ func (desktop *Desktop) GenMenu() (*Menu, error) {
 			showModule("display")
 		}, true)).AppendItem(NewMenuItem(Tr("_Corner navigation"), func(uint32) {
 			go exec.Command("/usr/lib/deepin-daemon/dde-zone").Run()
-		}, true)).AppendItem(NewMenuItem(Tr("Set _wallpaper"), func(uint32) {
-			go exec.Command("/usr/lib/deepin-daemon/dde-wallpaper-chooser").Run()
 		}, true))
+
+		if runtime.GOARCH == "amd64" || runtime.GOARCH == "386" {
+			menu.AppendItem(NewMenuItem(Tr("Set _wallpaper"), func(uint32) {
+				go exec.Command("/usr/lib/deepin-daemon/dde-wallpaper-chooser").Run()
+			}, true))
+		} else {
+			menu.AppendItem(NewMenuItem(Tr("_Personalize"), func(uint32) {
+				showModule("personalization")
+			}, true))
+		}
 	}
 
 	if desktop.displayExtraItems {
