@@ -33,6 +33,9 @@ import (
 )
 
 func main() {
+	// change current working directory to desktop.
+	os.Chdir(desktop.GetDesktopDir())
+
 	timer := profile.NewTimer()
 
 	app := dapp.New("deepin-file-manager-backend", "the backend of deepin file manager", "version "+__VERSION__)
