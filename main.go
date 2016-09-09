@@ -15,6 +15,7 @@ package main
 import "C"
 import (
 	"os"
+	"syscall"
 
 	"gir/glib-2.0"
 	"pkg.deepin.io/dde/api/session"
@@ -112,6 +113,11 @@ func main() {
 	dbus.DealWithUnhandledMessage()
 
 	Log.Info("Total cost", timer.TotalCost())
+
+	if os.Getenv("DEEPIN_MLOCKALL") == "true" {
+		Log.Warning("Call mlockall(MCL_CURRENT) to avoid swap")
+		syscall.Mlockall(syscall.MCL_CURRENT)
+	}
 
 	if err := dbus.Wait(); err != nil {
 		Log.Info(err)
